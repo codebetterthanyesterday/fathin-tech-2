@@ -64,6 +64,8 @@ export type HeroContent = z.infer<typeof HeroContentSchema>;
 export type SkillsGridContent = z.infer<typeof SkillsGridContentSchema>;
 export type ProjectsGridContent = z.infer<typeof ProjectsGridContentSchema>;
 export type ExperienceTimelineContent = z.infer<typeof ExperienceTimelineContentSchema>;
+export type TestimonialsContent = z.infer<typeof TestimonialsContentSchema>;
+export type ArticlesListContent = z.infer<typeof ArticlesListContentSchema>;
 
 // ─────────────────────────────────────────────
 // Default content per type (used in seed script + admin form)

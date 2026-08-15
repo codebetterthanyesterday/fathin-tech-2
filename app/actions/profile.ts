@@ -24,9 +24,6 @@ const profileSchema = z.object({
   location: z.string().optional(),
   socialLinks: z.string().optional(), // Will be parsed to JSON
   resumeUrl: z.string().url().optional().or(z.literal('')),
-  themeAccentColor: z.string().optional().default('#ffffff'),
-  themeFont: z.string().optional().default('Geist'),
-  themeTemplate: z.string().optional().default('minimal'),
 });
 
 export async function getProfile() {
@@ -63,9 +60,6 @@ export async function upsertProfile(prevState: any, formData: FormData): Promise
     location: formData.get('location') as string,
     socialLinks: formData.get('socialLinks') as string,
     resumeUrl: formData.get('resumeUrl') as string,
-    themeAccentColor: formData.get('themeAccentColor') as string,
-    themeFont: formData.get('themeFont') as string,
-    themeTemplate: formData.get('themeTemplate') as string,
   };
 
   const validatedFields = profileSchema.safeParse(rawData);
@@ -88,12 +82,12 @@ export async function upsertProfile(prevState: any, formData: FormData): Promise
       const validatedSocial = socialLinksSchema.safeParse(parsed);
       if (!validatedSocial.success) {
         const firstIssue = validatedSocial.error.issues[0];
-        const errorMessage = firstIssue ? firstIssue.message : 'harus berupa JSON string-to-url (contoh: {"github": "https://..."})';
+        const errorMessage = firstIssue ? firstIssue.message : 'harus berupa JSON array';
         return { error: `Format Social Links tidak valid: ${errorMessage}` };
       }
       socialLinksJson = validatedSocial.data;
     } catch (e) {
-      return { error: 'Format Social Links tidak valid: Pastikan menggunakan format JSON yang benar (gunakan tanda kutip ganda)' };
+      return { error: 'Format Social Links tidak valid: Pastikan menggunakan format JSON yang benar' };
     }
   }
 
@@ -111,9 +105,10 @@ export async function upsertProfile(prevState: any, formData: FormData): Promise
       location: data.location || null,
       socialLinks: socialLinksJson,
       resumeUrl: data.resumeUrl || null,
-      themeAccentColor: data.themeAccentColor,
-      themeFont: data.themeFont,
-      themeTemplate: data.themeTemplate,
+      // Preserve existing theme settings without overwriting them
+      themeAccentColor: existingProfile?.themeAccentColor || '#ffffff',
+      themeFont: existingProfile?.themeFont || 'Geist',
+      themeTemplate: existingProfile?.themeTemplate || 'minimal',
     };
 
     if (existingProfile) {
@@ -129,6 +124,7 @@ export async function upsertProfile(prevState: any, formData: FormData): Promise
 
     revalidatePath('/');
     revalidatePath('/admin/profile');
+    revalidatePath('/admin/settings');
 
     return { success: 'Profil berhasil disimpan!' };
   } catch (error) {

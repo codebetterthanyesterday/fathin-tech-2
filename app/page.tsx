@@ -4,6 +4,8 @@ import {
   ProjectsGridContent,
   ExperienceTimelineContent,
   SkillsGridContent,
+  TestimonialsContent,
+  ArticlesListContent,
 } from '@/lib/sections/schema';
 import { prisma } from '@/lib/prisma';
 import ContactSection from '@/components/public/contact-section';
@@ -14,12 +16,16 @@ import MinimalHeroSection from '@/components/public/templates/minimal/hero-secti
 import MinimalSkillsSection from '@/components/public/templates/minimal/skills-section';
 import MinimalFeaturedProjects from '@/components/public/templates/minimal/featured-projects';
 import MinimalExperienceTimeline from '@/components/public/templates/minimal/experience-timeline';
+import MinimalTestimonialsSection from '@/components/public/templates/minimal/testimonials-section';
+import MinimalArticlesSection from '@/components/public/templates/minimal/articles-section';
 
 // Immersive Template Imports
 import ImmersiveHeroSection from '@/components/public/templates/immersive/hero-section';
 import ImmersiveSkillsSection from '@/components/public/templates/immersive/skills-section';
 import ImmersiveFeaturedProjects from '@/components/public/templates/immersive/featured-projects';
 import ImmersiveExperienceTimeline from '@/components/public/templates/immersive/experience-timeline';
+import ImmersiveTestimonialsSection from '@/components/public/templates/immersive/testimonials-section';
+import ImmersiveArticlesSection from '@/components/public/templates/immersive/articles-section';
 
 const templates: Record<string, any> = {
   minimal: {
@@ -27,12 +33,16 @@ const templates: Record<string, any> = {
     SkillsSection: MinimalSkillsSection,
     FeaturedProjects: MinimalFeaturedProjects,
     ExperienceTimeline: MinimalExperienceTimeline,
+    TestimonialsSection: MinimalTestimonialsSection,
+    ArticlesSection: MinimalArticlesSection,
   },
   immersive: {
     HeroSection: ImmersiveHeroSection,
     SkillsSection: ImmersiveSkillsSection,
     FeaturedProjects: ImmersiveFeaturedProjects,
     ExperienceTimeline: ImmersiveExperienceTimeline,
+    TestimonialsSection: ImmersiveTestimonialsSection,
+    ArticlesSection: ImmersiveArticlesSection,
   },
 };
 
@@ -125,6 +135,22 @@ async function fetchSkillsData(content: SkillsGridContent) {
   return prisma.skill.findMany({
     where: categories ? { category: { in: categories as any } } : undefined,
     orderBy: { order: 'asc' },
+  });
+}
+
+async function fetchTestimonialsData(content: TestimonialsContent) {
+  return prisma.testimonial.findMany({
+    where: { isVisible: true },
+    take: content.limit || undefined,
+    orderBy: { order: 'asc' },
+  });
+}
+
+async function fetchArticlesData(content: ArticlesListContent) {
+  return prisma.article.findMany({
+    where: { isPublished: true },
+    take: content.limit || 3,
+    orderBy: { publishedAt: 'desc' },
   });
 }
 
@@ -243,10 +269,21 @@ export default async function Home() {
         break;
       }
 
-      // TESTIMONIALS and ARTICLES_LIST are stubs — no-op until their PBIs
-      case 'TESTIMONIALS':
-      case 'ARTICLES_LIST':
+      case 'TESTIMONIALS': {
+        const testimonials = await fetchTestimonialsData(rawContent as TestimonialsContent);
+        if (testimonials.length > 0) {
+          renderedSections.push(<Template.TestimonialsSection key={section.id} testimonials={testimonials} />);
+        }
         break;
+      }
+
+      case 'ARTICLES_LIST': {
+        const articles = await fetchArticlesData(rawContent as ArticlesListContent);
+        if (articles.length > 0) {
+          renderedSections.push(<Template.ArticlesSection key={section.id} articles={articles} />);
+        }
+        break;
+      }
 
       default:
         break;

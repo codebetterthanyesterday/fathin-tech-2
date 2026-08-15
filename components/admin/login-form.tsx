@@ -4,6 +4,7 @@ import { useActionState } from 'react';
 import { login } from '@/app/actions/auth';
 import { Loader2, ArrowRight } from 'lucide-react';
 import { useState } from 'react';
+import Link from 'next/link';
 
 const initialState = {
   error: '',
@@ -40,9 +41,17 @@ export default function LoginForm() {
           </div>
 
           <div className="space-y-2">
-            <label htmlFor="password" className="block text-sm font-medium text-zinc-300">
-              Password
-            </label>
+            <div className="flex items-center justify-between">
+              <label htmlFor="password" className="block text-sm font-medium text-zinc-300">
+                Password
+              </label>
+              <Link
+                href="/forgot-password"
+                className="text-xs text-zinc-400 hover:text-white transition-colors"
+              >
+                Lupa password?
+              </Link>
+            </div>
             <div className="relative group/input">
               <input
                 id="password"

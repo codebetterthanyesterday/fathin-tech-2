@@ -1,6 +1,6 @@
 'use client';
 
-import { useState, useTransition, useRef } from 'react';
+import { useState, useTransition, useRef, useEffect } from 'react';
 import {
   DndContext,
   closestCenter,
@@ -389,6 +389,11 @@ export default function SectionList({ sections: initialSections }: { sections: a
   // Keep a ref to the pre-drag order so we can rollback on error
   const prevOrderRef = useRef<any[]>(initialSections);
 
+  useEffect(() => {
+    setSections(initialSections);
+    prevOrderRef.current = initialSections;
+  }, [initialSections]);
+
   const sensors = useSensors(
     useSensor(PointerSensor, {
       // Require a 5px move before starting drag — prevents accidental drags on click
@@ -481,6 +486,7 @@ export default function SectionList({ sections: initialSections }: { sections: a
       </div>
 
       <DndContext
+        id="section-dnd-context"
         sensors={sensors}
         collisionDetection={closestCenter}
         onDragStart={handleDragStart}
