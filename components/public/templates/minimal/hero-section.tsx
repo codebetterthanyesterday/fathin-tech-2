@@ -1,7 +1,7 @@
 'use client';
 
 import { motion, useReducedMotion } from 'framer-motion';
-import { Mail, ChevronDown } from 'lucide-react';
+import { ChevronDown } from 'lucide-react';
 import Image from 'next/image';
 
 interface HeroSectionProps {
@@ -32,12 +32,18 @@ export default function HeroSection({ profile, ctaOverride }: HeroSectionProps) 
   if (!profile) return null;
 
   return (
-    <section className="relative min-h-[90vh] flex flex-col items-center justify-center pt-20 pb-10 px-4 sm:px-8 overflow-hidden">
+    <section className="relative min-h-[90vh] flex flex-col items-center justify-center pt-24 pb-12 px-4 sm:px-8 overflow-hidden bg-[var(--bg-primary)]">
       
-      {/* Background glow effects */}
-      <div className="absolute inset-0 pointer-events-none overflow-hidden">
-        <div className="absolute top-[-10%] left-[-10%] w-[40%] h-[40%] bg-zinc-800/10 rounded-full blur-[120px]" />
-        <div className="absolute bottom-[-10%] right-[-10%] w-[30%] h-[30%] bg-white/5 rounded-full blur-[100px]" />
+      {/* Background ambient lighting */}
+      <div className="absolute inset-0 pointer-events-none overflow-hidden opacity-30">
+        <div 
+          className="absolute top-[-10%] left-[-10%] w-[40%] h-[40%] rounded-full blur-[120px]" 
+          style={{ backgroundColor: 'var(--glow-color)' }}
+        />
+        <div 
+          className="absolute bottom-[-10%] right-[-10%] w-[30%] h-[30%] rounded-full blur-[100px]" 
+          style={{ backgroundColor: 'var(--glow-color)' }}
+        />
       </div>
 
       <motion.div 
@@ -49,7 +55,7 @@ export default function HeroSection({ profile, ctaOverride }: HeroSectionProps) 
         {/* Avatar */}
         {profile.photoUrl && (
           <motion.div variants={item} className="mb-8">
-            <div className="relative w-28 h-28 sm:w-32 sm:h-32 rounded-full overflow-hidden border border-white/10 ring-4 ring-black shadow-2xl">
+            <div className="relative w-28 h-28 sm:w-32 sm:h-32 rounded-full overflow-hidden border border-[var(--border-strong)] ring-4 ring-[var(--bg-primary)] shadow-2xl bg-[var(--bg-surface)]">
               <Image 
                 src={profile.photoUrl} 
                 alt={profile.name} 
@@ -62,24 +68,24 @@ export default function HeroSection({ profile, ctaOverride }: HeroSectionProps) 
         )}
 
         {/* Name & Tagline */}
-        <motion.h1 variants={item} className="text-4xl sm:text-6xl md:text-7xl font-bold tracking-tight text-white mb-4">
+        <motion.h1 variants={item} className="text-4xl sm:text-6xl md:text-7xl font-bold tracking-tight text-[var(--text-primary)] mb-4">
           {profile.name}
         </motion.h1>
         
-        <motion.p variants={item} className="text-lg sm:text-xl md:text-2xl text-zinc-400 font-medium max-w-2xl mb-8">
+        <motion.p variants={item} className="text-lg sm:text-xl md:text-2xl text-[var(--text-secondary)] font-medium max-w-2xl mb-8 leading-relaxed">
           {profile.tagline}
         </motion.p>
 
         {/* Bio */}
         {profile.bio && (
           <motion.div variants={item} className="max-w-2xl mb-10">
-            <p className="text-sm sm:text-base text-zinc-500 leading-relaxed whitespace-pre-wrap">
+            <p className="text-sm sm:text-base text-[var(--text-tertiary)] leading-relaxed whitespace-pre-wrap">
               {profile.bio}
             </p>
           </motion.div>
         )}
 
-        {/* Social Links */}
+        {/* Social Links & CTA */}
         <motion.div variants={item} className="flex flex-wrap items-center justify-center gap-4">
           {profile.socialLinks && Array.isArray(profile.socialLinks) && profile.socialLinks.map((link: any, index: number) => {
             return (
@@ -88,7 +94,7 @@ export default function HeroSection({ profile, ctaOverride }: HeroSectionProps) 
                 href={link.url}
                 target="_blank"
                 rel="noopener noreferrer"
-                className="w-12 h-12 flex items-center justify-center text-zinc-400 hover:text-white bg-zinc-900/50 hover:bg-white/10 rounded-full border border-white/5 transition-all hover:scale-105 active:scale-95 text-lg"
+                className="w-12 h-12 flex items-center justify-center text-[var(--text-secondary)] hover:text-[var(--accent-btn-fg)] bg-[var(--bg-surface)] hover:bg-[var(--accent-btn-bg)] rounded-full border border-[var(--border-subtle)] hover:border-[var(--border-strong)] transition-all hover:scale-105 active:scale-95 text-lg shadow-sm focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[var(--accent-active)]"
                 aria-label={link.platform}
               >
                 <i className={link.iconClass || 'fa-solid fa-link'} />
@@ -101,7 +107,7 @@ export default function HeroSection({ profile, ctaOverride }: HeroSectionProps) 
               href={ctaOverride?.ctaUrl || profile.resumeUrl}
               target="_blank"
               rel="noopener noreferrer"
-              className="px-6 py-3 ml-2 bg-accent text-zinc-950 font-semibold rounded-full hover:brightness-110 transition-all flex items-center gap-2"
+              className="px-6 py-3 ml-2 bg-[var(--accent-btn-bg)] text-[var(--accent-btn-fg)] font-semibold rounded-full hover:brightness-110 transition-all flex items-center gap-2 shadow-md hover:scale-105 active:scale-95"
             >
               {ctaOverride?.ctaLabel || 'Resume'}
             </a>
@@ -111,7 +117,7 @@ export default function HeroSection({ profile, ctaOverride }: HeroSectionProps) 
 
       {/* Scroll indicator */}
       <motion.div 
-        className="absolute bottom-10 left-1/2 -translate-x-1/2"
+        className="absolute bottom-6 left-1/2 -translate-x-1/2"
         initial={{ opacity: 0 }}
         animate={{ opacity: 1 }}
         transition={{ delay: 1.5, duration: 1 }}
@@ -120,11 +126,9 @@ export default function HeroSection({ profile, ctaOverride }: HeroSectionProps) 
           animate={prefersReducedMotion ? {} : { y: [0, 8, 0] }}
           transition={{ repeat: Infinity, duration: 2, ease: "easeInOut" }}
         >
-          <ChevronDown className="w-6 h-6 text-zinc-600" />
+          <ChevronDown className="w-6 h-6 text-[var(--text-tertiary)]" />
         </motion.div>
       </motion.div>
     </section>
   );
 }
-
-

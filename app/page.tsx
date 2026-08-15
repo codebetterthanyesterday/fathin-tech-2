@@ -10,6 +10,7 @@ import {
 import { prisma } from '@/lib/prisma';
 import ContactSection from '@/components/public/contact-section';
 import JsonLd from '@/components/public/json-ld';
+import ThemeToggle from '@/components/public/layout/theme-toggle';
 
 // Minimal Template Imports
 import MinimalHeroSection from '@/components/public/templates/minimal/hero-section';
@@ -162,10 +163,10 @@ export default async function Home() {
 
   if (error || !profile) {
     return (
-      <div className="min-h-screen bg-[#050505] flex items-center justify-center text-white p-8">
+      <div className="min-h-screen bg-[var(--bg-primary)] flex items-center justify-center text-[var(--text-primary)] p-8">
         <div className="text-center space-y-4">
           <h1 className="text-3xl font-bold">Portfolio Not Ready</h1>
-          <p className="text-zinc-400">The portfolio data has not been configured yet.</p>
+          <p className="text-[var(--text-secondary)]">The portfolio data has not been configured yet.</p>
         </div>
       </div>
     );
@@ -187,11 +188,17 @@ export default async function Home() {
       : [],
   };
 
-  const themeTemplate = profile.themeTemplate || 'minimal';
+  const themeTemplate = (profile.themeTemplate as 'minimal' | 'immersive') || 'minimal';
   const Template = templates[themeTemplate] || templates['minimal'];
 
+  // Floating Theme Toggle button
+  const floatingToggle = (
+    <div className="fixed top-6 right-6 z-50">
+      <ThemeToggle />
+    </div>
+  );
+
   // If no sections configured yet, fall back to the legacy hardcoded layout
-  // This ensures zero regressions if seed hasn't been run yet
   if (sections.length === 0) {
     const [skills, projects, rawExperiences] = await Promise.all([
       prisma.skill.findMany({ orderBy: { order: 'asc' } }),
@@ -204,14 +211,15 @@ export default async function Home() {
       return b.startDate.getTime() - a.startDate.getTime();
     });
     return (
-      <main className="min-h-screen bg-[#050505] text-white selection:bg-white/20 selection:text-white overflow-hidden">
+      <main className="min-h-screen bg-[var(--bg-primary)] text-[var(--text-primary)] selection:bg-[var(--selection-bg)] selection:text-[var(--selection-text)] overflow-hidden relative">
         <JsonLd data={personSchema} />
+        {floatingToggle}
         <Template.HeroSection profile={profile} />
         {skills.length > 0 && <Template.SkillsSection skills={skills} />}
         {projects.length > 0 && <Template.FeaturedProjects projects={projects} />}
         {experiences.length > 0 && <Template.ExperienceTimeline experiences={experiences} />}
         <ContactSection />
-        <footer className="py-8 text-center border-t border-white/5 text-sm text-zinc-600 bg-[#0a0a0a]">
+        <footer className="py-8 text-center border-t border-[var(--border-subtle)] text-sm text-[var(--text-tertiary)] bg-[var(--bg-surface)]">
           <p>© {new Date().getFullYear()} {profile.name}. All rights reserved.</p>
         </footer>
       </main>
@@ -254,14 +262,13 @@ export default async function Home() {
         break;
       }
 
-      // Kerangka types — rendered as placeholder in production
       case 'CUSTOM_TEXT': {
         if (rawContent?.heading && rawContent?.body) {
           renderedSections.push(
-            <section key={section.id} className="py-24 px-4 sm:px-8 border-t border-white/5">
+            <section key={section.id} className="py-24 px-4 sm:px-8 border-t border-[var(--border-subtle)]">
               <div className="max-w-3xl mx-auto">
-                <h2 className="text-3xl font-bold text-white mb-6">{rawContent.heading}</h2>
-                <p className="text-zinc-400 leading-relaxed whitespace-pre-wrap">{rawContent.body}</p>
+                <h2 className="text-3xl font-bold text-[var(--text-primary)] mb-6">{rawContent.heading}</h2>
+                <p className="text-[var(--text-secondary)] leading-relaxed whitespace-pre-wrap">{rawContent.body}</p>
               </div>
             </section>
           );
@@ -291,17 +298,20 @@ export default async function Home() {
   }
 
   return (
-    <main className="min-h-screen bg-[#050505] text-white selection:bg-white/20 selection:text-white overflow-hidden">
+    <main className="min-h-screen bg-[var(--bg-primary)] text-[var(--text-primary)] selection:bg-[var(--selection-bg)] selection:text-[var(--selection-text)] overflow-hidden relative">
       <JsonLd data={personSchema} />
+      {floatingToggle}
 
       {renderedSections}
 
       {/* Contact section is always rendered outside the section system */}
       <ContactSection />
 
-      <footer className="py-8 text-center border-t border-white/5 text-sm text-zinc-600 bg-[#0a0a0a]">
+      <footer className="py-8 text-center border-t border-[var(--border-subtle)] text-sm text-[var(--text-tertiary)] bg-[var(--bg-surface)]">
         <p>© {new Date().getFullYear()} {profile.name}. All rights reserved.</p>
       </footer>
     </main>
   );
 }
+
+

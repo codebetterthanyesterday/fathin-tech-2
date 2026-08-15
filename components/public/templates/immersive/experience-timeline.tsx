@@ -22,10 +22,13 @@ export default function ImmersiveExperienceTimeline({ experiences }: ExperienceT
   if (!experiences || experiences.length === 0) return null;
 
   return (
-    <section className="py-32 px-4 sm:px-12 md:px-24 bg-[#050505] relative overflow-hidden" ref={containerRef}>
+    <section className="py-32 px-4 sm:px-12 md:px-24 bg-[var(--bg-primary)] border-t border-[var(--border-subtle)] relative overflow-hidden" ref={containerRef}>
       
-      {/* Background glow */}
-      <div className="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 w-[80vw] h-[80vw] bg-accent/5 rounded-full blur-[120px] pointer-events-none" />
+      {/* Background ambient lighting */}
+      <div 
+        className="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 w-[80vw] h-[80vw] rounded-full blur-[140px] pointer-events-none opacity-40" 
+        style={{ backgroundColor: 'var(--glow-color)' }}
+      />
 
       <div className="max-w-7xl mx-auto relative z-10">
         
@@ -40,10 +43,10 @@ export default function ImmersiveExperienceTimeline({ experiences }: ExperienceT
           }}
           className="text-center mb-24"
         >
-          <h2 className="text-5xl sm:text-6xl md:text-7xl font-black text-white tracking-tighter mb-6">
+          <h2 className="text-5xl sm:text-6xl md:text-7xl font-black text-[var(--text-primary)] tracking-tighter mb-6">
             The Journey.
           </h2>
-          <p className="text-zinc-400 text-lg max-w-2xl mx-auto">
+          <p className="text-[var(--text-secondary)] text-lg max-w-2xl mx-auto leading-relaxed">
             A timeline of my professional experience and academic background, shaping the way I build today.
           </p>
         </motion.div>
@@ -52,13 +55,13 @@ export default function ImmersiveExperienceTimeline({ experiences }: ExperienceT
         <div className="relative max-w-5xl mx-auto">
           
           {/* Center Line Track (Desktop) / Left Line (Mobile) */}
-          <div className="absolute left-6 md:left-1/2 top-0 bottom-0 w-px bg-white/10 md:-translate-x-1/2" />
+          <div className="absolute left-6 md:left-1/2 top-0 bottom-0 w-px bg-[var(--border-strong)] md:-translate-x-1/2" />
           
           {/* Animated Progress Line */}
           {!prefersReducedMotion && (
             <motion.div 
               style={{ height: lineHeight }}
-              className="absolute left-6 md:left-1/2 top-0 w-px bg-gradient-to-b from-accent/0 via-accent to-accent md:-translate-x-1/2 origin-top"
+              className="absolute left-6 md:left-1/2 top-0 w-px bg-gradient-to-b from-transparent via-[var(--accent-color)] to-[var(--accent-color)] md:-translate-x-1/2 origin-top"
             />
           )}
 
@@ -70,11 +73,11 @@ export default function ImmersiveExperienceTimeline({ experiences }: ExperienceT
                 <div key={exp.id} className="relative flex flex-col md:flex-row md:items-center w-full group">
                   
                   {/* Timeline Node */}
-                  <div className="absolute left-6 md:left-1/2 top-8 md:top-1/2 w-12 h-12 rounded-full bg-[#050505] border-2 border-zinc-800 group-hover:border-accent flex items-center justify-center -translate-x-1/2 md:-translate-y-1/2 z-20 transition-colors duration-500 shadow-xl">
+                  <div className="absolute left-6 md:left-1/2 top-8 md:top-1/2 w-12 h-12 rounded-full bg-[var(--bg-primary)] border-2 border-[var(--border-strong)] group-hover:border-[var(--accent-color)] flex items-center justify-center -translate-x-1/2 md:-translate-y-1/2 z-20 transition-colors duration-500 shadow-md">
                     {exp.type === 'WORK' ? (
-                      <Briefcase className="w-5 h-5 text-zinc-400 group-hover:text-accent transition-colors" />
+                      <Briefcase className="w-5 h-5 text-[var(--text-secondary)] group-hover:text-[var(--accent-text)] transition-colors" />
                     ) : (
-                      <GraduationCap className="w-5 h-5 text-zinc-400 group-hover:text-accent transition-colors" />
+                      <GraduationCap className="w-5 h-5 text-[var(--text-secondary)] group-hover:text-[var(--accent-text)] transition-colors" />
                     )}
                   </div>
 
@@ -85,31 +88,31 @@ export default function ImmersiveExperienceTimeline({ experiences }: ExperienceT
                       whileInView={{ opacity: 1, x: 0, y: 0 }}
                       viewport={{ once: true, margin: "-100px" }}
                       transition={{ duration: 0.7, type: "spring", bounce: 0.2 }}
-                      className="bg-zinc-900/40 backdrop-blur-md border border-white/5 hover:border-white/10 p-8 rounded-3xl transition-colors duration-500 relative overflow-hidden"
+                      className="bg-[var(--bg-surface)] backdrop-blur-md border border-[var(--border-subtle)] hover:border-[var(--border-strong)] p-8 rounded-3xl transition-colors duration-500 relative overflow-hidden shadow-sm hover:shadow-md"
                     >
                       {/* Decorative Background Icon */}
-                      <div className={`absolute -bottom-10 ${isEven ? '-left-10' : '-right-10'} text-white/5 pointer-events-none transition-transform duration-700 group-hover:scale-110`}>
+                      <div className={`absolute -bottom-10 ${isEven ? '-left-10' : '-right-10'} text-[var(--text-primary)]/5 pointer-events-none transition-transform duration-700 group-hover:scale-110`}>
                         {exp.type === 'WORK' ? <Briefcase className="w-48 h-48" /> : <GraduationCap className="w-48 h-48" />}
                       </div>
 
                       <div className="relative z-10">
                         <div className={`flex flex-col sm:flex-row sm:items-center gap-3 mb-6 ${isEven ? 'md:justify-end' : 'md:justify-start'}`}>
-                          <div className="flex items-center gap-2 text-sm font-mono text-accent bg-accent/10 px-4 py-1.5 rounded-full w-fit">
+                          <div className="flex items-center gap-2 text-xs sm:text-sm font-mono text-[var(--accent-text)] bg-[var(--accent-soft)] border border-[var(--accent-color)]/20 px-4 py-1.5 rounded-full w-fit">
                             <Calendar className="w-4 h-4" />
                             {new Date(exp.startDate).getFullYear()} — {exp.endDate ? new Date(exp.endDate).getFullYear() : 'Present'}
                           </div>
                         </div>
                         
-                        <h3 className="text-3xl font-bold text-white mb-2 group-hover:text-accent transition-colors">
+                        <h3 className="text-2xl sm:text-3xl font-bold text-[var(--text-primary)] mb-2 group-hover:text-[var(--accent-text)] transition-colors">
                           {exp.title}
                         </h3>
                         
-                        <div className="text-xl text-zinc-400 font-medium mb-6">
+                        <div className="text-lg sm:text-xl text-[var(--text-secondary)] font-medium mb-6">
                           {exp.institution}
                         </div>
                         
                         {exp.description && (
-                          <p className="text-zinc-500 leading-relaxed group-hover:text-zinc-400 transition-colors line-clamp-4 hover:line-clamp-none">
+                          <p className="text-[var(--text-tertiary)] leading-relaxed group-hover:text-[var(--text-secondary)] transition-colors line-clamp-4 hover:line-clamp-none">
                             {exp.description}
                           </p>
                         )}

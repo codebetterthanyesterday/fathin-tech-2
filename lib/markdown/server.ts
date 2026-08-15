@@ -30,24 +30,29 @@ const SANITIZE_OPTIONS: sanitizeHtml.IOptions = {
       'text-decoration': [/.*/],
       '--shiki-dark': [/.*/],
       '--shiki-dark-bg': [/.*/],
+      '--shiki-dark-font-style': [/.*/],
+      '--shiki-dark-font-weight': [/.*/],
+      '--shiki-dark-text-decoration': [/.*/],
+      '--shiki-light': [/.*/],
+      '--shiki-light-bg': [/.*/],
+      '--shiki-light-font-style': [/.*/],
+      '--shiki-light-font-weight': [/.*/],
+      '--shiki-light-text-decoration': [/.*/],
     },
   },
 };
 
 /**
  * Server-side markdown renderer that runs 100% on the server.
- * Uses Shiki for dark-themed syntax highlighting and sanitize-html for safety.
+ * Uses Shiki for dual-theme syntax highlighting (dark/light) and sanitize-html for safety.
  * Zero highlighter JavaScript is sent to the client.
  */
 export async function renderMarkdownServer(contentMd: string): Promise<string> {
   if (!contentMd) return '';
 
-  // Configure marked to intercept code blocks with Shiki
   const renderer = new marked.Renderer();
 
   renderer.code = function ({ text, lang }: { text: string; lang?: string }) {
-    // Note: marked v18 sync vs async renderer
-    // We will handle highlighting via token walker or post-processing placeholder
     return `<pre><code class="language-${lang || 'text'}">${escapeHtml(text)}</code></pre>`;
   };
 
@@ -101,15 +106,23 @@ async function replaceCodeBlocksWithShiki(html: string): Promise<string> {
     try {
       const highlighted = await codeToHtml(rawCode, {
         lang: rawLang,
-        theme: 'github-dark',
+        themes: {
+          dark: 'github-dark',
+          light: 'github-light',
+        },
+        defaultColor: false,
       });
       result = result.replace(fullMatch, highlighted);
     } catch {
-      // Fallback for unsupported language: highlight as text/markdown
+      // Fallback for unsupported language: highlight as text
       try {
         const highlighted = await codeToHtml(rawCode, {
           lang: 'text',
-          theme: 'github-dark',
+          themes: {
+            dark: 'github-dark',
+            light: 'github-light',
+          },
+          defaultColor: false,
         });
         result = result.replace(fullMatch, highlighted);
       } catch {

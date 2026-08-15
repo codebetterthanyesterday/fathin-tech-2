@@ -45,7 +45,7 @@ export default function MinimalArticlesSection({ articles }: MinimalArticlesSect
   };
 
   return (
-    <section className="py-24 px-4 sm:px-8 border-t border-white/5 bg-[#050505] relative">
+    <section className="py-24 px-4 sm:px-8 border-t border-[var(--border-subtle)] bg-[var(--bg-primary)] relative">
       <div className="max-w-5xl mx-auto">
         <motion.div
           initial="hidden"
@@ -56,17 +56,17 @@ export default function MinimalArticlesSection({ articles }: MinimalArticlesSect
           {/* Header */}
           <div className="flex flex-col sm:flex-row sm:items-end justify-between gap-6 mb-16">
             <div>
-              <h2 className="text-3xl sm:text-4xl font-bold text-white tracking-tight">
+              <h2 className="text-3xl sm:text-4xl font-bold text-[var(--text-primary)] tracking-tight">
                 Latest Articles
               </h2>
-              <p className="text-zinc-400 mt-2 text-base sm:text-lg">
+              <p className="text-[var(--text-secondary)] mt-2 text-base sm:text-lg leading-relaxed">
                 Technical writings, system design thoughts, and engineering reflections.
               </p>
             </div>
 
             <Link
               href="/articles"
-              className="inline-flex items-center gap-2 text-sm font-semibold text-white hover:text-zinc-300 transition-colors shrink-0 group border-b border-transparent hover:border-zinc-300 pb-0.5"
+              className="inline-flex items-center gap-2 text-sm font-semibold text-[var(--text-primary)] hover:text-[var(--text-secondary)] transition-colors shrink-0 group border-b border-transparent hover:border-[var(--text-secondary)] pb-0.5"
             >
               <span>View all articles</span>
               <ArrowRight className="w-4 h-4 group-hover:translate-x-1 transition-transform" />
@@ -82,10 +82,10 @@ export default function MinimalArticlesSection({ articles }: MinimalArticlesSect
                 <motion.div key={article.id} variants={item}>
                   <Link
                     href={`/articles/${article.slug}`}
-                    className="group flex flex-col h-full rounded-2xl bg-zinc-900/30 border border-zinc-800/50 hover:bg-zinc-900/60 hover:border-zinc-700/60 transition-all duration-300 overflow-hidden"
+                    className="group flex flex-col h-full rounded-2xl bg-[var(--bg-card)] border border-[var(--border-subtle)] hover:bg-[var(--bg-card-hover)] hover:border-[var(--border-strong)] transition-all duration-300 overflow-hidden shadow-sm hover:shadow-md"
                   >
                     {/* Thumbnail */}
-                    <div className="relative w-full aspect-[16/10] bg-zinc-900 overflow-hidden">
+                    <div className="relative w-full aspect-[16/10] bg-[var(--bg-surface)] overflow-hidden">
                       {article.coverImage ? (
                         <Image
                           src={article.coverImage}
@@ -95,7 +95,7 @@ export default function MinimalArticlesSection({ articles }: MinimalArticlesSect
                           sizes="(max-width: 768px) 100vw, 33vw"
                         />
                       ) : (
-                        <div className="w-full h-full flex items-center justify-center bg-zinc-900 text-zinc-700 group-hover:text-zinc-500 transition-colors">
+                        <div className="w-full h-full flex items-center justify-center bg-[var(--bg-surface)] text-[var(--text-tertiary)] group-hover:text-[var(--text-secondary)] transition-colors">
                           <FileText className="w-8 h-8" />
                         </div>
                       )}
@@ -104,7 +104,7 @@ export default function MinimalArticlesSection({ articles }: MinimalArticlesSect
                     {/* Content */}
                     <div className="p-6 flex-1 flex flex-col justify-between space-y-4">
                       <div className="space-y-2.5">
-                        <div className="flex items-center gap-3 text-xs font-mono text-zinc-500">
+                        <div className="flex items-center gap-3 text-xs font-mono text-[var(--text-tertiary)]">
                           {article.publishedAt && (
                             <span className="flex items-center gap-1">
                               <Calendar className="w-3 h-3" />
@@ -117,18 +117,18 @@ export default function MinimalArticlesSection({ articles }: MinimalArticlesSect
                           </span>
                         </div>
 
-                        <h3 className="text-lg font-bold text-white group-hover:text-zinc-200 transition-colors line-clamp-2">
+                        <h3 className="text-lg font-bold text-[var(--text-primary)] group-hover:text-[var(--accent-text)] transition-colors line-clamp-2">
                           {article.title}
                         </h3>
 
                         {article.excerpt && (
-                          <p className="text-xs sm:text-sm text-zinc-400 leading-relaxed line-clamp-3">
+                          <p className="text-xs sm:text-sm text-[var(--text-secondary)] leading-relaxed line-clamp-3">
                             {article.excerpt}
                           </p>
                         )}
                       </div>
 
-                      <div className="pt-4 border-t border-white/5 flex items-center gap-1.5 text-xs font-semibold text-white group-hover:text-zinc-300">
+                      <div className="pt-4 border-t border-[var(--border-subtle)] flex items-center gap-1.5 text-xs font-semibold text-[var(--text-primary)] group-hover:text-[var(--accent-text)]">
                         <span>Read article</span>
                         <ArrowRight className="w-3.5 h-3.5 group-hover:translate-x-1 transition-transform" />
                       </div>

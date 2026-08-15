@@ -38,11 +38,14 @@ export default function ImmersiveSkillsSection({ skills }: SkillsSectionProps) {
   };
 
   return (
-    <section className="py-32 px-4 sm:px-12 md:px-24 relative overflow-hidden bg-[#050505]">
+    <section className="py-32 px-4 sm:px-12 md:px-24 relative overflow-hidden bg-[var(--bg-primary)] border-t border-[var(--border-subtle)]">
       
       {/* Abstract background element */}
-      <div className="absolute inset-0 pointer-events-none opacity-50">
-        <div className="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 w-[60vw] h-[60vw] bg-accent/5 rounded-full blur-[100px]" />
+      <div className="absolute inset-0 pointer-events-none opacity-40">
+        <div 
+          className="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 w-[60vw] h-[60vw] rounded-full blur-[120px]" 
+          style={{ backgroundColor: 'var(--glow-color)' }}
+        />
       </div>
 
       <div className="max-w-7xl mx-auto relative z-10">
@@ -57,12 +60,12 @@ export default function ImmersiveSkillsSection({ skills }: SkillsSectionProps) {
           <div className="md:w-1/3 flex flex-col justify-start">
             <motion.h2 
               variants={item} 
-              className="text-5xl sm:text-6xl md:text-7xl font-black text-white mb-6 tracking-tighter leading-tight"
+              className="text-5xl sm:text-6xl md:text-7xl font-black text-[var(--text-primary)] mb-6 tracking-tighter leading-tight"
             >
               My<br/>Arsenal.
             </motion.h2>
-            <motion.p variants={item} className="text-zinc-400 text-lg">
-              The tools and technologies I use to bring ideas to life.
+            <motion.p variants={item} className="text-[var(--text-secondary)] text-lg leading-relaxed">
+              The tools and technologies I use to architect, build, and bring ideas to life.
             </motion.p>
           </div>
 
@@ -70,18 +73,18 @@ export default function ImmersiveSkillsSection({ skills }: SkillsSectionProps) {
           <div className="md:w-2/3 flex flex-col gap-12">
             {categories.map((category) => (
               <motion.div key={category} variants={item} className="relative">
-                <h3 className="text-sm font-bold text-accent uppercase tracking-widest mb-6 flex items-center gap-4">
+                <h3 className="text-xs sm:text-sm font-bold text-[var(--accent-text)] uppercase tracking-widest mb-6 flex items-center gap-4">
                   <span>{category.replace('_', ' ')}</span>
-                  <div className="flex-grow h-[1px] bg-accent/20" />
+                  <div className="flex-grow h-[1px] bg-[var(--border-strong)]" />
                 </h3>
                 
-                <div className="flex flex-wrap gap-4">
-                  {groupedSkills[category].map((skill: any, idx: number) => (
+                <div className="flex flex-wrap gap-3 sm:gap-4">
+                  {groupedSkills[category].map((skill: any) => (
                     <motion.div 
                       key={skill.id}
-                      whileHover={prefersReducedMotion ? {} : { scale: 1.05, y: -5 }}
+                      whileHover={prefersReducedMotion ? {} : { scale: 1.05, y: -4 }}
                       whileTap={prefersReducedMotion ? {} : { scale: 0.95 }}
-                      className="px-6 py-3 bg-zinc-900/80 backdrop-blur-sm border border-white/10 hover:border-accent/50 rounded-2xl text-base font-medium text-zinc-300 hover:text-white hover:bg-zinc-800 transition-all cursor-default shadow-lg hover:shadow-accent/10"
+                      className="px-5 sm:px-6 py-3 bg-[var(--bg-surface)] backdrop-blur-sm border border-[var(--border-subtle)] hover:border-[var(--accent-color)]/50 rounded-2xl text-sm sm:text-base font-medium text-[var(--text-secondary)] hover:text-[var(--text-primary)] hover:bg-[var(--bg-card-hover)] transition-all cursor-default shadow-sm hover:shadow-md"
                     >
                       {skill.name}
                     </motion.div>

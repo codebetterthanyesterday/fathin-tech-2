@@ -1,28 +1,227 @@
 @import "tailwindcss";
 
 :root {
-  --background: #ffffff;
-  --foreground: #171717;
+  /* Default Fallback */
+  --bg-primary: #050505;
+  --bg-surface: rgba(18, 18, 20, 0.65);
+  --bg-surface-solid: #0a0a0a;
+  --bg-elevated: rgba(24, 24, 27, 0.85);
+  --bg-card: rgba(18, 18, 20, 0.6);
+  --bg-card-hover: rgba(28, 28, 32, 0.8);
+  --text-primary: #ffffff;
+  --text-secondary: #a1a1aa;
+  --text-tertiary: #71717a;
+  --border-subtle: rgba(255, 255, 255, 0.07);
+  --border-strong: rgba(255, 255, 255, 0.15);
+  --border-hover: rgba(255, 255, 255, 0.25);
+  --glow-color: rgba(255, 255, 255, 0.08);
+  --shadow-color: rgba(0, 0, 0, 0.6);
+  --shadow-card: 0 10px 30px -10px rgba(0, 0, 0, 0.5);
+  --shadow-card-hover: 0 20px 40px -12px rgba(0, 0, 0, 0.7);
+  --selection-bg: rgba(255, 255, 255, 0.2);
+  --selection-text: #ffffff;
+  --noise-opacity: 0.04;
+  --metallic-gradient: radial-gradient(ellipse at top, rgba(39, 39, 42, 0.25) 0%, #050505 70%);
+  --metallic-card: linear-gradient(180deg, rgba(24, 24, 27, 0.9) 0%, rgba(9, 9, 11, 0.95) 100%);
+  --code-bg: rgba(10, 10, 12, 0.95);
+  --code-border: rgba(255, 255, 255, 0.08);
+
+  /* Fallback Accent mappings */
+  --accent-active: var(--accent-dark-color, #ffffff);
+  --accent-btn-bg: var(--accent-dark-btn-bg, #ffffff);
+  --accent-btn-fg: var(--accent-dark-btn-fg, #050505);
+  --accent-text: var(--accent-dark-text, #ffffff);
+  --accent-soft: var(--accent-dark-soft, rgba(255, 255, 255, 0.15));
+}
+
+[data-theme="dark"] {
+  --bg-primary: #050505;
+  --bg-surface: rgba(18, 18, 20, 0.65);
+  --bg-surface-solid: #0a0a0a;
+  --bg-elevated: rgba(24, 24, 27, 0.85);
+  --bg-card: rgba(18, 18, 20, 0.6);
+  --bg-card-hover: rgba(28, 28, 32, 0.8);
+  --text-primary: #ffffff;
+  --text-secondary: #a1a1aa;
+  --text-tertiary: #71717a;
+  --border-subtle: rgba(255, 255, 255, 0.07);
+  --border-strong: rgba(255, 255, 255, 0.15);
+  --border-hover: rgba(255, 255, 255, 0.25);
+  --glow-color: rgba(255, 255, 255, 0.08);
+  --shadow-color: rgba(0, 0, 0, 0.6);
+  --shadow-card: 0 10px 30px -10px rgba(0, 0, 0, 0.5);
+  --shadow-card-hover: 0 20px 40px -12px rgba(0, 0, 0, 0.7);
+  --selection-bg: rgba(255, 255, 255, 0.2);
+  --selection-text: #ffffff;
+  --noise-opacity: 0.04;
+  --metallic-gradient: radial-gradient(ellipse at top, rgba(39, 39, 42, 0.25) 0%, #050505 70%);
+  --metallic-card: linear-gradient(180deg, rgba(24, 24, 27, 0.9) 0%, rgba(9, 9, 11, 0.95) 100%);
+  --code-bg: rgba(10, 10, 12, 0.95);
+  --code-border: rgba(255, 255, 255, 0.08);
+
+  /* Dark mode guaranteed contrast bindings */
+  --accent-active: var(--accent-dark-color, var(--accent-color, #ffffff));
+  --accent-btn-bg: var(--accent-dark-btn-bg, var(--accent-color, #ffffff));
+  --accent-btn-fg: var(--accent-dark-btn-fg, #050505);
+  --accent-text: var(--accent-dark-text, var(--accent-color, #ffffff));
+  --accent-soft: var(--accent-dark-soft, rgba(255, 255, 255, 0.15));
+}
+
+[data-theme="light"] {
+  --bg-primary: #F5F4F2;
+  --bg-surface: rgba(255, 255, 255, 0.85);
+  --bg-surface-solid: #ffffff;
+  --bg-elevated: rgba(255, 255, 255, 0.95);
+  --bg-card: rgba(255, 255, 255, 0.75);
+  --bg-card-hover: rgba(255, 255, 255, 0.95);
+  --text-primary: #18181b;
+  --text-secondary: #52525b;
+  --text-tertiary: #71717a;
+  --border-subtle: rgba(0, 0, 0, 0.08);
+  --border-strong: rgba(0, 0, 0, 0.16);
+  --border-hover: rgba(0, 0, 0, 0.26);
+  --glow-color: rgba(0, 0, 0, 0.04);
+  --shadow-color: rgba(0, 0, 0, 0.08);
+  --shadow-card: 0 10px 30px -10px rgba(0, 0, 0, 0.08), 0 4px 6px -4px rgba(0, 0, 0, 0.04);
+  --shadow-card-hover: 0 20px 40px -12px rgba(0, 0, 0, 0.12), 0 8px 12px -6px rgba(0, 0, 0, 0.06);
+  --selection-bg: rgba(0, 0, 0, 0.12);
+  --selection-text: #18181b;
+  --noise-opacity: 0.025;
+  --metallic-gradient: radial-gradient(ellipse at top, rgba(228, 228, 231, 0.85) 0%, #F5F4F2 70%);
+  --metallic-card: linear-gradient(180deg, rgba(255, 255, 255, 0.95) 0%, rgba(244, 244, 245, 0.85) 100%);
+  --code-bg: rgba(244, 244, 246, 0.95);
+  --code-border: rgba(0, 0, 0, 0.1);
+
+  /* Light mode guaranteed contrast bindings */
+  --accent-active: var(--accent-light-color, #18181b);
+  --accent-btn-bg: var(--accent-light-btn-bg, #18181b);
+  --accent-btn-fg: var(--accent-light-btn-fg, #ffffff);
+  --accent-text: var(--accent-light-text, #18181b);
+  --accent-soft: var(--accent-light-soft, rgba(24, 24, 27, 0.1));
 }
 
 @theme inline {
-  --color-background: var(--background);
-  --color-foreground: var(--foreground);
+  --color-background: var(--bg-primary);
+  --color-foreground: var(--text-primary);
   --font-sans: var(--font-geist-sans);
   --font-mono: var(--font-geist-mono);
-  --color-accent: var(--accent-color, #ffffff);
+  --color-accent: var(--accent-active);
+  --color-accent-btn-bg: var(--accent-btn-bg);
+  --color-accent-btn-fg: var(--accent-btn-fg);
+  --color-accent-text: var(--accent-text);
+  --color-accent-soft: var(--accent-soft);
+  --color-bg-primary: var(--bg-primary);
+  --color-bg-surface: var(--bg-surface);
+  --color-bg-surface-solid: var(--bg-surface-solid);
+  --color-bg-elevated: var(--bg-elevated);
+  --color-bg-card: var(--bg-card);
+  --color-bg-card-hover: var(--bg-card-hover);
+  --color-text-primary: var(--text-primary);
+  --color-text-secondary: var(--text-secondary);
+  --color-text-tertiary: var(--text-tertiary);
+  --color-border-subtle: var(--border-subtle);
+  --color-border-strong: var(--border-strong);
+  --color-border-hover: var(--border-hover);
   --font-theme: var(--theme-font, var(--font-sans));
 }
 
-@media (prefers-color-scheme: dark) {
-  :root {
-    --background: #0a0a0a;
-    --foreground: #ededed;
-  }
+::selection {
+  background-color: var(--selection-bg);
+  color: var(--selection-text);
+}
+
+html {
+  color-scheme: light dark;
+}
+
+[data-theme="dark"] {
+  color-scheme: dark;
+}
+
+[data-theme="light"] {
+  color-scheme: light;
 }
 
 body {
-  background: var(--background);
-  color: var(--foreground);
+  background-color: var(--bg-primary);
+  color: var(--text-primary);
   font-family: var(--theme-font, var(--font-sans));
+  min-height: 100vh;
+  position: relative;
 }
+
+/* Subtle noise texture identity in both dark and light modes */
+body::before {
+  content: "";
+  position: fixed;
+  top: 0;
+  left: 0;
+  width: 100vw;
+  height: 100vh;
+  pointer-events: none;
+  z-index: 999;
+  opacity: var(--noise-opacity);
+  background-image: url("data:image/svg+xml,%3Csvg viewBox='0 0 200 200' xmlns='http://www.w3.org/2000/svg'%3E%3Cfilter id='noiseFilter'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.8' numOctaves='3' stitchTiles='stitch'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23noiseFilter)'/%3E%3C/svg%3E");
+}
+
+/* Shiki Dual-Theme Highlighting */
+[data-theme="dark"] .shiki,
+[data-theme="dark"] .shiki span {
+  color: var(--shiki-dark, inherit) !important;
+  background-color: var(--shiki-dark-bg, transparent) !important;
+  font-style: var(--shiki-dark-font-style, inherit) !important;
+  font-weight: var(--shiki-dark-font-weight, inherit) !important;
+  text-decoration: var(--shiki-dark-text-decoration, inherit) !important;
+}
+
+[data-theme="light"] .shiki,
+[data-theme="light"] .shiki span {
+  color: var(--shiki-light, inherit) !important;
+  background-color: var(--shiki-light-bg, transparent) !important;
+  font-style: var(--shiki-light-font-style, inherit) !important;
+  font-weight: var(--shiki-light-font-weight, inherit) !important;
+  text-decoration: var(--shiki-light-text-decoration, inherit) !important;
+}
+
+@keyframes shimmer {
+  0% {
+    transform: translateX(-100%) skewX(12deg);
+  }
+  100% {
+    transform: translateX(200%) skewX(12deg);
+  }
+}
+
+/* Respect Reduced Motion Preferences */
+@media (prefers-reduced-motion: reduce) {
+  *, ::before, ::after {
+    animation-duration: 0.01ms !important;
+    animation-iteration-count: 1 !important;
+    transition-duration: 0.01ms !important;
+    scroll-behavior: auto !important;
+  }
+}
+
+/* Custom styling for react-colorful */
+.custom-color-picker .react-colorful {
+  width: 100% !important;
+  height: 180px !important;
+  border-radius: 12px;
+}
+
+.custom-color-picker .react-colorful__saturation {
+  border-radius: 10px 10px 0 0;
+}
+
+.custom-color-picker .react-colorful__hue {
+  height: 24px !important;
+  border-radius: 0 0 10px 10px;
+}
+
+.custom-color-picker .react-colorful__pointer {
+  width: 18px !important;
+  height: 18px !important;
+  border: 2px solid #ffffff !important;
+  box-shadow: 0 2px 6px rgba(0, 0, 0, 0.6) !important;
+}
+

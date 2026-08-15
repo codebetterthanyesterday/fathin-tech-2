@@ -15,6 +15,7 @@ import {
 } from 'lucide-react';
 import MinimalHeroSection from '@/components/public/templates/minimal/hero-section';
 import ImmersiveHeroSection from '@/components/public/templates/immersive/hero-section';
+import AccentColorPicker from './accent-color-picker';
 
 const initialState: SettingsActionState = {
   success: '',
@@ -106,45 +107,15 @@ export default function ThemeSettingsForm({ initialData }: { initialData: any })
                     1. Warna Aksen (Accent Color)
                   </label>
                   <p className="text-xs text-zinc-500 mt-0.5">
-                    Digunakan untuk glowing accents, highlights, border aktif, dan link CTA.
+                    Warna aksen untuk CTA button, glowing highlights, badges, dan border aktif.
                   </p>
                 </div>
 
-                <div className="flex flex-wrap items-center gap-3 pt-1">
-                  {PRESET_COLORS.map((c) => (
-                    <button
-                      key={c.value}
-                      type="button"
-                      onClick={() => setThemeAccentColor(c.value)}
-                      title={c.name}
-                      className={`w-10 h-10 rounded-full border-2 transition-all duration-200 hover:scale-110 shadow-lg ${
-                        themeAccentColor.toLowerCase() === c.value.toLowerCase()
-                          ? 'border-white scale-110 ring-2 ring-white/30'
-                          : 'border-zinc-700/50 hover:border-zinc-400'
-                      }`}
-                      style={{ backgroundColor: c.value }}
-                    />
-                  ))}
-
-                  <div className="w-px h-8 bg-zinc-800 mx-1" />
-
-                  {/* Custom Color Input */}
-                  <div className="relative group/color">
-                    <input
-                      type="color"
-                      value={themeAccentColor}
-                      onChange={(e) => setThemeAccentColor(e.target.value)}
-                      className="absolute opacity-0 w-full h-full cursor-pointer z-10"
-                      title="Pilih Warna Hex Custom"
-                    />
-                    <div className="w-10 h-10 rounded-full border-2 border-dashed border-zinc-600 flex items-center justify-center bg-zinc-900 group-hover/color:border-zinc-400 group-hover/color:bg-zinc-800 transition-colors">
-                      <Plus className="w-4 h-4 text-zinc-400" />
-                    </div>
-                  </div>
-
-                  <div className="text-xs text-zinc-400 font-mono bg-zinc-900 px-3 py-1.5 rounded-lg border border-zinc-800">
-                    {themeAccentColor.toUpperCase()}
-                  </div>
+                <div className="pt-1">
+                  <AccentColorPicker
+                    color={themeAccentColor}
+                    onChange={(newColor) => setThemeAccentColor(newColor)}
+                  />
                 </div>
               </div>
 

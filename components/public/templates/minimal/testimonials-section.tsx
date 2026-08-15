@@ -41,25 +41,25 @@ function MinimalTestimonialCard({
       whileInView={{ opacity: 1, y: 0 }}
       viewport={{ once: true }}
       transition={{ delay: index * 0.1, duration: 0.5, ease: [0.16, 1, 0.3, 1] }}
-      className="group relative flex flex-col justify-between h-full p-7 sm:p-8 rounded-2xl bg-zinc-950/60 border border-zinc-800/80 hover:border-zinc-700/80 hover:bg-zinc-900/40 transition-all duration-300 shadow-lg hover:shadow-2xl"
+      className="group relative flex flex-col justify-between h-full p-7 sm:p-8 rounded-2xl bg-[var(--bg-card)] border border-[var(--border-subtle)] hover:border-[var(--border-strong)] hover:bg-[var(--bg-card-hover)] transition-all duration-300 shadow-sm hover:shadow-lg"
     >
       {/* Top quote icon */}
       <div>
-        <div className="w-10 h-10 rounded-xl bg-zinc-900 border border-zinc-800 flex items-center justify-center text-zinc-400 group-hover:text-white group-hover:border-zinc-700 transition-colors mb-6">
+        <div className="w-10 h-10 rounded-xl bg-[var(--bg-surface)] border border-[var(--border-subtle)] flex items-center justify-center text-[var(--accent-text)] group-hover:border-[var(--border-strong)] transition-colors mb-6 shadow-sm">
           <Quote className="w-4 h-4" />
         </div>
 
         {/* Quote content */}
         <div className="relative mb-6">
-          <p className="text-zinc-300 text-[15px] sm:text-base leading-relaxed font-normal">
-            "{isLong && !isExpanded ? `${testimonial.quote.slice(0, 280)}...` : testimonial.quote}"
+          <p className="text-[var(--text-primary)]/90 text-[15px] sm:text-base leading-relaxed font-normal">
+            &ldquo;{isLong && !isExpanded ? `${testimonial.quote.slice(0, 280)}...` : testimonial.quote}&rdquo;
           </p>
 
           {isLong && (
             <button
               type="button"
               onClick={() => setIsExpanded(!isExpanded)}
-              className="inline-flex items-center gap-1.5 text-xs font-semibold text-white mt-3 hover:text-zinc-300 transition-colors pt-1"
+              className="inline-flex items-center gap-1.5 text-xs font-semibold text-[var(--text-primary)] mt-3 hover:text-[var(--text-secondary)] transition-colors pt-1"
             >
               {isExpanded ? (
                 <>
@@ -78,8 +78,8 @@ function MinimalTestimonialCard({
       </div>
 
       {/* Author details footer */}
-      <div className="pt-6 border-t border-zinc-800/60 flex items-center gap-4 mt-auto">
-        <div className="relative w-12 h-12 rounded-full overflow-hidden flex-shrink-0 ring-1 ring-zinc-700/80 bg-zinc-900 flex items-center justify-center">
+      <div className="pt-6 border-t border-[var(--border-subtle)] flex items-center gap-4 mt-auto">
+        <div className="relative w-12 h-12 rounded-full overflow-hidden flex-shrink-0 ring-1 ring-[var(--border-strong)] bg-[var(--bg-surface)] flex items-center justify-center shadow-sm">
           {testimonial.photoUrl ? (
             <Image
               src={testimonial.photoUrl}
@@ -89,18 +89,18 @@ function MinimalTestimonialCard({
               className="object-cover w-full h-full grayscale group-hover:grayscale-0 transition-all duration-500"
             />
           ) : (
-            <span className="text-xs font-bold text-zinc-300 font-mono tracking-wider">
-              {initials || <User className="w-5 h-5 text-zinc-500" />}
+            <span className="text-xs font-bold text-[var(--text-secondary)] font-mono tracking-wider">
+              {initials || <User className="w-5 h-5 text-[var(--text-tertiary)]" />}
             </span>
           )}
         </div>
 
         <div className="min-w-0 flex-1">
-          <h4 className="text-white font-semibold text-sm sm:text-base truncate">
+          <h4 className="text-[var(--text-primary)] font-semibold text-sm sm:text-base truncate">
             {testimonial.name}
           </h4>
           {testimonial.role && (
-            <p className="text-xs sm:text-sm text-zinc-400 font-normal truncate mt-0.5">
+            <p className="text-xs sm:text-sm text-[var(--text-secondary)] font-normal truncate mt-0.5">
               {testimonial.role}
             </p>
           )}
@@ -116,23 +116,23 @@ export default function MinimalTestimonialsSection({
   if (!testimonials || testimonials.length === 0) return null;
 
   return (
-    <section className="py-24 sm:py-32 px-4 sm:px-8 border-t border-white/5 relative bg-[#050505]">
+    <section className="py-24 sm:py-32 px-4 sm:px-8 border-t border-[var(--border-subtle)] relative bg-[var(--bg-primary)]">
       <div className="max-w-6xl mx-auto">
         {/* Section Header */}
         <div className="mb-16 sm:mb-20">
-          <p className="text-xs font-mono uppercase tracking-widest text-zinc-500 mb-3">
+          <p className="text-xs font-mono uppercase tracking-widest text-[var(--text-tertiary)] mb-3">
             // Testimonials
           </p>
           <div className="flex flex-col md:flex-row md:items-end justify-between gap-6">
             <div>
-              <h2 className="text-3xl sm:text-4xl md:text-5xl font-bold text-white tracking-tight">
+              <h2 className="text-3xl sm:text-4xl md:text-5xl font-bold text-[var(--text-primary)] tracking-tight">
                 Kind Words.
               </h2>
-              <p className="text-zinc-400 mt-3 text-base sm:text-lg max-w-xl">
+              <p className="text-[var(--text-secondary)] mt-3 text-base sm:text-lg max-w-xl leading-relaxed">
                 What colleagues, clients, and collaborators say about working together.
               </p>
             </div>
-            <div className="text-sm font-mono text-zinc-500 bg-zinc-900/50 px-4 py-2 rounded-lg border border-zinc-800 self-start md:self-auto">
+            <div className="text-xs sm:text-sm font-mono text-[var(--text-secondary)] bg-[var(--bg-surface)] px-4 py-2 rounded-lg border border-[var(--border-subtle)] self-start md:self-auto shadow-sm">
               {testimonials.length} {testimonials.length === 1 ? 'Testimonial' : 'Testimonials'}
             </div>
           </div>

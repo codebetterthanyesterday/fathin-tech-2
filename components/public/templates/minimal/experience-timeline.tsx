@@ -31,9 +31,12 @@ export default function ExperienceTimeline({ experiences }: ExperienceTimelinePr
   };
 
   return (
-    <section className="py-24 px-4 sm:px-8 bg-[#050505] border-t border-white/5 relative overflow-hidden">
+    <section className="py-24 px-4 sm:px-8 bg-[var(--bg-primary)] border-t border-[var(--border-subtle)] relative overflow-hidden">
       {/* Subtle background glow */}
-      <div className="absolute top-0 right-0 w-[500px] h-[500px] bg-zinc-800/10 rounded-full blur-[120px] pointer-events-none -translate-y-1/2 translate-x-1/2" />
+      <div 
+        className="absolute top-0 right-0 w-[500px] h-[500px] rounded-full blur-[120px] pointer-events-none -translate-y-1/2 translate-x-1/2 opacity-30" 
+        style={{ backgroundColor: 'var(--glow-color)' }}
+      />
       
       <div className="max-w-3xl mx-auto relative z-10">
         <motion.div
@@ -43,15 +46,15 @@ export default function ExperienceTimeline({ experiences }: ExperienceTimelinePr
           variants={container}
         >
           <motion.div variants={item} className="mb-16">
-            <h2 className="text-3xl sm:text-4xl font-bold text-white tracking-tight mb-4">
+            <h2 className="text-3xl sm:text-4xl font-bold text-[var(--text-primary)] tracking-tight mb-4">
               Experience
             </h2>
           </motion.div>
 
           <div className="relative pl-8 md:pl-0">
             {/* Main Timeline Line (Desktop centered, Mobile left) */}
-            <div className="hidden md:block absolute left-1/2 top-0 bottom-0 w-px bg-zinc-800 -translate-x-1/2" />
-            <div className="md:hidden absolute left-0 top-0 bottom-0 w-px bg-zinc-800" />
+            <div className="hidden md:block absolute left-1/2 top-0 bottom-0 w-px bg-[var(--border-strong)] -translate-x-1/2" />
+            <div className="md:hidden absolute left-0 top-0 bottom-0 w-px bg-[var(--border-strong)]" />
 
             <div className="space-y-16">
               {experiences.map((exp, index) => {
@@ -68,42 +71,39 @@ export default function ExperienceTimeline({ experiences }: ExperienceTimelinePr
                     <div className={`absolute left-0 md:left-1/2 -translate-x-1/2 mt-1.5 md:mt-2.5 z-10 flex items-center justify-center`}>
                       {isCurrent ? (
                         <div className="relative flex h-3.5 w-3.5">
-                          <span className="animate-ping absolute inline-flex h-full w-full rounded-full bg-white opacity-40"></span>
-                          <span className="relative inline-flex rounded-full h-3.5 w-3.5 bg-white border-2 border-[#050505]"></span>
+                          <span className="animate-ping absolute inline-flex h-full w-full rounded-full bg-[var(--accent-color)] opacity-60"></span>
+                          <span className="relative inline-flex rounded-full h-3.5 w-3.5 bg-[var(--accent-color)] border-2 border-[var(--bg-primary)]"></span>
                         </div>
                       ) : (
-                        <div className="h-3.5 w-3.5 rounded-full bg-zinc-800 border-2 border-[#050505] group-hover:bg-zinc-600 transition-colors" />
+                        <div className="h-3.5 w-3.5 rounded-full bg-[var(--text-tertiary)] border-2 border-[var(--bg-primary)] group-hover:bg-[var(--accent-color)] transition-colors" />
                       )}
                     </div>
 
                     {/* Content Box */}
                     <div className={`w-full md:w-1/2 ${isEven ? 'md:pl-12' : 'md:pr-12 pl-8 md:pl-0'}`}>
-                      <div className="group relative">
-                        {/* Hover glow effect (invisible by default) */}
-                        <div className="absolute -inset-4 bg-white/5 rounded-2xl opacity-0 group-hover:opacity-100 transition-opacity duration-300 pointer-events-none" />
-                        
+                      <div className="group relative p-6 rounded-2xl bg-[var(--bg-card)] border border-[var(--border-subtle)] hover:border-[var(--border-strong)] transition-all shadow-sm">
                         <div className="relative">
-                          <span className="inline-block px-2.5 py-1 mb-3 text-[10px] font-bold tracking-wider text-zinc-500 uppercase bg-zinc-900 rounded-full border border-white/5">
+                          <span className="inline-block px-2.5 py-1 mb-3 text-[10px] font-bold tracking-wider text-[var(--text-tertiary)] uppercase bg-[var(--bg-surface)] rounded-full border border-[var(--border-subtle)]">
                             {exp.type}
                           </span>
                           
-                          <h3 className="text-xl font-bold text-white mb-1 group-hover:text-zinc-200 transition-colors">
+                          <h3 className="text-xl font-bold text-[var(--text-primary)] mb-1 group-hover:text-[var(--accent-text)] transition-colors">
                             {exp.title}
                           </h3>
-                          <div className="text-zinc-400 font-medium mb-2">{exp.institution}</div>
+                          <div className="text-[var(--text-secondary)] font-medium mb-2">{exp.institution}</div>
                           
-                          <div className="text-xs font-mono text-zinc-500 mb-4 flex items-center gap-2">
+                          <div className="text-xs font-mono text-[var(--text-tertiary)] mb-4 flex items-center gap-2">
                             <span>{formatDate(exp.startDate)}</span>
-                            <span className="text-zinc-700">—</span>
+                            <span className="text-[var(--border-strong)]">—</span>
                             {isCurrent ? (
-                              <span className="text-white">Present</span>
+                              <span className="text-[var(--accent-text)] font-semibold">Present</span>
                             ) : (
                               <span>{formatDate(exp.endDate)}</span>
                             )}
                           </div>
 
                           {exp.description && (
-                            <p className="text-sm text-zinc-500 leading-relaxed whitespace-pre-wrap">
+                            <p className="text-sm text-[var(--text-secondary)] leading-relaxed whitespace-pre-wrap">
                               {exp.description}
                             </p>
                           )}

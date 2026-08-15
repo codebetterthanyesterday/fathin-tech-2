@@ -50,8 +50,8 @@ export default function ProjectGallery({ images, projectTitle }: ProjectGalleryP
 
   return (
     <div className="mt-16">
-      <h3 className="text-2xl font-bold text-white mb-8 flex items-center gap-3">
-        <div className="w-8 h-[1px] bg-zinc-700" />
+      <h3 className="text-2xl font-bold text-[var(--text-primary)] mb-8 flex items-center gap-3">
+        <div className="w-8 h-[1px] bg-[var(--border-strong)]" />
         Gallery
       </h3>
       
@@ -64,12 +64,12 @@ export default function ProjectGallery({ images, projectTitle }: ProjectGalleryP
             whileInView={{ opacity: 1, y: 0 }}
             viewport={{ once: true }}
             transition={{ delay: index * 0.1, duration: 0.5 }}
-            className="group relative aspect-video rounded-xl overflow-hidden bg-zinc-900 border border-white/5 cursor-pointer ring-1 ring-white/10 hover:ring-white/30 transition-all"
+            className="group relative aspect-video rounded-xl overflow-hidden bg-[var(--bg-surface)] border border-[var(--border-subtle)] cursor-pointer ring-1 ring-[var(--border-subtle)] hover:ring-[var(--border-strong)] transition-all shadow-sm"
             onClick={() => setSelectedIndex(index)}
           >
-            <div className="absolute inset-0 bg-black/40 group-hover:bg-transparent transition-colors duration-300 z-10" />
+            <div className="absolute inset-0 bg-black/30 group-hover:bg-transparent transition-colors duration-300 z-10" />
             <div className="absolute inset-0 flex items-center justify-center opacity-0 group-hover:opacity-100 transition-opacity duration-300 z-20 pointer-events-none">
-              <div className="p-3 bg-black/50 backdrop-blur-md rounded-full text-white">
+              <div className="p-3 bg-black/60 backdrop-blur-md rounded-full text-white shadow-lg">
                 <Maximize2 className="w-5 h-5" />
               </div>
             </div>
@@ -84,7 +84,7 @@ export default function ProjectGallery({ images, projectTitle }: ProjectGalleryP
         ))}
       </div>
 
-      {/* Lightbox Modal */}
+      {/* Lightbox Modal (Purposely stays dark in both modes for optimal image viewing) */}
       <AnimatePresence>
         {selectedIndex !== null && (
           <motion.div
@@ -92,12 +92,12 @@ export default function ProjectGallery({ images, projectTitle }: ProjectGalleryP
             animate={{ opacity: 1 }}
             exit={{ opacity: 0 }}
             transition={{ duration: 0.2 }}
-            className="fixed inset-0 z-50 flex items-center justify-center bg-black/95 backdrop-blur-sm"
+            className="fixed inset-0 z-50 flex items-center justify-center bg-black/95 backdrop-blur-md"
             onClick={() => setSelectedIndex(null)}
           >
             {/* Close Button */}
             <button 
-              className="absolute top-6 right-6 p-2 text-zinc-400 hover:text-white bg-white/5 hover:bg-white/10 rounded-full transition-colors z-50"
+              className="absolute top-6 right-6 p-2 text-zinc-400 hover:text-white bg-white/10 hover:bg-white/20 rounded-full transition-colors z-50 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-white"
               onClick={() => setSelectedIndex(null)}
               aria-label="Close gallery"
             >
@@ -106,7 +106,7 @@ export default function ProjectGallery({ images, projectTitle }: ProjectGalleryP
 
             {/* Prev Button */}
             <button 
-              className="absolute left-4 sm:left-8 p-3 text-white bg-black/50 hover:bg-white/10 rounded-full transition-colors z-50 backdrop-blur-md"
+              className="absolute left-4 sm:left-8 p-3 text-white bg-black/60 hover:bg-white/20 rounded-full transition-colors z-50 backdrop-blur-md focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-white"
               onClick={(e) => {
                 e.stopPropagation();
                 setSelectedIndex((prev) => (prev! - 1 + images.length) % images.length);
@@ -118,7 +118,7 @@ export default function ProjectGallery({ images, projectTitle }: ProjectGalleryP
 
             {/* Next Button */}
             <button 
-              className="absolute right-4 sm:right-8 p-3 text-white bg-black/50 hover:bg-white/10 rounded-full transition-colors z-50 backdrop-blur-md"
+              className="absolute right-4 sm:right-8 p-3 text-white bg-black/60 hover:bg-white/20 rounded-full transition-colors z-50 backdrop-blur-md focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-white"
               onClick={(e) => {
                 e.stopPropagation();
                 setSelectedIndex((prev) => (prev! + 1) % images.length);
@@ -147,7 +147,7 @@ export default function ProjectGallery({ images, projectTitle }: ProjectGalleryP
                 priority
               />
               
-              <div className="absolute bottom-[-40px] left-0 right-0 text-center text-zinc-400 text-sm">
+              <div className="absolute bottom-[-40px] left-0 right-0 text-center text-zinc-400 text-sm font-mono">
                 {selectedIndex + 1} of {images.length}
               </div>
             </motion.div>

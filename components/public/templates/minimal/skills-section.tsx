@@ -38,7 +38,7 @@ export default function SkillsSection({ skills }: SkillsSectionProps) {
   };
 
   return (
-    <section className="py-24 px-4 sm:px-8 border-t border-white/5 bg-[#080808]">
+    <section className="py-24 px-4 sm:px-8 border-t border-[var(--border-subtle)] bg-[var(--bg-primary)]">
       <div className="max-w-5xl mx-auto">
         <motion.div
           initial="hidden"
@@ -46,15 +46,15 @@ export default function SkillsSection({ skills }: SkillsSectionProps) {
           viewport={{ once: true, margin: "-100px" }}
           variants={container}
         >
-          <motion.h2 variants={item} className="text-3xl sm:text-4xl font-bold text-white mb-12 tracking-tight">
+          <motion.h2 variants={item} className="text-3xl sm:text-4xl font-bold text-[var(--text-primary)] mb-12 tracking-tight">
             Skills & Expertise
           </motion.h2>
 
           <div className="grid grid-cols-1 md:grid-cols-2 gap-12">
             {categories.map((category) => (
               <motion.div key={category} variants={item} className="space-y-6">
-                <h3 className="text-xl font-semibold text-zinc-300 capitalize flex items-center gap-3">
-                  <div className="w-8 h-[1px] bg-zinc-700" />
+                <h3 className="text-lg font-semibold text-[var(--text-secondary)] capitalize flex items-center gap-3">
+                  <div className="w-8 h-[1px] bg-[var(--border-strong)]" />
                   {category.toLowerCase().replace('_', ' ')}
                 </h3>
                 
@@ -62,7 +62,7 @@ export default function SkillsSection({ skills }: SkillsSectionProps) {
                   {groupedSkills[category].map((skill: any) => (
                     <div 
                       key={skill.id}
-                      className="px-4 py-2 bg-zinc-900 border border-zinc-800 rounded-full text-sm font-medium text-zinc-400 hover:text-white hover:bg-zinc-800 hover:border-zinc-600 transition-all cursor-default"
+                      className="px-4 py-2 bg-[var(--bg-surface)] border border-[var(--border-subtle)] rounded-full text-sm font-medium text-[var(--text-secondary)] hover:text-[var(--text-primary)] hover:bg-[var(--bg-card-hover)] hover:border-[var(--border-strong)] transition-all cursor-default shadow-sm"
                     >
                       {skill.name}
                     </div>
