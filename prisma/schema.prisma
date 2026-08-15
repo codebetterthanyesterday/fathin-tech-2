@@ -1,0 +1,223 @@
+// This is your Prisma schema file,
+// learn more about it in the docs: https://pris.ly/d/prisma-schema
+
+// Get a free hosted Postgres database in seconds: `npx create-db`
+
+generator client {
+  provider = "prisma-client"
+  output   = "../app/generated/prisma"
+}
+
+datasource db {
+  provider = "postgresql"
+}
+
+// ------------------------------------------------------------
+// AUTH & ADMIN
+// ------------------------------------------------------------
+
+model User {
+  id           String   @id @default(cuid())
+  email        String   @unique
+  passwordHash String
+  name         String?
+  createdAt    DateTime @default(now())
+  updatedAt    DateTime @updatedAt
+
+  resetTokens PasswordResetToken[]
+}
+
+model PasswordResetToken {
+  id        String   @id @default(cuid())
+  token     String   @unique
+  userId    String
+  user      User     @relation(fields: [userId], references: [id], onDelete: Cascade)
+  expiresAt DateTime
+  createdAt DateTime @default(now())
+}
+
+// ------------------------------------------------------------
+// PROFIL (data inti, satu baris — situs personal)
+// ------------------------------------------------------------
+
+model Profile {
+  id          String  @id @default(cuid())
+  name        String
+  tagline     String?
+  bio         String? @db.Text
+  photoUrl    String?
+  email       String?
+  phone       String?
+  location    String?
+  socialLinks Json? // { "github": "...", "linkedin": "...", "twitter": "..." }
+  resumeUrl   String? // link PDF CV yang di-generate/di-upload
+
+  // Pengaturan tema — bagian dari "customizability"
+  themeAccentColor String? @default("#000000")
+  themeFont        String? @default("Inter")
+  themeTemplate    String? @default("minimal") // slug template layout
+
+  updatedAt DateTime @updatedAt
+}
+
+// ------------------------------------------------------------
+// SECTION GENERIK — fondasi customizability (PBI-010)
+// Setiap section punya "type" dan "content" berbentuk JSON,
+// sehingga tipe section baru bisa ditambah tanpa migrasi DB.
+// ------------------------------------------------------------
+
+enum SectionType {
+  HERO
+  SKILLS_GRID
+  PROJECTS_GRID
+  EXPERIENCE_TIMELINE
+  TESTIMONIALS
+  ARTICLES_LIST
+  CUSTOM_TEXT
+}
+
+model Section {
+  id        String      @id @default(cuid())
+  type      SectionType
+  title     String? // judul section, mis. "Proyek Unggulan"
+  content   Json // payload bebas sesuai `type`, divalidasi di application layer
+  order     Int         @default(0)
+  isVisible Boolean     @default(true)
+
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  @@index([order])
+}
+
+// ------------------------------------------------------------
+// SKILL
+// ------------------------------------------------------------
+
+enum SkillCategory {
+  LANGUAGE
+  FRAMEWORK
+  TOOL
+  SOFT_SKILL
+  OTHER
+}
+
+model Skill {
+  id       String        @id @default(cuid())
+  name     String
+  category SkillCategory @default(OTHER)
+  level    Int? // 1-5, opsional
+  order    Int           @default(0)
+
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  @@index([category])
+}
+
+// ------------------------------------------------------------
+// PROYEK
+// ------------------------------------------------------------
+
+model Project {
+  id          String   @id @default(cuid())
+  slug        String   @unique
+  title       String
+  summary     String
+  description String?  @db.Text
+  techStack   String[] // ["Next.js", "Prisma", "PostgreSQL"]
+  demoUrl     String?
+  repoUrl     String?
+  isFeatured  Boolean  @default(false)
+  order       Int      @default(0)
+
+  images ProjectImage[]
+
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  @@index([isFeatured])
+}
+
+model ProjectImage {
+  id        String  @id @default(cuid())
+  projectId String
+  project   Project @relation(fields: [projectId], references: [id], onDelete: Cascade)
+  url       String
+  altText   String?
+  order     Int     @default(0)
+}
+
+// ------------------------------------------------------------
+// PENGALAMAN KERJA / PENDIDIKAN
+// ------------------------------------------------------------
+
+enum ExperienceType {
+  WORK
+  EDUCATION
+}
+
+model Experience {
+  id          String         @id @default(cuid())
+  type        ExperienceType
+  title       String // posisi atau gelar
+  institution String // perusahaan atau sekolah
+  description String?        @db.Text
+  startDate   DateTime
+  endDate     DateTime? // null = "sekarang"
+  order       Int            @default(0)
+
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  @@index([type])
+}
+
+// ------------------------------------------------------------
+// TESTIMONI (opsional block — Epic 2)
+// ------------------------------------------------------------
+
+model Testimonial {
+  id        String  @id @default(cuid())
+  name      String
+  role      String?
+  quote     String  @db.Text
+  photoUrl  String?
+  isVisible Boolean @default(true)
+  order     Int     @default(0)
+
+  createdAt DateTime @default(now())
+}
+
+// ------------------------------------------------------------
+// ARTIKEL/BLOG (opsional block — Epic 2)
+// ------------------------------------------------------------
+
+model Article {
+  id          String    @id @default(cuid())
+  slug        String    @unique
+  title       String
+  excerpt     String?
+  contentMd   String    @db.Text // markdown
+  coverImage  String?
+  isPublished Boolean   @default(false)
+  publishedAt DateTime?
+
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  @@index([isPublished])
+}
+
+// ------------------------------------------------------------
+// PESAN KONTAK
+// ------------------------------------------------------------
+
+model ContactMessage {
+  id        String   @id @default(cuid())
+  name      String
+  email     String
+  message   String   @db.Text
+  isRead    Boolean  @default(false)
+  createdAt DateTime @default(now())
+}
