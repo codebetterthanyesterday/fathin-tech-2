@@ -4,6 +4,8 @@ import "./globals.css";
 import { getProfile } from "./actions/profile";
 import { ThemeProvider } from "@/components/providers/theme-provider";
 import { generateThemeColorTokens } from "@/lib/theme/colors";
+import PreviewSyncListener from "@/components/public/preview-sync-listener";
+import { Suspense } from "react";
 
 const geistSans = Geist({
   variable: "--font-geist-sans",
@@ -18,21 +20,25 @@ const geistMono = Geist_Mono({
 const inter = Inter({
   variable: "--font-inter",
   subsets: ["latin"],
+  preload: false,
 });
 
 const spaceGrotesk = Space_Grotesk({
   variable: "--font-space-grotesk",
   subsets: ["latin"],
+  preload: false,
 });
 
 const playfair = Playfair_Display({
   variable: "--font-playfair",
   subsets: ["latin"],
+  preload: false,
 });
 
 const jetbrainsMono = JetBrains_Mono({
   variable: "--font-jetbrains-mono",
   subsets: ["latin"],
+  preload: false,
 });
 
 export const metadata: Metadata = {
@@ -53,12 +59,15 @@ export const metadata: Metadata = {
 export default async function RootLayout({ children }: { children: React.ReactNode }) {
   const { profile } = await getProfile();
   
-  // Format the font string to match the variable name (e.g. "Space Grotesk" -> "--font-space-grotesk")
-  let fontVar = 'var(--font-geist-sans)';
-  if (profile?.themeFont) {
-    const formattedFontName = profile.themeFont.toLowerCase().replace(/ /g, '-');
-    fontVar = `var(--font-${formattedFontName})`;
-  }
+  const FONT_VARIABLES: Record<string, string> = {
+    'Geist': 'var(--font-geist-sans)',
+    'Inter': 'var(--font-inter)',
+    'Space Grotesk': 'var(--font-space-grotesk)',
+    'Playfair Display': 'var(--font-playfair)',
+    'JetBrains Mono': 'var(--font-jetbrains-mono)',
+  };
+
+  const fontVar = FONT_VARIABLES[profile?.themeFont || 'Geist'] || 'var(--font-geist-sans)';
 
   // Calculate guaranteed contrast tokens for both modes
   const themeTokens = generateThemeColorTokens(profile?.themeAccentColor || '#ffffff');
@@ -81,6 +90,9 @@ export default async function RootLayout({ children }: { children: React.ReactNo
       </head>
       <body className="min-h-full flex flex-col bg-[var(--bg-primary)] text-[var(--text-primary)] antialiased transition-colors duration-300">
         <ThemeProvider>
+          <Suspense fallback={null}>
+            <PreviewSyncListener />
+          </Suspense>
           {children}
         </ThemeProvider>
       </body>

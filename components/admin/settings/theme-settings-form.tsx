@@ -1,7 +1,8 @@
 'use client';
 
-import { useActionState, useState } from 'react';
+import { useActionState, useState, useEffect, useRef } from 'react';
 import { updateThemeSettings, SettingsActionState } from '@/app/actions/settings';
+import { useTheme } from 'next-themes';
 import {
   Paintbrush,
   RotateCcw,
@@ -11,25 +12,26 @@ import {
   Loader2,
   CheckCircle,
   AlertCircle,
-  Plus,
+  Sun,
+  Moon,
+  X,
+  Tablet,
+  Smartphone,
 } from 'lucide-react';
-import MinimalHeroSection from '@/components/public/templates/minimal/hero-section';
-import ImmersiveHeroSection from '@/components/public/templates/immersive/hero-section';
-import AccentColorPicker from './accent-color-picker';
+import dynamic from 'next/dynamic';
+import { generateThemeColorTokens } from '@/lib/theme/colors';
+import { createPortal } from 'react-dom';
+
+const AccentColorPicker = dynamic(() => import('./accent-color-picker'), {
+  loading: () => <div className="h-10 w-full animate-pulse bg-zinc-800 rounded-xl" />,
+  ssr: false,
+});
 
 const initialState: SettingsActionState = {
   success: '',
   error: '',
   fieldErrors: {},
 };
-
-const PRESET_COLORS = [
-  { name: 'Monochrome White', value: '#ffffff' },
-  { name: 'Silver', value: '#a1a1aa' },
-  { name: 'Muted Gold', value: '#d4af37' },
-  { name: 'Ice Blue', value: '#88c0d0' },
-  { name: 'Emerald Muted', value: '#34d399' },
-];
 
 const PRESET_FONTS = [
   { name: 'Geist', varName: 'var(--font-geist-sans)' },
@@ -44,6 +46,61 @@ export default function ThemeSettingsForm({ initialData }: { initialData: any })
   const [themeAccentColor, setThemeAccentColor] = useState(initialData?.themeAccentColor || '#ffffff');
   const [themeFont, setThemeFont] = useState(initialData?.themeFont || 'Geist');
   const [themeTemplate, setThemeTemplate] = useState(initialData?.themeTemplate || 'minimal');
+  
+  const [isPreviewModalOpen, setIsPreviewModalOpen] = useState(false);
+  const [previewDevice, setPreviewDevice] = useState<'desktop' | 'tablet' | 'mobile'>('desktop');
+  const [mounted, setMounted] = useState(false);
+
+  const { resolvedTheme } = useTheme();
+  const [previewMode, setPreviewMode] = useState<'dark' | 'light'>('dark');
+  const iframeRef = useRef<HTMLIFrameElement>(null);
+  
+  useEffect(() => {
+    setMounted(true);
+  }, []);
+
+  // Sync state to iframe when changed
+  useEffect(() => {
+    if (iframeRef.current && iframeRef.current.contentWindow) {
+      iframeRef.current.contentWindow.postMessage({
+        type: 'THEME_PREVIEW_SYNC',
+        payload: {
+          themeAccentColor,
+          themeFont,
+          themeTemplate,
+          previewMode,
+        }
+      }, '*');
+    }
+  }, [themeAccentColor, themeFont, themeTemplate, previewMode]);
+
+  // Listen for handshake from iframe to send initial state
+  useEffect(() => {
+    const handleMessage = (event: MessageEvent) => {
+      if (event.data?.type === 'PREVIEW_LISTENER_READY') {
+        if (iframeRef.current && iframeRef.current.contentWindow) {
+          iframeRef.current.contentWindow.postMessage({
+            type: 'THEME_PREVIEW_SYNC',
+            payload: {
+              themeAccentColor,
+              themeFont,
+              themeTemplate,
+              previewMode,
+            }
+          }, '*');
+        }
+      }
+    };
+    window.addEventListener('message', handleMessage);
+    return () => window.removeEventListener('message', handleMessage);
+  }, [themeAccentColor, themeFont, themeTemplate, previewMode]);
+
+  // Sync initial preview mode with resolved system/client theme
+  useEffect(() => {
+    if (resolvedTheme === 'light' || resolvedTheme === 'dark') {
+      setPreviewMode(resolvedTheme);
+    }
+  }, [resolvedTheme]);
 
   const handleReset = () => {
     setThemeAccentColor('#ffffff');
@@ -51,8 +108,132 @@ export default function ThemeSettingsForm({ initialData }: { initialData: any })
     setThemeTemplate('minimal');
   };
 
+  const modalContent = isPreviewModalOpen ? (
+    <div className="fixed inset-0 z-[100] flex flex-col bg-black/95 backdrop-blur-md">
+      {/* Modal Header */}
+      <div className="flex items-center justify-between px-6 py-4 border-b border-zinc-800 bg-black">
+        <div className="flex flex-wrap items-center gap-4">
+          <h3 className="text-lg font-semibold text-white flex items-center gap-2">
+            <Monitor className="w-5 h-5 text-zinc-400" />
+            Live Theme Preview
+          </h3>
+          
+          {/* Device Switcher */}
+          <div className="flex items-center bg-zinc-900 border border-zinc-800 rounded-lg p-0.5 text-xs shadow-inner">
+            <button
+              type="button"
+              onClick={() => setPreviewDevice('desktop')}
+              className={`flex items-center justify-center p-1.5 rounded-md transition-all ${
+                previewDevice === 'desktop' ? 'bg-zinc-800 text-white shadow-sm' : 'text-zinc-500 hover:text-zinc-300'
+              }`}
+              title="Desktop"
+            >
+              <Monitor className="w-4 h-4" />
+            </button>
+            <button
+              type="button"
+              onClick={() => setPreviewDevice('tablet')}
+              className={`flex items-center justify-center p-1.5 rounded-md transition-all ${
+                previewDevice === 'tablet' ? 'bg-zinc-800 text-white shadow-sm' : 'text-zinc-500 hover:text-zinc-300'
+              }`}
+              title="Tablet"
+            >
+              <Tablet className="w-4 h-4" />
+            </button>
+            <button
+              type="button"
+              onClick={() => setPreviewDevice('mobile')}
+              className={`flex items-center justify-center p-1.5 rounded-md transition-all ${
+                previewDevice === 'mobile' ? 'bg-zinc-800 text-white shadow-sm' : 'text-zinc-500 hover:text-zinc-300'
+              }`}
+              title="Mobile"
+            >
+              <Smartphone className="w-4 h-4" />
+            </button>
+          </div>
+          
+          {/* Dark / Light Switcher */}
+          <div className="flex items-center bg-zinc-900 border border-zinc-800 rounded-lg p-0.5 text-xs shadow-inner">
+            <button
+              type="button"
+              onClick={() => setPreviewMode('dark')}
+              className={`flex items-center gap-1.5 px-2.5 py-1 rounded-md transition-all ${
+                previewMode === 'dark'
+                  ? 'bg-zinc-800 text-white font-medium shadow-sm'
+                  : 'text-zinc-400 hover:text-zinc-200'
+              }`}
+            >
+              <Moon className="w-3.5 h-3.5" />
+              <span>Dark</span>
+            </button>
+            <button
+              type="button"
+              onClick={() => setPreviewMode('light')}
+              className={`flex items-center gap-1.5 px-2.5 py-1 rounded-md transition-all ${
+                previewMode === 'light'
+                  ? 'bg-zinc-200 text-zinc-900 font-semibold shadow-sm'
+                  : 'text-zinc-400 hover:text-zinc-200'
+              }`}
+            >
+              <Sun className="w-3.5 h-3.5" />
+              <span>Light</span>
+            </button>
+          </div>
+          
+          <span className="text-[11px] font-mono text-zinc-500 uppercase tracking-wider hidden sm:inline ml-2">
+            Template: {themeTemplate}
+          </span>
+        </div>
+        
+        <button
+          type="button"
+          onClick={() => setIsPreviewModalOpen(false)}
+          className="text-zinc-400 hover:text-white transition-colors p-2 bg-zinc-900 hover:bg-zinc-800 rounded-lg flex items-center gap-2"
+        >
+          <X className="w-4 h-4" />
+          <span className="text-sm font-medium">Tutup</span>
+        </button>
+      </div>
+      
+      {/* Modal Body / iframe */}
+      <div className={`flex-1 w-full bg-zinc-950 overflow-hidden relative flex justify-center ${previewDevice === 'desktop' ? '' : 'items-center py-8'}`}>
+        <div 
+          className={`relative overflow-hidden transition-all duration-500 ease-in-out flex flex-col bg-[var(--bg-primary)] ${
+            previewDevice === 'mobile' 
+              ? 'w-[375px] h-[812px] max-h-full rounded-[2.5rem] ring-8 ring-zinc-900 shadow-2xl'
+              : previewDevice === 'tablet'
+              ? 'w-[768px] h-[1024px] max-h-full rounded-[2rem] ring-8 ring-zinc-900 shadow-2xl'
+              : 'w-full h-full'
+          }`}
+        >
+          {previewDevice !== 'desktop' && (
+            <div className="absolute top-0 inset-x-0 h-7 bg-zinc-900 z-10 flex justify-center items-center pointer-events-none rounded-t-[2.5rem]">
+              <div className="w-16 h-4 bg-black rounded-full" />
+            </div>
+          )}
+          
+          <iframe
+            ref={iframeRef}
+            src={`/?template=${themeTemplate}`}
+            className={`w-full h-full border-none transition-all duration-300 ${previewDevice !== 'desktop' ? 'pt-7' : ''}`}
+            title="Live Preview"
+            onLoad={() => {
+              if (iframeRef.current && iframeRef.current.contentWindow) {
+                iframeRef.current.contentWindow.postMessage({
+                  type: 'THEME_PREVIEW_SYNC',
+                  payload: { themeAccentColor, themeFont, themeTemplate, previewMode }
+                }, '*');
+              }
+            }}
+          />
+        </div>
+      </div>
+    </div>
+  ) : null;
+
   return (
     <div className="w-full max-w-5xl p-8 bg-black/40 backdrop-blur-xl border border-white/10 rounded-2xl shadow-2xl relative overflow-hidden group">
+      {mounted && createPortal(modalContent, document.body)}
       <div className="absolute inset-0 bg-gradient-to-br from-white/5 to-transparent opacity-0 group-hover:opacity-100 transition-opacity duration-1000 pointer-events-none" />
 
       <div className="relative z-10 space-y-8">
@@ -97,28 +278,27 @@ export default function ThemeSettingsForm({ initialData }: { initialData: any })
           <input type="hidden" name="themeFont" value={themeFont} />
           <input type="hidden" name="themeTemplate" value={themeTemplate} />
 
-          <div className="grid grid-cols-1 lg:grid-cols-12 gap-8 items-start">
-            {/* Controls Left Column */}
-            <div className="lg:col-span-6 space-y-8">
-              {/* 1. Accent Color */}
-              <div className="space-y-3.5">
-                <div>
-                  <label className="block text-sm font-semibold text-zinc-200">
-                    1. Warna Aksen (Accent Color)
-                  </label>
-                  <p className="text-xs text-zinc-500 mt-0.5">
-                    Warna aksen untuk CTA button, glowing highlights, badges, dan border aktif.
-                  </p>
-                </div>
-
-                <div className="pt-1">
-                  <AccentColorPicker
-                    color={themeAccentColor}
-                    onChange={(newColor) => setThemeAccentColor(newColor)}
-                  />
-                </div>
+          <div className="grid grid-cols-1 md:grid-cols-2 gap-10 items-start">
+            {/* 1. Accent Color */}
+            <div className="space-y-3.5">
+              <div>
+                <label className="block text-sm font-semibold text-zinc-200">
+                  1. Warna Aksen (Accent Color)
+                </label>
+                <p className="text-xs text-zinc-500 mt-0.5">
+                  Warna aksen untuk CTA button, glowing highlights, badges, dan border aktif.
+                </p>
               </div>
 
+              <div className="pt-1">
+                <AccentColorPicker
+                  color={themeAccentColor}
+                  onChange={(newColor) => setThemeAccentColor(newColor)}
+                />
+              </div>
+            </div>
+
+            <div className="space-y-10">
               {/* 2. Typography Font Selector */}
               <div className="space-y-3.5">
                 <div>
@@ -196,68 +376,19 @@ export default function ThemeSettingsForm({ initialData }: { initialData: any })
                 </div>
               </div>
             </div>
-
-            {/* Live Preview Right Column */}
-            <div className="lg:col-span-6 space-y-3 relative h-full">
-              <div className="flex items-center justify-between">
-                <label className="text-sm font-semibold text-zinc-200 flex items-center gap-2">
-                  <Monitor className="w-4 h-4 text-zinc-400" />
-                  Scaled Live Preview
-                </label>
-                <span className="text-[11px] font-mono text-zinc-500 uppercase tracking-wider">
-                  Template: {themeTemplate}
-                </span>
-              </div>
-
-              <div
-                className="w-full aspect-[4/5] sm:aspect-auto sm:h-[620px] rounded-2xl border border-zinc-800 bg-[#050505] flex flex-col justify-start relative overflow-hidden transition-all duration-300 shadow-2xl"
-                style={{
-                  fontFamily:
-                    PRESET_FONTS.find((f) => f.name === themeFont)?.varName ||
-                    'var(--font-geist-sans)',
-                  '--color-accent': themeAccentColor,
-                } as any}
-              >
-                <div
-                  className="absolute inset-0 origin-top-left pointer-events-none"
-                  style={{
-                    transform: 'scale(0.35)',
-                    width: '285.7%',
-                    height: '285.7%',
-                  }}
-                >
-                  <div className="w-full h-full pointer-events-none [&>section]:min-h-0 [&>section]:h-[1000px]">
-                    {themeTemplate === 'minimal' ? (
-                      <MinimalHeroSection
-                        profile={{
-                          name: initialData?.name || 'John Doe',
-                          tagline: initialData?.tagline || 'Software Engineer',
-                          bio: initialData?.bio || 'Building scalable things for the web.',
-                          photoUrl: initialData?.photoUrl,
-                          resumeUrl: initialData?.resumeUrl,
-                          socialLinks: initialData?.socialLinks,
-                        }}
-                      />
-                    ) : (
-                      <ImmersiveHeroSection
-                        profile={{
-                          name: initialData?.name || 'John Doe',
-                          tagline: initialData?.tagline || 'Software Engineer',
-                          bio: initialData?.bio || 'Building scalable things for the web.',
-                          photoUrl: initialData?.photoUrl,
-                          resumeUrl: initialData?.resumeUrl,
-                          socialLinks: initialData?.socialLinks,
-                        }}
-                      />
-                    )}
-                  </div>
-                </div>
-              </div>
-            </div>
           </div>
 
-          {/* Submit Button */}
-          <div className="pt-6 border-t border-zinc-800 flex justify-end">
+          {/* Submit Button & Preview Toggle */}
+          <div className="pt-6 mt-8 border-t border-zinc-800 flex flex-col-reverse sm:flex-row justify-between items-center gap-4">
+            <button
+              type="button"
+              onClick={() => setIsPreviewModalOpen(true)}
+              className="w-full sm:w-auto flex items-center justify-center gap-2 py-3 px-6 bg-zinc-800 text-zinc-200 font-semibold rounded-xl hover:bg-zinc-700 hover:text-white transition-all shadow-sm"
+            >
+              <Monitor className="w-4 h-4" />
+              <span>Lihat Live Preview</span>
+            </button>
+
             <button
               type="submit"
               disabled={isPending}

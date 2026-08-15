@@ -65,32 +65,37 @@ export default function ExperienceTimeline({ experiences }: ExperienceTimelinePr
                   <motion.div 
                     key={exp.id} 
                     variants={item}
-                    className={`relative flex flex-col md:flex-row items-start ${isEven ? 'md:flex-row-reverse' : ''}`}
+                    className={`group relative flex flex-col md:flex-row items-start ${isEven ? 'md:flex-row-reverse' : ''}`}
                   >
                     {/* Center Dot */}
-                    <div className={`absolute left-0 md:left-1/2 -translate-x-1/2 mt-1.5 md:mt-2.5 z-10 flex items-center justify-center`}>
+                    <div className="absolute left-0 md:left-1/2 -translate-x-1/2 mt-1.5 md:mt-2.5 z-10 flex items-center justify-center">
                       {isCurrent ? (
-                        <div className="relative flex h-3.5 w-3.5">
+                        <div className="relative flex h-3.5 w-3.5 group-hover:scale-125 transition-transform duration-500 ease-out">
                           <span className="animate-ping absolute inline-flex h-full w-full rounded-full bg-[var(--accent-color)] opacity-60"></span>
-                          <span className="relative inline-flex rounded-full h-3.5 w-3.5 bg-[var(--accent-color)] border-2 border-[var(--bg-primary)]"></span>
+                          <span className="relative inline-flex rounded-full h-3.5 w-3.5 bg-[var(--accent-color)] border-2 border-[var(--bg-primary)] shadow-[0_0_8px_var(--accent-soft)]"></span>
                         </div>
                       ) : (
-                        <div className="h-3.5 w-3.5 rounded-full bg-[var(--text-tertiary)] border-2 border-[var(--bg-primary)] group-hover:bg-[var(--accent-color)] transition-colors" />
+                        <div className="h-3.5 w-3.5 rounded-full bg-[var(--text-tertiary)] border-2 border-[var(--bg-primary)] group-hover:bg-[var(--accent-color)] group-hover:border-[var(--accent-color)] group-hover:scale-125 group-hover:shadow-[0_0_12px_var(--accent-soft)] transition-all duration-500 ease-out" />
                       )}
                     </div>
 
                     {/* Content Box */}
                     <div className={`w-full md:w-1/2 ${isEven ? 'md:pl-12' : 'md:pr-12 pl-8 md:pl-0'}`}>
-                      <div className="group relative p-6 rounded-2xl bg-[var(--bg-card)] border border-[var(--border-subtle)] hover:border-[var(--border-strong)] transition-all shadow-sm">
-                        <div className="relative">
-                          <span className="inline-block px-2.5 py-1 mb-3 text-[10px] font-bold tracking-wider text-[var(--text-tertiary)] uppercase bg-[var(--bg-surface)] rounded-full border border-[var(--border-subtle)]">
+                      <div className="relative p-6 sm:p-7 rounded-2xl bg-[var(--bg-card)] border border-[var(--border-subtle)] group-hover:border-[var(--border-hover)] group-hover:bg-[var(--bg-card-hover)] transition-all duration-500 ease-out shadow-sm group-hover:shadow-xl group-hover:shadow-[var(--accent-color)]/[0.04] group-hover:-translate-y-1 overflow-hidden">
+                        {/* Subtle top-light gradient sheen */}
+                        <div className="absolute inset-0 bg-gradient-to-br from-[var(--text-primary)]/[0.03] to-transparent opacity-0 group-hover:opacity-100 transition-opacity duration-500 pointer-events-none" />
+
+                        <div className="relative z-10">
+                          <span className="inline-block px-2.5 py-1 mb-3 text-[10px] font-bold tracking-wider text-[var(--text-tertiary)] group-hover:text-[var(--accent-text)] uppercase bg-[var(--bg-surface)] group-hover:bg-[var(--accent-soft)] rounded-full border border-[var(--border-subtle)] group-hover:border-[var(--accent-color)]/30 transition-colors duration-300">
                             {exp.type}
                           </span>
                           
-                          <h3 className="text-xl font-bold text-[var(--text-primary)] mb-1 group-hover:text-[var(--accent-text)] transition-colors">
+                          <h3 className="text-xl font-bold text-[var(--text-primary)] mb-1 group-hover:text-[var(--accent-text)] transition-colors duration-300">
                             {exp.title}
                           </h3>
-                          <div className="text-[var(--text-secondary)] font-medium mb-2">{exp.institution}</div>
+                          <div className="text-[var(--text-secondary)] group-hover:text-[var(--text-primary)] font-medium mb-2 transition-colors duration-300">
+                            {exp.institution}
+                          </div>
                           
                           <div className="text-xs font-mono text-[var(--text-tertiary)] mb-4 flex items-center gap-2">
                             <span>{formatDate(exp.startDate)}</span>
@@ -103,7 +108,7 @@ export default function ExperienceTimeline({ experiences }: ExperienceTimelinePr
                           </div>
 
                           {exp.description && (
-                            <p className="text-sm text-[var(--text-secondary)] leading-relaxed whitespace-pre-wrap">
+                            <p className="text-sm text-[var(--text-secondary)] leading-relaxed whitespace-pre-wrap transition-colors duration-300">
                               {exp.description}
                             </p>
                           )}

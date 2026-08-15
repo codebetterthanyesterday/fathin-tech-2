@@ -73,11 +73,11 @@ export default function ImmersiveExperienceTimeline({ experiences }: ExperienceT
                 <div key={exp.id} className="relative flex flex-col md:flex-row md:items-center w-full group">
                   
                   {/* Timeline Node */}
-                  <div className="absolute left-6 md:left-1/2 top-8 md:top-1/2 w-12 h-12 rounded-full bg-[var(--bg-primary)] border-2 border-[var(--border-strong)] group-hover:border-[var(--accent-color)] flex items-center justify-center -translate-x-1/2 md:-translate-y-1/2 z-20 transition-colors duration-500 shadow-md">
+                  <div className="absolute left-6 md:left-1/2 top-8 md:top-1/2 w-12 h-12 rounded-full bg-[var(--bg-primary)] border-2 border-[var(--border-strong)] group-hover:border-[var(--accent-color)] group-hover:scale-110 group-hover:shadow-[0_0_24px_var(--accent-soft)] flex items-center justify-center -translate-x-1/2 md:-translate-y-1/2 z-20 transition-all duration-500 ease-out shadow-md">
                     {exp.type === 'WORK' ? (
-                      <Briefcase className="w-5 h-5 text-[var(--text-secondary)] group-hover:text-[var(--accent-text)] transition-colors" />
+                      <Briefcase className="w-5 h-5 text-[var(--text-secondary)] group-hover:text-[var(--accent-text)] transition-colors duration-300" />
                     ) : (
-                      <GraduationCap className="w-5 h-5 text-[var(--text-secondary)] group-hover:text-[var(--accent-text)] transition-colors" />
+                      <GraduationCap className="w-5 h-5 text-[var(--text-secondary)] group-hover:text-[var(--accent-text)] transition-colors duration-300" />
                     )}
                   </div>
 
@@ -88,31 +88,34 @@ export default function ImmersiveExperienceTimeline({ experiences }: ExperienceT
                       whileInView={{ opacity: 1, x: 0, y: 0 }}
                       viewport={{ once: true, margin: "-100px" }}
                       transition={{ duration: 0.7, type: "spring", bounce: 0.2 }}
-                      className="bg-[var(--bg-surface)] backdrop-blur-md border border-[var(--border-subtle)] hover:border-[var(--border-strong)] p-8 rounded-3xl transition-colors duration-500 relative overflow-hidden shadow-sm hover:shadow-md"
+                      className="bg-[var(--bg-surface)] group-hover:bg-[var(--bg-card-hover)] backdrop-blur-md border border-[var(--border-subtle)] group-hover:border-[var(--border-hover)] p-8 rounded-3xl transition-all duration-500 ease-out relative overflow-hidden shadow-sm group-hover:shadow-2xl group-hover:shadow-[var(--accent-color)]/[0.08] group-hover:-translate-y-1.5"
                     >
+                      {/* Ambient Gradient Glow Overlay */}
+                      <div className="absolute inset-0 bg-gradient-to-br from-[var(--text-primary)]/[0.04] to-transparent opacity-0 group-hover:opacity-100 transition-opacity duration-500 pointer-events-none" />
+
                       {/* Decorative Background Icon */}
-                      <div className={`absolute -bottom-10 ${isEven ? '-left-10' : '-right-10'} text-[var(--text-primary)]/5 pointer-events-none transition-transform duration-700 group-hover:scale-110`}>
+                      <div className={`absolute -bottom-10 ${isEven ? '-left-10' : '-right-10'} text-[var(--text-primary)]/5 pointer-events-none transition-all duration-700 ease-out group-hover:scale-110 group-hover:text-[var(--accent-color)]/10`}>
                         {exp.type === 'WORK' ? <Briefcase className="w-48 h-48" /> : <GraduationCap className="w-48 h-48" />}
                       </div>
 
                       <div className="relative z-10">
                         <div className={`flex flex-col sm:flex-row sm:items-center gap-3 mb-6 ${isEven ? 'md:justify-end' : 'md:justify-start'}`}>
-                          <div className="flex items-center gap-2 text-xs sm:text-sm font-mono text-[var(--accent-text)] bg-[var(--accent-soft)] border border-[var(--accent-color)]/20 px-4 py-1.5 rounded-full w-fit">
+                          <div className="flex items-center gap-2 text-xs sm:text-sm font-mono text-[var(--accent-text)] bg-[var(--accent-soft)] border border-[var(--accent-color)]/20 group-hover:border-[var(--accent-color)]/40 group-hover:shadow-[0_0_12px_var(--accent-soft)] px-4 py-1.5 rounded-full w-fit transition-all duration-300">
                             <Calendar className="w-4 h-4" />
                             {new Date(exp.startDate).getFullYear()} — {exp.endDate ? new Date(exp.endDate).getFullYear() : 'Present'}
                           </div>
                         </div>
                         
-                        <h3 className="text-2xl sm:text-3xl font-bold text-[var(--text-primary)] mb-2 group-hover:text-[var(--accent-text)] transition-colors">
+                        <h3 className="text-2xl sm:text-3xl font-bold text-[var(--text-primary)] mb-2 group-hover:text-[var(--accent-text)] transition-colors duration-300">
                           {exp.title}
                         </h3>
                         
-                        <div className="text-lg sm:text-xl text-[var(--text-secondary)] font-medium mb-6">
+                        <div className="text-lg sm:text-xl text-[var(--text-secondary)] group-hover:text-[var(--text-primary)] font-medium mb-6 transition-colors duration-300">
                           {exp.institution}
                         </div>
                         
                         {exp.description && (
-                          <p className="text-[var(--text-tertiary)] leading-relaxed group-hover:text-[var(--text-secondary)] transition-colors line-clamp-4 hover:line-clamp-none">
+                          <p className="text-[var(--text-tertiary)] leading-relaxed group-hover:text-[var(--text-secondary)] transition-colors duration-300 line-clamp-4 hover:line-clamp-none">
                             {exp.description}
                           </p>
                         )}
