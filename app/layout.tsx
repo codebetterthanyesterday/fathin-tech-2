@@ -88,7 +88,16 @@ export default async function RootLayout({ children }: { children: React.ReactNo
       style={customStyles}
     >
       <head>
-        <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.1/css/all.min.css" integrity="sha512-DTOQO9RWCH3ppGqcWaEA1BIZOC6xxalwEsw9c2QQeAIftl+Vegovlnee1c9QX4TctnWMn13TZye+giMm8e2LwA==" crossOrigin="anonymous" referrerPolicy="no-referrer" />
+        <link rel="preload" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.1/css/all.min.css" as="style" />
+        <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.1/css/all.min.css" media="print" id="fa-stylesheet" />
+        <script dangerouslySetInnerHTML={{ __html: `
+          const fa = document.getElementById('fa-stylesheet');
+          fa.onload = function() { this.media = 'all'; };
+          if (fa.sheet) { fa.media = 'all'; }
+        ` }} />
+        <noscript>
+          <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.1/css/all.min.css" />
+        </noscript>
       </head>
       <body className="min-h-full flex flex-col bg-[var(--bg-primary)] text-[var(--text-primary)] antialiased transition-colors duration-300">
         <ThemeProvider>
