@@ -91,6 +91,11 @@ export default async function RootLayout({ children }: { children: React.ReactNo
       <head>
         <link rel="preload" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.1/css/all.min.css" as="style" />
         <link suppressHydrationWarning rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.1/css/all.min.css" media="print" id="fa-stylesheet" />
+        <noscript>
+          <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.1/css/all.min.css" />
+        </noscript>
+      </head>
+      <body className="min-h-full flex flex-col bg-[var(--bg-primary)] text-[var(--text-primary)] antialiased transition-colors duration-300">
         <Script id="fa-swap" strategy="beforeInteractive">
           {`
             const fa = document.getElementById('fa-stylesheet');
@@ -100,11 +105,6 @@ export default async function RootLayout({ children }: { children: React.ReactNo
             }
           `}
         </Script>
-        <noscript>
-          <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.1/css/all.min.css" />
-        </noscript>
-      </head>
-      <body className="min-h-full flex flex-col bg-[var(--bg-primary)] text-[var(--text-primary)] antialiased transition-colors duration-300">
         <ThemeProvider>
           <Suspense fallback={null}>
             <PreviewSyncListener />
