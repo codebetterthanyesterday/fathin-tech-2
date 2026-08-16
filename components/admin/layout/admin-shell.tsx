@@ -37,7 +37,7 @@ export default function AdminShell({
   }, [isMobileMenuOpen]);
 
   return (
-    <div className="flex h-screen bg-[#050505] overflow-hidden selection:bg-white/20 selection:text-white">
+    <div data-theme="dark" className="flex h-screen bg-[#050505] text-white overflow-hidden selection:bg-white/20 selection:text-white">
       {/* Desktop Sidebar */}
       <div className="hidden md:block w-[260px] flex-shrink-0 relative z-20">
         <Sidebar />

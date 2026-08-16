@@ -257,3 +257,37 @@ body::before {
   box-shadow: 0 2px 6px rgba(0, 0, 0, 0.6) !important;
 }
 
+/* Immersive Hero Marquee Running Text Effect */
+.immersive-marquee-container {
+  mask-image: linear-gradient(to right, transparent 0%, black 10%, black 90%, transparent 100%);
+  -webkit-mask-image: linear-gradient(to right, transparent 0%, black 10%, black 90%, transparent 100%);
+}
+
+.immersive-marquee-text {
+  color: transparent;
+  -webkit-text-fill-color: transparent;
+  -webkit-text-stroke: 1px rgba(0, 0, 0, 0.08);
+  opacity: 0.7;
+  transition: opacity 0.5s ease, filter 0.5s ease, -webkit-text-stroke 0.5s ease;
+}
+
+[data-theme="dark"] .immersive-marquee-text,
+:root:not([data-theme="light"]) .immersive-marquee-text {
+  color: transparent;
+  -webkit-text-fill-color: transparent;
+  -webkit-text-stroke: 1.5px color-mix(in srgb, var(--accent-active) 80%, transparent);
+  opacity: 0.14;
+  filter: drop-shadow(0 0 25px var(--accent-soft)) drop-shadow(0 0 50px color-mix(in srgb, var(--accent-active) 15%, transparent));
+}
+
+.group\/section:hover .immersive-marquee-text {
+  opacity: 0.85;
+}
+
+[data-theme="dark"] .group\/section:hover .immersive-marquee-text,
+:root:not([data-theme="light"]) .group\/section:hover .immersive-marquee-text {
+  opacity: 0.24;
+  filter: drop-shadow(0 0 35px var(--accent-soft)) drop-shadow(0 0 70px color-mix(in srgb, var(--accent-active) 30%, transparent));
+}
+
+

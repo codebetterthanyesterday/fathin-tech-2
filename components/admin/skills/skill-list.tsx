@@ -2,7 +2,7 @@
 
 import { useState, useEffect } from 'react';
 import { DragDropContext, Droppable, Draggable } from '@hello-pangea/dnd';
-import { Plus, GripVertical, Edit2, Trash2 } from 'lucide-react';
+import { Plus, GripVertical, Edit2, Trash2, Code2 } from 'lucide-react';
 import { reorderSkills, deleteSkill } from '@/app/actions/skill';
 import SkillFormModal from './skill-form-modal';
 import DeleteConfirmModal from './delete-confirm-modal';
@@ -94,7 +94,28 @@ export default function SkillListClient({ initialGroupedSkills }: { initialGroup
         </button>
       </div>
 
-      <DragDropContext onDragEnd={onDragEnd}>
+      {!CATEGORIES.some(cat => (groupedSkills[cat] || []).length > 0) ? (
+        <div className="flex flex-col items-center justify-center p-12 text-center border border-dashed border-zinc-800 rounded-xl bg-zinc-900/20">
+          <div className="w-12 h-12 bg-zinc-800 rounded-full flex items-center justify-center mb-4">
+            <Code2 className="w-6 h-6 text-zinc-400" />
+          </div>
+          <h3 className="text-lg font-medium text-white mb-2">No skills added yet</h3>
+          <p className="text-zinc-400 max-w-sm mb-6">
+            Start building your skills portfolio by adding your first technical or soft skill.
+          </p>
+          <button
+            onClick={() => {
+              setEditingSkill(null);
+              setIsFormOpen(true);
+            }}
+            className="flex items-center gap-2 px-4 py-2 bg-white text-black font-semibold rounded-lg hover:bg-zinc-200 transition-colors"
+          >
+            <Plus className="w-4 h-4" />
+            Add Your First Skill
+          </button>
+        </div>
+      ) : (
+        <DragDropContext onDragEnd={onDragEnd}>
         {CATEGORIES.map((cat) => {
           const items = groupedSkills[cat] || [];
           if (items.length === 0) return null;
@@ -174,6 +195,7 @@ export default function SkillListClient({ initialGroupedSkills }: { initialGroup
           );
         })}
       </DragDropContext>
+      )}
 
       <SkillFormModal 
         isOpen={isFormOpen} 

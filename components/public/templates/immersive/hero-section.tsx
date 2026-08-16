@@ -14,17 +14,18 @@ export default function ImmersiveHeroSection({ profile, ctaOverride }: HeroSecti
 
   if (!profile) return null;
 
-  const marqueeText = Array(10).fill(profile.tagline || profile.name).join(" • ");
+  const baseText = profile.tagline || profile.name || 'PORTFOLIO';
+  const marqueeText = Array(8).fill(baseText).join(' • ') + ' • ';
 
   return (
     <section className="relative min-h-[100vh] flex flex-col justify-center px-4 sm:px-12 md:px-24 overflow-hidden pt-24 pb-12 group/section">
       
-      {/* Background Marquee */}
-      <div className="absolute inset-0 flex items-center justify-center opacity-[0.03] dark:opacity-[0.04] pointer-events-none overflow-hidden z-0 select-none text-[var(--text-primary)]">
+      {/* Background Marquee with Outlined & Accent Glow Effect */}
+      <div className="absolute inset-0 flex items-center justify-center pointer-events-none overflow-hidden z-0 select-none immersive-marquee-container">
         <motion.div
-          className="whitespace-nowrap text-[15vw] font-black leading-none uppercase tracking-tighter group-hover/section:[animation-play-state:paused]"
+          className="whitespace-nowrap text-[15vw] font-black leading-none uppercase tracking-tighter immersive-marquee-text group-hover/section:[animation-play-state:paused]"
           animate={prefersReducedMotion ? {} : { x: ['0%', '-50%'] }}
-          transition={{ repeat: Infinity, duration: 25, ease: 'linear' }}
+          transition={{ repeat: Infinity, duration: 30, ease: 'linear' }}
         >
           {marqueeText}
         </motion.div>

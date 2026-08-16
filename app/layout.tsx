@@ -7,6 +7,7 @@ import { generateThemeColorTokens } from "@/lib/theme/colors";
 import PreviewSyncListener from "@/components/public/preview-sync-listener";
 import { Suspense } from "react";
 import { SpeedInsights } from "@vercel/speed-insights/next";
+import { Analytics } from "@vercel/analytics/next";
 
 const geistSans = Geist({
   variable: "--font-geist-sans",
@@ -96,6 +97,7 @@ export default async function RootLayout({ children }: { children: React.ReactNo
           </Suspense>
           {children}
           <SpeedInsights />
+          <Analytics />
         </ThemeProvider>
       </body>
     </html>
