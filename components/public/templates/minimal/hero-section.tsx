@@ -53,13 +53,13 @@ export default function HeroSection({ profile, ctaOverride }: HeroSectionProps) 
           {profile.name}
         </h1>
         
-        <p className="text-lg sm:text-xl md:text-2xl text-[var(--text-secondary)] font-medium max-w-2xl mb-8 leading-relaxed animate-fade-in-up" style={{ animationDelay: '0.5s' }}>
+        <p className="text-lg sm:text-xl md:text-2xl text-[var(--text-secondary)] font-medium max-w-2xl mb-8 leading-relaxed animate-fade-in-up" style={{ animationDelay: '0.1s' }}>
           {profile.tagline}
         </p>
 
         {/* Bio */}
         {profile.bio && (
-          <div className="max-w-2xl mb-10 animate-fade-in-up" style={{ animationDelay: '0.65s' }}>
+          <div className="max-w-2xl mb-10 animate-fade-in-up" style={{ animationDelay: '0.15s' }}>
             <p className="text-sm sm:text-base text-[var(--text-tertiary)] leading-relaxed whitespace-pre-wrap">
               {profile.bio}
             </p>
@@ -67,7 +67,7 @@ export default function HeroSection({ profile, ctaOverride }: HeroSectionProps) 
         )}
 
         {/* Social Links & CTA */}
-        <div className="flex flex-wrap items-center justify-center gap-4 animate-fade-in-up" style={{ animationDelay: '0.8s' }}>
+        <div className="flex flex-wrap items-center justify-center gap-4 animate-fade-in-up" style={{ animationDelay: '0.2s' }}>
           {profile.socialLinks && Array.isArray(profile.socialLinks) && profile.socialLinks.map((link: any, index: number) => {
             return (
               <a

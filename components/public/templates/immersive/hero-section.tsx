@@ -38,7 +38,7 @@ export default function ImmersiveHeroSection({ profile, ctaOverride }: HeroSecti
         {/* Text Content (Left aligned, span 7) */}
         <div className="col-span-1 lg:col-span-7 flex flex-col items-start text-left">
 
-          <div className="mb-4 inline-block animate-immersive-fade-in" style={{ animationDelay: '0.2s' }}>
+          <div className="mb-4 inline-block animate-immersive-fade-in" style={{ animationDelay: '0.05s' }}>
             <span className="text-[var(--accent-text)] font-semibold tracking-widest uppercase text-sm md:text-base border border-[var(--border-strong)] px-4 py-1.5 rounded-full bg-[var(--accent-soft)] backdrop-blur-md shadow-sm">
               Hello, I&apos;m
             </span>
@@ -53,20 +53,20 @@ export default function ImmersiveHeroSection({ profile, ctaOverride }: HeroSecti
 
           <p
             className="text-xl sm:text-2xl md:text-3xl text-[var(--text-secondary)] font-medium max-w-2xl mb-8 leading-tight animate-immersive-fade-in"
-            style={{ animationDelay: '0.4s' }}
+            style={{ animationDelay: '0.1s' }}
           >
             {profile.tagline}
           </p>
 
           {profile.bio && (
-            <div className="max-w-xl mb-12 animate-immersive-fade-in" style={{ animationDelay: '0.5s' }}>
+            <div className="max-w-xl mb-12 animate-immersive-fade-in" style={{ animationDelay: '0.15s' }}>
               <p className="text-base sm:text-lg text-[var(--text-tertiary)] leading-relaxed">
                 {profile.bio}
               </p>
             </div>
           )}
 
-          <div className="flex flex-wrap items-center gap-6 animate-immersive-fade-in" style={{ animationDelay: '0.6s' }}>
+          <div className="flex flex-wrap items-center gap-6 animate-immersive-fade-in" style={{ animationDelay: '0.2s' }}>
             {(profile.resumeUrl || ctaOverride?.ctaUrl) && (
               <a
                 href={ctaOverride?.ctaUrl || profile.resumeUrl}
