@@ -109,7 +109,7 @@ export default function ThemeSettingsForm({ initialData }: { initialData: any })
   };
 
   const modalContent = isPreviewModalOpen ? (
-    <div className="fixed inset-0 z-[100] flex flex-col bg-black/95 backdrop-blur-md">
+    <div data-theme="dark" className="fixed inset-0 z-[100] flex flex-col bg-black/95 backdrop-blur-md">
       {/* Modal Header */}
       <div className="flex items-center justify-between px-6 py-4 border-b border-zinc-800 bg-black">
         <div className="flex flex-wrap items-center gap-4">
@@ -191,7 +191,7 @@ export default function ThemeSettingsForm({ initialData }: { initialData: any })
           className="text-zinc-400 hover:text-white transition-colors p-2 bg-zinc-900 hover:bg-zinc-800 rounded-lg flex items-center gap-2"
         >
           <X className="w-4 h-4" />
-          <span className="text-sm font-medium">Tutup</span>
+          <span className="text-sm font-medium">Close</span>
         </button>
       </div>
       
@@ -242,10 +242,10 @@ export default function ThemeSettingsForm({ initialData }: { initialData: any })
           <div>
             <h2 className="text-2xl font-bold tracking-tight text-white flex items-center gap-2.5">
               <Paintbrush className="w-6 h-6 text-zinc-300" />
-              Tampilan & Tema
+              Theme Configuration
             </h2>
             <p className="text-zinc-400 text-sm mt-1">
-              Personalisasi palet warna aksen, tipografi utama, dan layout template portofolio Anda.
+              Configure global color tokens, primary typography, and application layout architecture.
             </p>
           </div>
 
@@ -255,7 +255,7 @@ export default function ThemeSettingsForm({ initialData }: { initialData: any })
             className="flex items-center gap-1.5 px-3.5 py-2 bg-zinc-800 hover:bg-zinc-700 text-zinc-300 rounded-lg text-xs font-medium transition-colors group/reset self-start sm:self-auto shrink-0"
           >
             <RotateCcw className="w-3.5 h-3.5 transition-transform group-active/reset:-rotate-180 duration-500" />
-            Reset ke Default
+            Restore Defaults
           </button>
         </div>
 
@@ -283,10 +283,10 @@ export default function ThemeSettingsForm({ initialData }: { initialData: any })
             <div className="space-y-3.5">
               <div>
                 <label className="block text-sm font-semibold text-zinc-200">
-                  1. Warna Aksen (Accent Color)
+                  1. Accent Color
                 </label>
                 <p className="text-xs text-zinc-500 mt-0.5">
-                  Warna aksen untuk CTA button, glowing highlights, badges, dan border aktif.
+                  Primary brand color utilized for CTAs, active states, and interactive element borders.
                 </p>
               </div>
 
@@ -303,10 +303,10 @@ export default function ThemeSettingsForm({ initialData }: { initialData: any })
               <div className="space-y-3.5">
                 <div>
                   <label className="block text-sm font-semibold text-zinc-200">
-                    2. Tipografi (Font Utama)
+                    2. Primary Typography
                   </label>
                   <p className="text-xs text-zinc-500 mt-0.5">
-                    Font ini diterapkan ke seluruh teks, judul, dan navigasi di situs publik.
+                    Global font family applied to all public-facing text, headers, and navigation.
                   </p>
                 </div>
 
@@ -337,7 +337,7 @@ export default function ThemeSettingsForm({ initialData }: { initialData: any })
                     3. Layout Template
                   </label>
                   <p className="text-xs text-zinc-500 mt-0.5">
-                    Pilih arsitektur visual dan struktur animasi portofolio Anda.
+                    Select the visual architecture and interaction model for the public site.
                   </p>
                 </div>
 
@@ -386,7 +386,7 @@ export default function ThemeSettingsForm({ initialData }: { initialData: any })
               className="w-full sm:w-auto flex items-center justify-center gap-2 py-3 px-6 bg-zinc-800 text-zinc-200 font-semibold rounded-xl hover:bg-zinc-700 hover:text-white transition-all shadow-sm"
             >
               <Monitor className="w-4 h-4" />
-              <span>Lihat Live Preview</span>
+              <span>Launch Live Preview</span>
             </button>
 
             <button
@@ -401,7 +401,7 @@ export default function ThemeSettingsForm({ initialData }: { initialData: any })
                 ) : (
                   <Save className="w-4 h-4 transition-transform duration-300 group-hover/btn:-translate-y-0.5" />
                 )}
-                <span>Simpan Pengaturan Tema</span>
+                <span>Update Configuration</span>
               </div>
             </button>
           </div>

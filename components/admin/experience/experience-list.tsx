@@ -49,7 +49,7 @@ export default function ExperienceList({ work, education }: ExperienceListProps)
     if (items.length === 0) {
       return (
         <div className="py-8 text-center border border-dashed border-zinc-800 rounded-xl bg-zinc-900/20">
-          <p className="text-zinc-500 text-sm">No {type.toLowerCase()} experience added yet.</p>
+          <p className="text-zinc-500 text-sm">No {type.toLowerCase()} entries found. Action required: Create entry.</p>
         </div>
       );
     }
@@ -133,7 +133,7 @@ export default function ExperienceList({ work, education }: ExperienceListProps)
           className="flex items-center gap-2 px-4 py-2 bg-white text-black font-semibold rounded-lg hover:bg-zinc-200 transition-colors"
         >
           <Plus className="w-4 h-4" />
-          Add Experience
+          Create Entry
         </button>
       </div>
 
@@ -173,8 +173,8 @@ export default function ExperienceList({ work, education }: ExperienceListProps)
         isOpen={isDeleteOpen}
         onClose={() => setIsDeleteOpen(false)}
         onConfirm={confirmDelete}
-        title="Delete Experience"
-        description={`Are you sure you want to delete your experience as "${deletingExperience?.title}" at ${deletingExperience?.institution}? This action cannot be undone.`}
+        title="Delete Entry"
+        description={`Confirm deletion of "${deletingExperience?.title}" at ${deletingExperience?.institution}. This action is irreversible.`}
       />
     </div>
   );

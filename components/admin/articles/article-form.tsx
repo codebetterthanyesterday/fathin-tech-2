@@ -30,6 +30,7 @@ import {
   Clock,
 } from 'lucide-react';
 import { upsertArticle, ArticleActionState } from '@/app/actions/article';
+import { getAdminPath } from '@/lib/routes';
 import { uploadImage } from '@/app/actions/upload';
 import { renderMarkdownClient } from '@/lib/markdown/client';
 
@@ -164,7 +165,7 @@ export default function ArticleForm({ initialData }: { initialData?: ArticleData
       if (res.success) {
         // Redirect back to list
         setTimeout(() => {
-          router.push('/admin/articles');
+          router.push(getAdminPath('articles'));
         }, 600);
       }
     });
@@ -176,7 +177,7 @@ export default function ArticleForm({ initialData }: { initialData?: ArticleData
       <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4 border-b border-zinc-800 pb-6 sticky top-0 bg-[#050505]/90 backdrop-blur-md z-30 pt-2">
         <div className="flex items-center gap-3">
           <Link
-            href="/admin/articles"
+            href={getAdminPath('articles')}
             className="p-2 text-zinc-400 hover:text-white hover:bg-zinc-800/80 rounded-lg transition-colors"
             title="Back to Articles"
           >
@@ -187,7 +188,7 @@ export default function ArticleForm({ initialData }: { initialData?: ArticleData
               {initialData?.id ? 'Edit Article' : 'New Article'}
             </h1>
             <p className="text-xs text-zinc-400">
-              {initialData?.id ? `Editing article /articles/${slug}` : 'Draft a new technical note'}
+              {initialData?.id ? `Editing article /articles/${slug}` : 'Draft technical publication.'}
             </p>
           </div>
         </div>
@@ -218,7 +219,7 @@ export default function ArticleForm({ initialData }: { initialData?: ArticleData
             className="flex items-center gap-2 px-5 py-2 bg-white text-black font-semibold text-sm rounded-lg hover:bg-zinc-200 disabled:opacity-50 disabled:cursor-not-allowed transition-all shadow-sm active:scale-95"
           >
             {isPending ? <Loader2 className="w-4 h-4 animate-spin" /> : <Save className="w-4 h-4" />}
-            {initialData?.id ? 'Update Article' : 'Save Article'}
+            {initialData?.id ? 'Update Entry' : 'Create Entry'}
           </button>
         </div>
       </div>
@@ -252,7 +253,7 @@ export default function ArticleForm({ initialData }: { initialData?: ArticleData
               value={title}
               onChange={handleTitleChange}
               required
-              placeholder="e.g. Building Scalable Web Apps with Next.js 16 and Prisma"
+              placeholder="System Architecture Overview"
               className="w-full px-4 py-3 bg-zinc-950/70 border border-zinc-800 rounded-xl text-white text-base placeholder:text-zinc-600 focus:outline-none focus:ring-1 focus:ring-white/40 transition-colors"
             />
             {formState.fieldErrors?.title && (
@@ -303,7 +304,7 @@ export default function ArticleForm({ initialData }: { initialData?: ArticleData
               rows={2}
               value={excerpt}
               onChange={(e) => setExcerpt(e.target.value)}
-              placeholder="Short teaser summary that appears on article cards and search snippets..."
+              placeholder="Enter concise excerpt..."
               className="w-full px-4 py-2.5 bg-zinc-950/70 border border-zinc-800 rounded-xl text-sm text-white placeholder:text-zinc-600 focus:outline-none focus:ring-1 focus:ring-white/40 transition-colors resize-none"
             />
           </div>
@@ -345,7 +346,7 @@ export default function ArticleForm({ initialData }: { initialData?: ArticleData
             ) : (
               <div className="flex flex-col items-center gap-2 text-zinc-500 text-center p-4">
                 <UploadCloud className="w-7 h-7 text-zinc-400" />
-                <span className="text-xs font-medium text-zinc-300">Click to upload cover</span>
+                <span className="text-xs font-medium text-zinc-300">Upload media</span>
                 <span className="text-[10px] text-zinc-600">PNG, JPG, WebP up to 5MB</span>
               </div>
             )}
@@ -530,7 +531,7 @@ export default function ArticleForm({ initialData }: { initialData?: ArticleData
                 value={contentMd}
                 onChange={(e) => setContentMd(e.target.value)}
                 required
-                placeholder="Write your article in Markdown here... Use # for headings, ```ts for code blocks, etc."
+                placeholder="Enter markdown content..."
                 className="flex-1 w-full p-6 bg-transparent text-zinc-100 font-mono text-sm leading-relaxed placeholder:text-zinc-700 focus:outline-none resize-none min-h-[550px] custom-scrollbar"
               />
             </div>

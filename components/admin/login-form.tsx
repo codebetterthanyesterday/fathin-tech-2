@@ -20,8 +20,8 @@ export default function LoginForm() {
       <div className="absolute inset-0 bg-gradient-to-tr from-white/5 to-transparent opacity-0 group-hover:opacity-100 transition-opacity duration-700 pointer-events-none" />
 
       <div className="relative z-10">
-        <h1 className="text-3xl font-bold tracking-tight text-white mb-2">Welcome Back</h1>
-        <p className="text-zinc-400 text-sm mb-8">Sign in to access your portfolio dashboard.</p>
+        <h1 className="text-3xl font-bold tracking-tight text-white mb-2">Authentication Required</h1>
+        <p className="text-zinc-400 text-sm mb-8">Provide credentials to access the control panel.</p>
 
         <form action={formAction} className="space-y-6">
           <div className="space-y-2">
@@ -49,7 +49,7 @@ export default function LoginForm() {
                 href="/forgot-password"
                 className="text-xs text-zinc-400 hover:text-white transition-colors"
               >
-                Lupa password?
+                Forgot password?
               </Link>
             </div>
             <div className="relative group/input">
@@ -81,7 +81,7 @@ export default function LoginForm() {
               <Loader2 className="w-5 h-5 animate-spin" />
             ) : (
               <>
-                Sign In
+                Authenticate
                 <ArrowRight 
                   className={`w-4 h-4 transition-transform duration-300 ${isHovered ? 'translate-x-1' : ''}`} 
                 />

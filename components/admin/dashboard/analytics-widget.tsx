@@ -145,7 +145,7 @@ function NotConfiguredState() {
         <BarChart3 className="w-5 h-5" />
       </div>
       <div>
-        <p className="text-sm font-semibold text-zinc-300 mb-1">Analytics Not Configured</p>
+        <p className="text-sm font-semibold text-zinc-300 mb-1">Telemetry Unconfigured</p>
         <p className="text-xs text-zinc-500 max-w-sm leading-relaxed">
           Add{' '}
           <code className="font-mono bg-zinc-900 px-1.5 py-0.5 rounded text-zinc-300">
@@ -182,7 +182,7 @@ function ErrorState({ onRetry, isPending }: { onRetry: () => void; isPending: bo
         <AlertTriangle className="w-5 h-5" />
       </div>
       <div>
-        <p className="text-sm font-semibold text-zinc-300 mb-1">Failed to Load Analytics</p>
+        <p className="text-sm font-semibold text-zinc-300 mb-1">Telemetry Fetch Error</p>
         <p className="text-xs text-zinc-500">
           Check your Vercel token and Project ID, then try again.
         </p>
@@ -193,7 +193,7 @@ function ErrorState({ onRetry, isPending }: { onRetry: () => void; isPending: bo
         className="inline-flex items-center gap-1.5 text-xs font-semibold px-4 py-2 rounded-lg bg-zinc-900 hover:bg-zinc-800 border border-zinc-800 hover:border-zinc-700 text-white transition-all disabled:opacity-50"
       >
         <RefreshCw className={`w-3.5 h-3.5 ${isPending ? 'animate-spin' : ''}`} />
-        {isPending ? 'Retrying…' : 'Retry'}
+        {isPending ? 'Re-initializing…' : 'Re-initialize'}
       </button>
     </div>
   );
@@ -245,8 +245,8 @@ export default function AnalyticsWidget({ initialData, isConfigured }: Analytics
             <TrendingUp className="w-4 h-4" />
           </div>
           <div>
-            <h3 className="text-sm font-bold text-white leading-tight">Visitor Analytics</h3>
-            <p className="text-[11px] text-zinc-500 font-mono">via Vercel Web Analytics</p>
+            <h3 className="text-sm font-bold text-white leading-tight">System Telemetry</h3>
+            <p className="text-[11px] text-zinc-500 font-mono">via Vercel Analytics Provider</p>
           </div>
         </div>
 
@@ -257,7 +257,7 @@ export default function AnalyticsWidget({ initialData, isConfigured }: Analytics
             rel="noopener noreferrer"
             className="inline-flex items-center gap-1 text-[11px] font-mono text-zinc-500 hover:text-zinc-300 transition-colors"
           >
-            Full Dashboard
+            External Metrics
             <ExternalLink className="w-3 h-3" />
           </a>
         )}
@@ -331,7 +331,7 @@ export default function AnalyticsWidget({ initialData, isConfigured }: Analytics
           {!isLoading && !hasError && data && data.summary.pageviews === 0 && (
             <div className="text-center py-4">
               <p className="text-sm text-zinc-500">
-                No visitor data recorded yet for this period.
+                No telemetry data present for the selected interval.
               </p>
               <p className="text-xs text-zinc-600 mt-1">
                 Make sure Web Analytics is enabled in your Vercel project settings.

@@ -12,7 +12,7 @@ export default async function AdminExperiencePage() {
   if (error) {
     return (
       <div className="p-8 text-red-400">
-        <p>Error loading experience data: {error}</p>
+        <p>Fetch failed: {error}</p>
       </div>
     );
   }
@@ -20,9 +20,9 @@ export default async function AdminExperiencePage() {
   return (
     <div className="max-w-6xl space-y-8">
       <header className="border-b border-zinc-800 pb-6">
-        <h1 className="text-3xl font-bold tracking-tight">Experience Timeline</h1>
+        <h1 className="text-3xl font-bold tracking-tight">Experience</h1>
         <p className="text-zinc-400 mt-1">
-          Manage your work history and education to build your portfolio's timeline.
+          Career and education history.
         </p>
       </header>
 

@@ -3,6 +3,7 @@
 import { prisma } from '@/lib/prisma';
 import { getSession } from '@/lib/auth';
 import { revalidatePath } from 'next/cache';
+import { getAdminPath } from '@/lib/routes';
 import { SectionContentSchema, DEFAULT_CONTENT } from '@/lib/sections/schema';
 
 export type SectionActionState = {
@@ -26,7 +27,7 @@ export async function toggleSectionVisibility(
     });
 
     revalidatePath('/');
-    revalidatePath('/admin/sections');
+    revalidatePath(getAdminPath('sections'));
     return { success: 'Section visibility updated.' };
   } catch (error) {
     console.error('Failed to toggle section visibility:', error);
@@ -62,7 +63,7 @@ export async function moveSectionOrder(
     ]);
 
     revalidatePath('/');
-    revalidatePath('/admin/sections');
+    revalidatePath(getAdminPath('sections'));
     return { success: 'Section order updated.' };
   } catch (error) {
     console.error('Failed to move section:', error);
@@ -82,7 +83,7 @@ export async function updateSectionTitle(
   try {
     await prisma.section.update({ where: { id }, data: { title: title || null } });
     revalidatePath('/');
-    revalidatePath('/admin/sections');
+    revalidatePath(getAdminPath('sections'));
     return { success: 'Title updated.' };
   } catch (error) {
     return { error: 'Failed to update title.' };
@@ -110,7 +111,7 @@ export async function updateSectionContent(
       data: { content: parsed.data as any },
     });
     revalidatePath('/');
-    revalidatePath('/admin/sections');
+    revalidatePath(getAdminPath('sections'));
     return { success: 'Section content saved.' };
   } catch (error) {
     return { error: 'Failed to save section content.' };
@@ -141,7 +142,7 @@ export async function reorderSections(
     );
 
     revalidatePath('/');
-    revalidatePath('/admin/sections');
+    revalidatePath(getAdminPath('sections'));
     return { success: 'Order saved.' };
   } catch (error) {
     console.error('Failed to reorder sections:', error);

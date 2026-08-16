@@ -12,7 +12,7 @@ export default async function AdminProjectsPage() {
   if (error) {
     return (
       <div className="p-8 text-red-400">
-        <p>Error loading projects: {error}</p>
+        <p>Fetch failed: {error}</p>
       </div>
     );
   }
@@ -20,9 +20,9 @@ export default async function AdminProjectsPage() {
   return (
     <div className="max-w-5xl space-y-8">
       <header className="border-b border-zinc-800 pb-6">
-        <h1 className="text-3xl font-bold tracking-tight">Portfolio Projects</h1>
+        <h1 className="text-3xl font-bold tracking-tight">Projects</h1>
         <p className="text-zinc-400 mt-1">
-          Manage your case studies, sort their display order, and upload image galleries.
+          Manage portfolio entries and display order.
         </p>
       </header>
 

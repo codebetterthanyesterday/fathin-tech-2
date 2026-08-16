@@ -14,29 +14,31 @@ import {
   LogOut,
 } from 'lucide-react';
 import { logout } from '@/app/actions/auth';
+import { getAdminPath } from '@/lib/routes';
 import { useTransition } from 'react';
 
 type MenuItem = {
   label: string;
-  href: string;
+  subpath: string;
   icon: any;
   disabled?: boolean;
 };
 
 const MENU_ITEMS: MenuItem[] = [
-  { label: 'Dashboard', href: '/admin', icon: LayoutDashboard },
-  { label: 'Skills', href: '/admin/skills', icon: Wrench },
-  { label: 'Projects', href: '/admin/projects', icon: FolderGit2 },
-  { label: 'Experience', href: '/admin/experience', icon: Briefcase },
-  { label: 'Sections', href: '/admin/sections', icon: Layers },
-  { label: 'Testimonials', href: '/admin/testimonials', icon: MessageSquareQuote },
-  { label: 'Articles', href: '/admin/articles', icon: FileText },
-  { label: 'Settings', href: '/admin/settings', icon: Settings },
+  { label: 'Dashboard', subpath: '', icon: LayoutDashboard },
+  { label: 'Skills', subpath: 'skills', icon: Wrench },
+  { label: 'Projects', subpath: 'projects', icon: FolderGit2 },
+  { label: 'Experience', subpath: 'experience', icon: Briefcase },
+  { label: 'Sections', subpath: 'sections', icon: Layers },
+  { label: 'Testimonials', subpath: 'testimonials', icon: MessageSquareQuote },
+  { label: 'Articles', subpath: 'articles', icon: FileText },
+  { label: 'Configuration', subpath: 'settings', icon: Settings },
 ];
 
 export default function Sidebar({ onClose }: { onClose?: () => void }) {
   const pathname = usePathname();
   const [isPending, startTransition] = useTransition();
+  const adminRoot = getAdminPath();
 
   const handleLogout = () => {
     startTransition(async () => {
@@ -47,21 +49,22 @@ export default function Sidebar({ onClose }: { onClose?: () => void }) {
   return (
     <aside className="w-full h-full flex flex-col bg-[#0a0a0a] border-r border-white/5 text-zinc-400">
       <div className="p-6">
-        <Link href="/admin" className="flex items-center gap-3 group">
+        <Link href={adminRoot} className="flex items-center gap-3 group">
           <div className="w-8 h-8 rounded-lg bg-white flex items-center justify-center transition-transform group-hover:scale-105">
             <span className="text-black font-bold text-lg leading-none mt-[-2px]">F</span>
           </div>
           <span className="text-white font-bold tracking-wide group-hover:text-zinc-200 transition-colors">
-            CMS Builder
+            System Control Panel
           </span>
         </Link>
       </div>
 
       <nav className="flex-1 px-4 space-y-1 overflow-y-auto pb-4 custom-scrollbar">
         {MENU_ITEMS.map((item) => {
+          const href = getAdminPath(item.subpath);
           // Determine if current route is active.
           const isActive =
-            item.href === '/admin' ? pathname === '/admin' : pathname.startsWith(item.href);
+            item.subpath === '' ? pathname === href : pathname.startsWith(href);
 
           if (item.disabled) {
             return (
@@ -81,7 +84,7 @@ export default function Sidebar({ onClose }: { onClose?: () => void }) {
           return (
             <Link
               key={item.label}
-              href={item.href}
+              href={href}
               onClick={onClose}
               className={`flex items-center gap-3 px-3 py-2.5 rounded-lg transition-all duration-300 relative group overflow-hidden ${
                 isActive ? 'text-white bg-white/5' : 'hover:text-zinc-200 hover:bg-white/5'
@@ -112,7 +115,7 @@ export default function Sidebar({ onClose }: { onClose?: () => void }) {
           className="flex w-full items-center gap-3 px-3 py-2.5 text-zinc-500 hover:text-white hover:bg-red-500/10 rounded-lg transition-colors group"
         >
           <LogOut className="w-5 h-5 flex-shrink-0 group-hover:text-red-400 transition-colors" />
-          <span className="font-medium text-sm">Logout</span>
+          <span className="font-medium text-sm">Terminate Session</span>
         </button>
       </div>
     </aside>

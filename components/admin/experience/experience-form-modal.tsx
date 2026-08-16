@@ -95,7 +95,7 @@ export default function ExperienceFormModal({
         </button>
 
         <h2 className="text-xl font-bold text-white mb-6">
-          {experience ? 'Edit Experience' : 'Add Experience'}
+          {experience ? 'Edit Entry' : 'Create Entry'}
         </h2>
 
         {state?.error && (
@@ -228,7 +228,7 @@ export default function ExperienceFormModal({
               rows={4}
               defaultValue={experience?.description || ''}
               className="w-full px-4 py-2.5 bg-zinc-900 border border-zinc-800 rounded-lg text-white placeholder:text-zinc-600 focus:outline-none focus:ring-2 focus:ring-white/20 transition-all resize-y text-sm"
-              placeholder="Key responsibilities or achievements..."
+              placeholder="Enter achievements and responsibilities..."
             />
           </div>
 
@@ -247,7 +247,7 @@ export default function ExperienceFormModal({
               className="relative flex items-center justify-center gap-2 px-6 py-2.5 bg-white text-black text-sm font-semibold rounded-lg disabled:opacity-50 transition-transform active:scale-95"
             >
               {isPending ? <Loader2 className="w-4 h-4 animate-spin" /> : null}
-              {experience ? 'Save Changes' : 'Add Experience'}
+              {experience ? 'Update Entry' : 'Create Entry'}
             </button>
           </div>
         </form>

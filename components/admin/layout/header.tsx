@@ -14,23 +14,25 @@ import {
 } from 'lucide-react';
 import { useEffect, useState, useRef, useTransition } from 'react';
 import { logout } from '@/app/actions/auth';
+import { getAdminPath } from '@/lib/routes';
 
 // Maps route prefixes to readable titles
 const getPageTitle = (pathname: string) => {
-  if (pathname === '/admin') return 'Dashboard';
-  if (pathname.startsWith('/admin/profile')) return 'Profile Details';
-  if (pathname.startsWith('/admin/skills')) return 'Skills & Technologies';
-  if (pathname.startsWith('/admin/projects/new')) return 'Add New Project';
-  if (pathname.startsWith('/admin/projects') && pathname.length > '/admin/projects'.length) return 'Edit Project';
-  if (pathname.startsWith('/admin/projects')) return 'Projects Portfolio';
-  if (pathname.startsWith('/admin/experience')) return 'Career & Education';
-  if (pathname.startsWith('/admin/sections')) return 'Page Sections & Layout';
-  if (pathname.startsWith('/admin/testimonials')) return 'Testimonials';
-  if (pathname.startsWith('/admin/articles/new')) return 'Write Article';
-  if (pathname.startsWith('/admin/articles') && pathname.length > '/admin/articles'.length) return 'Edit Article';
-  if (pathname.startsWith('/admin/articles')) return 'Technical Articles';
-  if (pathname.startsWith('/admin/settings')) return 'Appearance & Settings';
-  return 'Admin CMS';
+  const adminBase = getAdminPath();
+  if (pathname === adminBase) return 'Dashboard';
+  if (pathname.startsWith(`${adminBase}/profile`)) return 'System Profile Data';
+  if (pathname.startsWith(`${adminBase}/skills`)) return 'Skills & Technologies';
+  if (pathname.startsWith(`${adminBase}/projects/new`)) return 'Add New Project';
+  if (pathname.startsWith(`${adminBase}/projects`) && pathname.length > `${adminBase}/projects`.length) return 'Edit Project';
+  if (pathname.startsWith(`${adminBase}/projects`)) return 'Projects Portfolio';
+  if (pathname.startsWith(`${adminBase}/experience`)) return 'Career & Education';
+  if (pathname.startsWith(`${adminBase}/sections`)) return 'Page Sections & Layout';
+  if (pathname.startsWith(`${adminBase}/testimonials`)) return 'Testimonials';
+  if (pathname.startsWith(`${adminBase}/articles/new`)) return 'Write Article';
+  if (pathname.startsWith(`${adminBase}/articles`) && pathname.length > `${adminBase}/articles`.length) return 'Edit Article';
+  if (pathname.startsWith(`${adminBase}/articles`)) return 'Technical Articles';
+  if (pathname.startsWith(`${adminBase}/settings`)) return 'System Configuration';
+  return 'System Control Panel';
 };
 
 interface HeaderProps {
@@ -44,6 +46,9 @@ export default function Header({ onMenuClick, email }: HeaderProps) {
   const [isDropdownOpen, setIsDropdownOpen] = useState(false);
   const [isPending, startTransition] = useTransition();
   const dropdownRef = useRef<HTMLDivElement>(null);
+
+  const profileHref = getAdminPath('profile');
+  const settingsHref = getAdminPath('settings');
 
   // Update title on mount and pathname change
   useEffect(() => {
@@ -139,7 +144,7 @@ export default function Header({ onMenuClick, email }: HeaderProps) {
           <div className="absolute right-0 mt-2 w-64 rounded-2xl bg-[#0e0e0e] border border-white/10 shadow-[0_20px_50px_rgba(0,0,0,0.8)] py-2 z-50 animate-in fade-in zoom-in-95 duration-200 backdrop-blur-2xl">
             {/* Header info in dropdown */}
             <div className="px-4 py-3 border-b border-white/5">
-              <p className="text-xs text-zinc-500 font-medium">Signed in as</p>
+              <p className="text-xs text-zinc-500 font-medium">Authenticated Identity</p>
               <p className="text-sm font-semibold text-white truncate mt-0.5" title={email || ''}>
                 {email || 'admin@portfolio.local'}
               </p>
@@ -148,29 +153,29 @@ export default function Header({ onMenuClick, email }: HeaderProps) {
             {/* Navigation links */}
             <div className="p-1.5 space-y-0.5">
               <Link
-                href="/admin/profile"
+                href={profileHref}
                 onClick={() => setIsDropdownOpen(false)}
                 className={`flex items-center gap-2.5 px-3 py-2 rounded-xl text-sm font-medium transition-colors ${
-                  pathname.startsWith('/admin/profile')
+                  pathname.startsWith(profileHref)
                     ? 'bg-white/10 text-white'
                     : 'text-zinc-300 hover:text-white hover:bg-white/5'
                 }`}
               >
                 <UserCircle2 className="w-4 h-4 text-zinc-400" />
-                <span>Edit Profile</span>
+                <span>Profile Configuration</span>
               </Link>
 
               <Link
-                href="/admin/settings"
+                href={settingsHref}
                 onClick={() => setIsDropdownOpen(false)}
                 className={`flex items-center gap-2.5 px-3 py-2 rounded-xl text-sm font-medium transition-colors ${
-                  pathname.startsWith('/admin/settings')
+                  pathname.startsWith(settingsHref)
                     ? 'bg-white/10 text-white'
                     : 'text-zinc-300 hover:text-white hover:bg-white/5'
                 }`}
               >
                 <Settings className="w-4 h-4 text-zinc-400" />
-                <span>Theme & Settings</span>
+                <span>System Configuration</span>
               </Link>
 
               <Link
@@ -182,7 +187,7 @@ export default function Header({ onMenuClick, email }: HeaderProps) {
               >
                 <div className="flex items-center gap-2.5">
                   <ExternalLink className="w-4 h-4 text-zinc-400 group-hover:text-white transition-colors" />
-                  <span>View Public Site</span>
+                  <span>Access Public Interface</span>
                 </div>
                 <span className="text-[10px] font-mono text-zinc-500 group-hover:text-zinc-400">↗</span>
               </Link>
@@ -201,7 +206,7 @@ export default function Header({ onMenuClick, email }: HeaderProps) {
                 ) : (
                   <LogOut className="w-4 h-4" />
                 )}
-                <span>Sign Out</span>
+                <span>Terminate Session</span>
               </button>
             </div>
           </div>

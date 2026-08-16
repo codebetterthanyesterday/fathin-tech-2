@@ -4,6 +4,7 @@ import { z } from 'zod';
 import { prisma } from '@/lib/prisma';
 import { getSession } from '@/lib/auth';
 import { revalidatePath } from 'next/cache';
+import { getAdminPath } from '@/lib/routes';
 import { ExperienceType } from '@/app/generated/prisma/client';
 
 const experienceSchema = z.object({
@@ -70,7 +71,7 @@ export async function getExperiences() {
     };
   } catch (error) {
     console.error('Failed to get experiences:', error);
-    return { error: 'Gagal mengambil data riwayat' };
+    return { error: 'Fetch failed: Unable to retrieve experience records.' };
   }
 }
 
@@ -95,13 +96,13 @@ export async function upsertExperience(
   const validated = experienceSchema.safeParse(rawData);
   if (!validated.success) {
     return {
-      error: 'Validasi gagal.',
+      error: 'Validation error: Check highlighted fields.',
       fieldErrors: validated.error.flatten().fieldErrors,
     };
   }
 
   const data = validated.data;
-  
+
   try {
     const payload = {
       type: data.type,
@@ -121,17 +122,17 @@ export async function upsertExperience(
       await prisma.experience.create({
         data: {
           ...payload,
-          order: 0, // order can be overridden manually later if needed, but defaults to 0
+          order: 0,
         },
       });
     }
 
     revalidatePath('/');
-    revalidatePath('/admin/experience');
-    return { success: id ? 'Riwayat berhasil diperbarui!' : 'Riwayat berhasil ditambahkan!' };
+    revalidatePath(getAdminPath('experience'));
+    return { success: id ? 'Record updated.' : 'Record created.' };
   } catch (error) {
     console.error('Failed to upsert experience:', error);
-    return { error: 'Terjadi kesalahan saat menyimpan data.' };
+    return { error: 'Save failed: Unable to write data.' };
   }
 }
 
@@ -142,10 +143,10 @@ export async function deleteExperience(id: string) {
   try {
     await prisma.experience.delete({ where: { id } });
     revalidatePath('/');
-    revalidatePath('/admin/experience');
-    return { success: 'Riwayat berhasil dihapus!' };
+    revalidatePath(getAdminPath('experience'));
+    return { success: 'Record deleted.' };
   } catch (error) {
     console.error('Failed to delete experience:', error);
-    return { error: 'Gagal menghapus riwayat.' };
+    return { error: 'Delete failed: Unable to remove record.' };
   }
 }

@@ -81,7 +81,7 @@ export default function SkillListClient({ initialGroupedSkills }: { initialGroup
   return (
     <div className="space-y-12">
       <div className="flex justify-between items-center">
-        <h2 className="text-xl font-semibold">Your Skills</h2>
+        <h2 className="text-xl font-semibold">Skill Index</h2>
         <button
           onClick={() => {
             setEditingSkill(null);
@@ -90,7 +90,7 @@ export default function SkillListClient({ initialGroupedSkills }: { initialGroup
           className="flex items-center gap-2 px-4 py-2 bg-white text-black font-semibold rounded-lg hover:bg-zinc-200 transition-colors"
         >
           <Plus className="w-4 h-4" />
-          Add Skill
+          Create Entry
         </button>
       </div>
 
@@ -99,9 +99,9 @@ export default function SkillListClient({ initialGroupedSkills }: { initialGroup
           <div className="w-12 h-12 bg-zinc-800 rounded-full flex items-center justify-center mb-4">
             <Code2 className="w-6 h-6 text-zinc-400" />
           </div>
-          <h3 className="text-lg font-medium text-white mb-2">No skills added yet</h3>
+          <h3 className="text-lg font-medium text-white mb-2">No entries found</h3>
           <p className="text-zinc-400 max-w-sm mb-6">
-            Start building your skills portfolio by adding your first technical or soft skill.
+            Action required: Create an entry.
           </p>
           <button
             onClick={() => {
@@ -111,7 +111,7 @@ export default function SkillListClient({ initialGroupedSkills }: { initialGroup
             className="flex items-center gap-2 px-4 py-2 bg-white text-black font-semibold rounded-lg hover:bg-zinc-200 transition-colors"
           >
             <Plus className="w-4 h-4" />
-            Add Your First Skill
+            Create Entry
           </button>
         </div>
       ) : (
@@ -207,8 +207,8 @@ export default function SkillListClient({ initialGroupedSkills }: { initialGroup
         isOpen={isDeleteOpen}
         onClose={() => setIsDeleteOpen(false)}
         onConfirm={confirmDelete}
-        title="Delete Skill"
-        description={`Are you sure you want to delete "${deletingSkill?.name}"? This action cannot be undone.`}
+        title="Delete Entry"
+        description={`Confirm deletion of "${deletingSkill?.name}". This action is irreversible.`}
       />
     </div>
   );

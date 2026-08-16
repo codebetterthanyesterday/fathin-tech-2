@@ -65,7 +65,7 @@ export default function TestimonialListClient({ initialTestimonials }: { initial
   return (
     <div className="space-y-6">
       <div className="flex justify-between items-center">
-        <h2 className="text-xl font-semibold">All Testimonials</h2>
+        <h2 className="text-xl font-semibold">Endorsement Index</h2>
         <button
           onClick={() => {
             setEditingTestimonial(null);
@@ -74,13 +74,13 @@ export default function TestimonialListClient({ initialTestimonials }: { initial
           className="flex items-center gap-2 px-4 py-2 bg-white text-black font-semibold rounded-lg hover:bg-zinc-200 transition-colors"
         >
           <Plus className="w-4 h-4" />
-          Add Testimonial
+          Create Entry
         </button>
       </div>
 
       {testimonials.length === 0 ? (
         <div className="text-center p-12 border border-zinc-800 border-dashed rounded-xl text-zinc-500">
-          No testimonials added yet. Click "Add Testimonial" to get started.
+          No entries found. Action required: Create an entry.
         </div>
       ) : (
         <div className="grid gap-4">
@@ -170,8 +170,8 @@ export default function TestimonialListClient({ initialTestimonials }: { initial
         isOpen={isDeleteOpen}
         onClose={() => setIsDeleteOpen(false)}
         onConfirm={confirmDelete}
-        title="Delete Testimonial"
-        description={`Are you sure you want to delete the testimonial from "${deletingTestimonial?.name}"?`}
+        title="Delete Entry"
+        description={`Confirm deletion of endorsement from "${deletingTestimonial?.name}". This action is irreversible.`}
       />
     </div>
   );

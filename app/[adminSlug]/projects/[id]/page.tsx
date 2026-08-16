@@ -14,7 +14,7 @@ export default async function EditProjectPage(props: { params: Promise<{ id: str
   if (error) {
     return (
       <div className="p-8 text-red-400">
-        <p>Error loading project data: {error}</p>
+        <p>Fetch failed: {error}</p>
       </div>
     );
   }
@@ -28,7 +28,7 @@ export default async function EditProjectPage(props: { params: Promise<{ id: str
       <header className="border-b border-zinc-800 pb-6">
         <h1 className="text-3xl font-bold tracking-tight">Edit Project</h1>
         <p className="text-zinc-400 mt-1">
-          Update the details, media, and settings for this project.
+          Modify project configuration and media.
         </p>
       </header>
 

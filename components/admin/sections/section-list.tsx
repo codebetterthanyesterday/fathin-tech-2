@@ -162,7 +162,7 @@ function ContentEditor({ section, onClose }: { section: any; onClose: () => void
       <div className="flex gap-2 pt-2">
         <button type="button" onClick={handleSave} disabled={isPending}
           className="px-4 py-1.5 bg-white text-black text-xs font-semibold rounded-md hover:bg-zinc-200 transition-colors disabled:opacity-50">
-          {isPending ? 'Saving...' : 'Save'}
+          {isPending ? 'Processing...' : 'Apply'}
         </button>
         <button type="button" onClick={onClose}
           className="px-4 py-1.5 bg-transparent border border-zinc-700 text-zinc-400 text-xs rounded-md hover:border-zinc-500 transition-colors">
@@ -463,7 +463,7 @@ export default function SectionList({ sections: initialSections }: { sections: a
     return (
       <div className="text-center py-20 border border-zinc-800/50 rounded-xl border-dashed">
         <LayoutList className="w-10 h-10 text-zinc-700 mx-auto mb-4" />
-        <p className="text-zinc-500 text-sm">No sections found.</p>
+        <p className="text-zinc-500 text-sm">No entries found.</p>
         <p className="text-zinc-600 text-xs mt-2">Run the seed script to create initial sections.</p>
       </div>
     );
@@ -479,7 +479,7 @@ export default function SectionList({ sections: initialSections }: { sections: a
             <span>{saveError}</span>
           </div>
         ) : isSaving ? (
-          <p className="text-xs text-zinc-500 animate-pulse">Saving order…</p>
+          <p className="text-xs text-zinc-500 animate-pulse">Processing sort operation…</p>
         ) : (
           <p className="text-xs text-zinc-600">Drag rows or use ↑↓ buttons to reorder</p>
         )}

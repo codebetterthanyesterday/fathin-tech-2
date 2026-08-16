@@ -13,7 +13,7 @@ export default async function SettingsPage() {
   if (error) {
     return (
       <div className="p-8 text-red-400">
-        <p>Error loading settings data: {error}</p>
+        <p>Fetch failed: {error}</p>
       </div>
     );
   }
@@ -23,7 +23,7 @@ export default async function SettingsPage() {
       <header className="border-b border-zinc-800 pb-6">
         <h1 className="text-3xl font-bold tracking-tight text-white">Settings</h1>
         <p className="text-zinc-400 mt-1">
-          Kelola konfigurasi tampilan visual, warna aksen, font, dan template layout situs portofolio Anda.
+          Configure visual appearance, theme colors, typography, and templates.
         </p>
       </header>
 

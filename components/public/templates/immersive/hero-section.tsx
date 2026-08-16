@@ -19,39 +19,39 @@ export default function ImmersiveHeroSection({ profile, ctaOverride }: HeroSecti
 
   return (
     <section className="relative min-h-[100vh] flex flex-col justify-center px-4 sm:px-12 md:px-24 overflow-hidden pt-24 pb-12 group/section">
-      
+
       {/* Background Marquee with Outlined & Accent Glow Effect */}
       <div className="absolute inset-0 flex items-center justify-center pointer-events-none overflow-hidden z-0 select-none immersive-marquee-container">
         <motion.div
           className="whitespace-nowrap text-[15vw] font-black leading-none uppercase tracking-tighter immersive-marquee-text group-hover/section:[animation-play-state:paused]"
           animate={prefersReducedMotion ? {} : { x: ['0%', '-50%'] }}
-          transition={{ repeat: Infinity, duration: 30, ease: 'linear' }}
+          transition={{ repeat: Infinity, duration: 65, ease: 'linear' }}
         >
           {marqueeText}
         </motion.div>
       </div>
 
-      <div 
+      <div
         className="w-full max-w-7xl mx-auto z-10 grid grid-cols-1 lg:grid-cols-12 gap-8 items-center"
       >
-        
+
         {/* Text Content (Left aligned, span 7) */}
         <div className="col-span-1 lg:col-span-7 flex flex-col items-start text-left">
-          
+
           <div className="mb-4 inline-block animate-immersive-fade-in" style={{ animationDelay: '0.2s' }}>
             <span className="text-[var(--accent-text)] font-semibold tracking-widest uppercase text-sm md:text-base border border-[var(--border-strong)] px-4 py-1.5 rounded-full bg-[var(--accent-soft)] backdrop-blur-md shadow-sm">
               Hello, I&apos;m
             </span>
           </div>
 
-          <h1 
+          <h1
             className="text-6xl sm:text-7xl md:text-8xl lg:text-[7rem] font-black tracking-tighter text-[var(--text-primary)] mb-6 leading-[0.9] animate-immersive-fade-in"
             style={{ animationDelay: '0.3s' }}
           >
             {profile.name}
           </h1>
-          
-          <p 
+
+          <p
             className="text-xl sm:text-2xl md:text-3xl text-[var(--text-secondary)] font-medium max-w-2xl mb-8 leading-tight animate-immersive-fade-in"
             style={{ animationDelay: '0.4s' }}
           >
@@ -78,7 +78,7 @@ export default function ImmersiveHeroSection({ profile, ctaOverride }: HeroSecti
                 <ArrowRight className="w-5 h-5 group-hover/btn:translate-x-1 transition-transform" />
               </a>
             )}
-            
+
             <div className="flex gap-4">
               {profile.socialLinks && Array.isArray(profile.socialLinks) && profile.socialLinks.map((link: any, index: number) => (
                 <a
@@ -98,22 +98,22 @@ export default function ImmersiveHeroSection({ profile, ctaOverride }: HeroSecti
 
         {/* Image Content (Asymmetrical Right, span 5) */}
         {profile.photoUrl && (
-          <div 
+          <div
             className="col-span-1 lg:col-span-5 relative mt-12 lg:mt-0 lg:ml-12 animate-immersive-fade-in"
             style={{ animationDelay: '0.4s' }}
           >
             <div className="relative aspect-[3/4] w-full max-w-md mx-auto rounded-3xl overflow-hidden border border-[var(--border-strong)] shadow-2xl group/img bg-[var(--bg-surface)]">
               <div className="absolute inset-0 bg-gradient-to-t from-black/50 via-black/15 to-transparent z-10" />
-              <Image 
-                src={profile.photoUrl} 
-                alt={profile.name} 
+              <Image
+                src={profile.photoUrl}
+                alt={profile.name}
                 fill
-                sizes="(max-width: 1024px) 100vw, 50vw" 
+                sizes="(max-width: 1024px) 100vw, 50vw"
                 className="object-cover transition-transform duration-700 group-hover/img:scale-105"
                 priority
               />
             </div>
-            
+
             {/* Decorative element */}
             <div className="absolute -bottom-6 -left-6 w-32 h-32 border-l border-b border-[var(--border-strong)] rounded-bl-3xl hidden lg:block pointer-events-none" />
           </div>

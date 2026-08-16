@@ -16,6 +16,7 @@ import {
 } from 'lucide-react';
 import { deleteArticle, toggleArticlePublished } from '@/app/actions/article';
 import DeleteConfirmModal from '@/components/admin/skills/delete-confirm-modal';
+import { getAdminPath } from '@/lib/routes';
 
 type ArticleItem = {
   id: string;
@@ -157,19 +158,19 @@ export default function ArticleListClient({ initialArticles }: { initialArticles
       {filteredArticles.length === 0 ? (
         <div className="text-center py-16 border border-zinc-800/80 border-dashed rounded-2xl bg-zinc-950/40">
           <FileText className="w-10 h-10 text-zinc-600 mx-auto mb-3" />
-          <h3 className="text-base font-medium text-white mb-1">No articles found</h3>
+          <h3 className="text-base font-medium text-white mb-1">No entries found</h3>
           <p className="text-sm text-zinc-500 max-w-sm mx-auto mb-6">
             {searchQuery || statusFilter !== 'all'
-              ? 'Try changing your search keywords or active filter.'
-              : 'Create your first article or technical note to share your insights.'}
+              ? 'No matching entries found for the current query.'
+              : 'Action required: Create an entry.'}
           </p>
           {!searchQuery && statusFilter === 'all' && (
             <Link
-              href="/admin/articles/new"
+              href={getAdminPath('articles/new')}
               className="inline-flex items-center gap-2 px-4 py-2 bg-white text-black font-semibold text-xs rounded-lg hover:bg-zinc-200 transition-colors"
             >
               <Sparkles className="w-3.5 h-3.5" />
-              Write First Article
+              Create Entry
             </Link>
           )}
         </div>
@@ -281,7 +282,7 @@ export default function ArticleListClient({ initialArticles }: { initialArticles
 
                 {/* Edit */}
                 <Link
-                  href={`/admin/articles/${article.id}`}
+                  href={getAdminPath(`articles/${article.id}`)}
                   className="p-2 text-zinc-400 hover:text-white hover:bg-zinc-800 rounded-lg transition-colors"
                   title="Edit article"
                 >
@@ -308,8 +309,8 @@ export default function ArticleListClient({ initialArticles }: { initialArticles
         isOpen={isDeleteOpen}
         onClose={() => setIsDeleteOpen(false)}
         onConfirm={confirmDelete}
-        title="Delete Article"
-        description={`Are you sure you want to delete "${deletingArticle?.title}"? This action cannot be undone.`}
+        title="Delete Entry"
+        description={`Confirm deletion of "${deletingArticle?.title}". This action is irreversible.`}
       />
     </div>
   );

@@ -25,7 +25,7 @@ export default function ForgotPasswordForm() {
           className="inline-flex items-center gap-2 text-xs font-medium text-zinc-500 hover:text-white transition-colors mb-6 group/back"
         >
           <ArrowLeft className="w-3.5 h-3.5 group-hover/back:-translate-x-1 transition-transform" />
-          Kembali ke Login
+          Return to Authentication
         </Link>
 
         {state?.success ? (
@@ -37,7 +37,7 @@ export default function ForgotPasswordForm() {
 
             <div className="space-y-2">
               <h1 className="text-2xl font-bold tracking-tight text-white">
-                Tautan Reset Terkirim
+                Reset Token Dispatched
               </h1>
               <p className="text-zinc-400 text-sm leading-relaxed">
                 {state.success}
@@ -45,8 +45,8 @@ export default function ForgotPasswordForm() {
             </div>
 
             <div className="p-4 rounded-xl bg-zinc-900/60 border border-zinc-800 text-xs text-zinc-400 space-y-1">
-              <p className="font-semibold text-zinc-300">Catatan Keamanan:</p>
-              <p>Tautan berlaku selama 1 jam dan hanya dapat digunakan 1 kali.</p>
+              <p className="font-semibold text-zinc-300">Security Protocol:</p>
+              <p>Token valid for 60 minutes. Single-use only.</p>
             </div>
 
             <div className="pt-2">
@@ -54,7 +54,7 @@ export default function ForgotPasswordForm() {
                 href="/login"
                 className="w-full flex items-center justify-center gap-2 py-3 px-4 bg-white text-black font-semibold text-sm rounded-lg hover:bg-zinc-200 transition-colors shadow-sm"
               >
-                Kembali ke Halaman Login
+                Return to Authentication Interface
               </Link>
             </div>
           </div>
@@ -63,10 +63,10 @@ export default function ForgotPasswordForm() {
           <div className="space-y-6">
             <div>
               <h1 className="text-3xl font-bold tracking-tight text-white mb-2">
-                Lupa Password
+                Reset Credentials
               </h1>
               <p className="text-zinc-400 text-sm">
-                Masukkan email Anda. Kami akan mengirimkan tautan untuk membuat kata sandi baru.
+                Enter your administrative email to receive a secure recovery token.
               </p>
             </div>
 
@@ -80,7 +80,7 @@ export default function ForgotPasswordForm() {
             <form action={formAction} className="space-y-6">
               <div className="space-y-2">
                 <label htmlFor="email" className="block text-sm font-medium text-zinc-300">
-                  Email Admin
+                  Administrative Email
                 </label>
                 <div className="relative group/input">
                   <input
@@ -89,7 +89,7 @@ export default function ForgotPasswordForm() {
                     type="email"
                     required
                     className="w-full px-4 py-3 bg-zinc-900/50 border border-zinc-800 rounded-lg text-white placeholder:text-zinc-600 focus:outline-none focus:ring-2 focus:ring-white/20 focus:border-white/30 transition-all duration-300"
-                    placeholder="admin@example.com"
+                    placeholder="Enter registered address..."
                   />
                 </div>
               </div>
@@ -106,7 +106,7 @@ export default function ForgotPasswordForm() {
                 ) : (
                   <>
                     <Mail className="w-4 h-4" />
-                    <span>Kirim Tautan Reset</span>
+                    <span>Dispatch Recovery Token</span>
                     <ArrowRight
                       className={`w-4 h-4 transition-transform duration-300 ${
                         isHovered ? 'translate-x-1' : ''

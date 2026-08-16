@@ -4,6 +4,7 @@ import { z } from 'zod';
 import { prisma } from '@/lib/prisma';
 import { getSession } from '@/lib/auth';
 import { revalidatePath } from 'next/cache';
+import { getAdminPath } from '@/lib/routes';
 
 function slugify(text: string) {
   return text
@@ -40,7 +41,7 @@ export async function getArticles() {
     return { articles };
   } catch (error) {
     console.error('Failed to get articles:', error);
-    return { error: 'Gagal mengambil data artikel.', articles: [] };
+    return { error: 'Fetch failed: Unable to retrieve articles.', articles: [] };
   }
 }
 
@@ -52,7 +53,7 @@ export async function getArticleById(id: string) {
     return { article };
   } catch (error) {
     console.error('Failed to get article:', error);
-    return { error: 'Gagal mengambil artikel.', article: null };
+    return { error: 'Fetch failed: Article not found.', article: null };
   }
 }
 
@@ -66,7 +67,7 @@ export async function getPublishedArticles(limit?: number) {
     return { articles };
   } catch (error) {
     console.error('Failed to get published articles:', error);
-    return { error: 'Gagal mengambil artikel terbit.', articles: [] };
+    return { error: 'Fetch failed: Unable to retrieve published articles.', articles: [] };
   }
 }
 
@@ -119,7 +120,7 @@ export async function upsertArticle(
   const validated = articleSchema.safeParse(rawData);
   if (!validated.success) {
     return {
-      error: 'Validasi gagal. Mohon periksa isian form.',
+      error: 'Validation error: Check highlighted fields.',
       fieldErrors: validated.error.flatten().fieldErrors,
     };
   }
@@ -133,7 +134,7 @@ export async function upsertArticle(
     if (id) {
       // UPDATE
       const existing = await prisma.article.findUnique({ where: { id } });
-      if (!existing) return { error: 'Artikel tidak ditemukan.' };
+      if (!existing) return { error: 'Update failed: Article not found.' };
 
       // publishedAt logic:
       // Set publishedAt ONLY if currently null AND isPublished becomes true.
@@ -162,10 +163,10 @@ export async function upsertArticle(
       if (existing.slug !== uniqueSlug) {
         revalidatePath(`/articles/${existing.slug}`);
       }
-      revalidatePath('/admin/articles');
+      revalidatePath(getAdminPath('articles'));
 
       return {
-        success: 'Artikel berhasil diperbarui!',
+        success: 'Article updated.',
         articleId: updated.id,
       };
     } else {
@@ -187,16 +188,16 @@ export async function upsertArticle(
       revalidatePath('/');
       revalidatePath('/articles');
       revalidatePath(`/articles/${uniqueSlug}`);
-      revalidatePath('/admin/articles');
+      revalidatePath(getAdminPath('articles'));
 
       return {
-        success: 'Artikel berhasil dibuat!',
+        success: 'Article created.',
         articleId: created.id,
       };
     }
   } catch (error) {
     console.error('Failed to upsert article:', error);
-    return { error: 'Terjadi kesalahan saat menyimpan data artikel.' };
+    return { error: 'Save failed: Unable to write article to database.' };
   }
 }
 
@@ -206,19 +207,19 @@ export async function deleteArticle(id: string): Promise<ArticleActionState> {
 
   try {
     const existing = await prisma.article.findUnique({ where: { id } });
-    if (!existing) return { error: 'Artikel tidak ditemukan.' };
+    if (!existing) return { error: 'Delete failed: Article not found.' };
 
     await prisma.article.delete({ where: { id } });
 
     revalidatePath('/');
     revalidatePath('/articles');
     revalidatePath(`/articles/${existing.slug}`);
-    revalidatePath('/admin/articles');
+    revalidatePath(getAdminPath('articles'));
 
-    return { success: 'Artikel berhasil dihapus!' };
+    return { success: 'Article deleted.' };
   } catch (error) {
     console.error('Failed to delete article:', error);
-    return { error: 'Gagal menghapus artikel.' };
+    return { error: 'Delete failed: Unable to remove article.' };
   }
 }
 
@@ -231,7 +232,7 @@ export async function toggleArticlePublished(
 
   try {
     const existing = await prisma.article.findUnique({ where: { id } });
-    if (!existing) return { error: 'Artikel tidak ditemukan.' };
+    if (!existing) return { error: 'Status update failed: Article not found.' };
 
     let newPublishedAt = existing.publishedAt;
     if (existing.publishedAt === null && isPublished) {
@@ -249,11 +250,11 @@ export async function toggleArticlePublished(
     revalidatePath('/');
     revalidatePath('/articles');
     revalidatePath(`/articles/${updated.slug}`);
-    revalidatePath('/admin/articles');
+    revalidatePath(getAdminPath('articles'));
 
-    return { success: isPublished ? 'Artikel dipublikasikan!' : 'Artikel diubah ke draft.' };
+    return { success: isPublished ? 'Status: Published.' : 'Status: Draft.' };
   } catch (error) {
     console.error('Failed to toggle article published:', error);
-    return { error: 'Gagal mengubah status publikasi artikel.' };
+    return { error: 'Status update failed: Unable to toggle publication.' };
   }
 }

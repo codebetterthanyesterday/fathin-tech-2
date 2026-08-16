@@ -120,7 +120,7 @@ export default function ImmersiveTestimonialsSection({
             className="inline-flex items-center gap-2 px-3.5 py-1.5 rounded-full bg-[var(--bg-surface)] border border-[var(--border-subtle)] text-xs font-mono text-[var(--text-secondary)] backdrop-blur-md shadow-sm"
           >
             <Sparkles className="w-3.5 h-3.5 text-[var(--accent-text)]" />
-            <span>Testimonials & Endorsements</span>
+            <span>Professional Endorsements</span>
           </motion.div>
 
           <motion.h2
@@ -130,7 +130,7 @@ export default function ImmersiveTestimonialsSection({
             transition={{ duration: 0.7, ease: [0.16, 1, 0.3, 1] }}
             className="text-4xl sm:text-5xl md:text-6xl font-black text-[var(--text-primary)] tracking-tighter"
           >
-            Voices of Trust.
+            Verified Collaborations.
           </motion.h2>
 
           <motion.p
@@ -140,7 +140,7 @@ export default function ImmersiveTestimonialsSection({
             transition={{ delay: 0.2, duration: 0.7 }}
             className="text-[var(--text-secondary)] text-base sm:text-lg max-w-xl leading-relaxed"
           >
-            Real feedback and reflections from founders, engineers, and product partners.
+            Documented feedback from technical partners, engineers, and stakeholders.
           </motion.p>
         </div>
 
@@ -182,12 +182,12 @@ export default function ImmersiveTestimonialsSection({
                   >
                     {isExpanded ? (
                       <>
-                        <span>Show concise</span>
+                        <span>Collapse payload</span>
                         <ChevronUp className="w-4 h-4" />
                       </>
                     ) : (
                       <>
-                        <span>Read full quote</span>
+                        <span>Expand payload</span>
                         <ChevronDown className="w-4 h-4" />
                       </>
                     )}
@@ -319,7 +319,7 @@ export default function ImmersiveTestimonialsSection({
                     >
                       {t.name}
                     </p>
-                    <p className="text-[11px] text-[var(--text-tertiary)] truncate">{t.role || 'Testimonial'}</p>
+                    <p className="text-[11px] text-[var(--text-tertiary)] truncate">{t.role || 'Record'}</p>
                   </div>
                 </button>
               );

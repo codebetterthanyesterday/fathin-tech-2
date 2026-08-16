@@ -13,6 +13,7 @@ import {
   ArrowRight,
 } from 'lucide-react';
 import { fetchAnalyticsData, isAnalyticsConfigured } from '@/app/actions/analytics';
+import { getAdminPath } from '@/lib/routes';
 import AnalyticsWidget from '@/components/admin/dashboard/analytics-widget';
 
 export const metadata: Metadata = {
@@ -63,40 +64,40 @@ function QuickLink({
 
 const QUICK_LINKS = [
   {
-    href: '/admin/skills',
+    subpath: 'skills',
     icon: Wrench,
     title: 'Skills',
-    description: 'Manage tech stack and competencies.',
+    description: 'Technical stack and proficiencies.',
   },
   {
-    href: '/admin/projects',
+    subpath: 'projects',
     icon: FolderGit2,
     title: 'Projects',
-    description: 'Add, edit, or reorder portfolio projects.',
+    description: 'Manage portfolio entries and display order.',
   },
   {
-    href: '/admin/experience',
+    subpath: 'experience',
     icon: Briefcase,
     title: 'Experience',
-    description: 'Update career history and education.',
+    description: 'Career and education history.',
   },
   {
-    href: '/admin/sections',
+    subpath: 'sections',
     icon: Layers,
     title: 'Sections',
-    description: 'Control homepage layout and visibility.',
+    description: 'System layout and component visibility.',
   },
   {
-    href: '/admin/testimonials',
+    subpath: 'testimonials',
     icon: MessageSquareQuote,
     title: 'Testimonials',
-    description: 'Manage client and collaborator quotes.',
+    description: 'Client endorsements and quotes.',
   },
   {
-    href: '/admin/articles',
+    subpath: 'articles',
     icon: FileText,
     title: 'Articles',
-    description: 'Write and publish technical posts.',
+    description: 'Content management for technical publications.',
   },
 ];
 
@@ -112,10 +113,10 @@ export default async function AdminDashboardPage() {
           // Admin Dashboard
         </p>
         <h1 className="text-3xl sm:text-4xl font-black text-white tracking-tighter">
-          Welcome back.
+          Dashboard
         </h1>
         <p className="text-zinc-400 mt-2 text-sm sm:text-base">
-          Your portfolio CMS — all controls in one place.
+          System overview and quick access.
         </p>
       </div>
 
@@ -141,7 +142,7 @@ export default async function AdminDashboardPage() {
           </div>
           <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
             {QUICK_LINKS.map((link) => (
-              <QuickLink key={link.href} {...link} />
+              <QuickLink key={link.subpath} href={getAdminPath(link.subpath)} {...link} />
             ))}
           </div>
         </div>
@@ -151,7 +152,7 @@ export default async function AdminDashboardPage() {
       <div className="flex items-center gap-3 pt-2 border-t border-zinc-900">
         <div className="flex items-center gap-1.5 text-[11px] font-mono text-zinc-600">
           <span className="w-1.5 h-1.5 rounded-full bg-emerald-500 animate-pulse" />
-          <span>CMS Builder running locally</span>
+          <span>System operational</span>
         </div>
       </div>
     </div>

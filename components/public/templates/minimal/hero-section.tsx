@@ -90,7 +90,7 @@ export default function HeroSection({ profile, ctaOverride }: HeroSectionProps) 
               rel="noopener noreferrer"
               className="px-6 py-3 ml-2 bg-[var(--accent-btn-bg)] text-[var(--accent-btn-fg)] font-semibold rounded-full hover:brightness-110 transition-all flex items-center gap-2 shadow-md hover:scale-105 active:scale-95"
             >
-              {ctaOverride?.ctaLabel || 'Resume'}
+              {ctaOverride?.ctaLabel || 'Access Record'}
             </a>
           )}
         </div>

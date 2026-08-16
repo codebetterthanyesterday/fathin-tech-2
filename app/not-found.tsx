@@ -21,10 +21,10 @@ export default function NotFound() {
           404
         </h1>
         <h2 className="text-2xl sm:text-3xl font-bold text-[var(--text-primary)] mb-4">
-          Lost in the void
+          Resource Not Found
         </h2>
         <p className="text-[var(--text-secondary)] text-lg mb-12 leading-relaxed">
-          The page or project you&apos;re looking for doesn&apos;t exist, has been moved, or is currently drifting somewhere in the digital abyss.
+          The requested resource could not be located on this server. It may have been removed, renamed, or is temporarily unavailable.
         </p>
 
         <Link 
@@ -32,7 +32,7 @@ export default function NotFound() {
           className="group inline-flex items-center gap-2 px-8 py-4 rounded-full bg-[var(--text-primary)] text-[var(--bg-primary)] hover:opacity-90 transition-all font-semibold text-sm shadow-md hover:scale-105 active:scale-95"
         >
           <ArrowLeft className="w-4 h-4 group-hover:-translate-x-1 transition-transform" />
-          Return to Home
+          Return to Index
         </Link>
       </div>
     </main>

@@ -4,6 +4,7 @@ import { z } from 'zod';
 import { prisma } from '@/lib/prisma';
 import { getSession } from '@/lib/auth';
 import { revalidatePath } from 'next/cache';
+import { getAdminPath } from '@/lib/routes';
 
 const themeSettingsSchema = z.object({
   themeAccentColor: z.string().min(1, 'Warna aksen wajib diisi').default('#ffffff'),
@@ -35,7 +36,7 @@ export async function updateThemeSettings(
   const validated = themeSettingsSchema.safeParse(rawData);
   if (!validated.success) {
     return {
-      error: 'Validasi pengaturan tema gagal.',
+      error: 'Validation error: Check highlighted fields.',
       fieldErrors: validated.error.flatten().fieldErrors,
     };
   }
@@ -66,12 +67,12 @@ export async function updateThemeSettings(
     }
 
     revalidatePath('/');
-    revalidatePath('/admin/settings');
-    revalidatePath('/admin/profile');
+    revalidatePath(getAdminPath('settings'));
+    revalidatePath(getAdminPath('profile'));
 
-    return { success: 'Pengaturan tema dan tampilan berhasil disimpan!' };
+    return { success: 'Configuration applied.' };
   } catch (error) {
     console.error('Failed to update theme settings:', error);
-    return { error: 'Terjadi kesalahan saat menyimpan pengaturan tema ke database.' };
+    return { error: 'Save failed: Unable to update configuration.' };
   }
 }

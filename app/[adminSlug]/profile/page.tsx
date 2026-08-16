@@ -12,7 +12,7 @@ export default async function AdminProfilePage() {
   if (error) {
     return (
       <div className="p-8 text-red-400">
-        <p>Error loading profile data: {error}</p>
+        <p>Fetch failed: {error}</p>
       </div>
     );
   }
@@ -22,7 +22,7 @@ export default async function AdminProfilePage() {
       <header className="border-b border-zinc-800 pb-6">
         <h1 className="text-3xl font-bold tracking-tight">Public Profile</h1>
         <p className="text-zinc-400 mt-1">
-          Update your portfolio's public identity.
+          Update your public identity and profile configuration.
         </p>
       </header>
 

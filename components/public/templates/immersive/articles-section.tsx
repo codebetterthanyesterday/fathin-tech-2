@@ -69,7 +69,7 @@ export default function ImmersiveArticlesSection({ articles }: ImmersiveArticles
               transition={{ delay: 0.2, duration: 0.8 }}
               className="text-[var(--text-secondary)] text-base sm:text-lg max-w-xl leading-relaxed"
             >
-              Deep dives on architecture, modern web development, and lessons learned in production.
+              Architectural analysis, system engineering, and production retrospectives.
             </motion.p>
           </div>
 
@@ -83,7 +83,7 @@ export default function ImmersiveArticlesSection({ articles }: ImmersiveArticles
               href="/articles"
               className="group inline-flex items-center gap-3 px-6 py-3.5 rounded-full bg-[var(--bg-surface)] border border-[var(--border-subtle)] text-sm font-semibold text-[var(--text-primary)] hover:border-[var(--border-strong)] hover:shadow-md transition-all"
             >
-              <span>Explore All Writings</span>
+              <span>Access Knowledge Base</span>
               <ArrowRight className="w-4 h-4 group-hover:translate-x-1.5 transition-transform" />
             </Link>
           </motion.div>

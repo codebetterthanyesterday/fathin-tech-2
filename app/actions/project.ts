@@ -4,6 +4,7 @@ import { z } from 'zod';
 import { prisma } from '@/lib/prisma';
 import { getSession } from '@/lib/auth';
 import { revalidatePath } from 'next/cache';
+import { getAdminPath } from '@/lib/routes';
 
 // Helper to slugify a string
 function slugify(text: string) {
@@ -54,7 +55,7 @@ export async function getProjects() {
     return { projects };
   } catch (error) {
     console.error('Failed to get projects:', error);
-    return { error: 'Gagal mengambil data proyek' };
+    return { error: 'Fetch failed: Unable to retrieve projects data.' };
   }
 }
 
@@ -71,7 +72,7 @@ export async function getProject(id: string) {
     return { project };
   } catch (error) {
     console.error('Failed to get project:', error);
-    return { error: 'Gagal mengambil data proyek' };
+    return { error: 'Fetch failed: Project not found.' };
   }
 }
 
@@ -104,7 +105,7 @@ export async function upsertProject(
   try {
     if (techStackRaw) techStack = JSON.parse(techStackRaw as string);
   } catch (e) {
-    return { error: 'Format techStack tidak valid.' };
+    return { error: 'Parse error: Invalid techStack format.' };
   }
 
   // images is submitted as JSON string array
@@ -113,7 +114,7 @@ export async function upsertProject(
   try {
     if (imagesRaw) images = JSON.parse(imagesRaw as string);
   } catch (e) {
-    return { error: 'Format images tidak valid.' };
+    return { error: 'Parse error: Invalid images format.' };
   }
 
   const rawData = {
@@ -131,7 +132,7 @@ export async function upsertProject(
   const validated = projectSchema.safeParse(rawData);
   if (!validated.success) {
     return {
-      error: 'Validasi gagal.',
+      error: 'Validation error: Check highlighted fields.',
       fieldErrors: validated.error.flatten().fieldErrors,
     };
   }
@@ -196,11 +197,11 @@ export async function upsertProject(
     }
 
     revalidatePath('/');
-    revalidatePath('/admin/projects');
-    return { success: id ? 'Proyek berhasil diperbarui!' : 'Proyek berhasil ditambahkan!' };
+    revalidatePath(getAdminPath('projects'));
+    return { success: id ? 'Project updated.' : 'Project created.' };
   } catch (error) {
     console.error('Failed to upsert project:', error);
-    return { error: 'Terjadi kesalahan saat menyimpan data proyek.' };
+    return { error: 'Save failed: Unable to write project to database.' };
   }
 }
 
@@ -211,11 +212,11 @@ export async function deleteProject(id: string) {
   try {
     await prisma.project.delete({ where: { id } });
     revalidatePath('/');
-    revalidatePath('/admin/projects');
-    return { success: 'Proyek berhasil dihapus!' };
+    revalidatePath(getAdminPath('projects'));
+    return { success: 'Project deleted.' };
   } catch (error) {
     console.error('Failed to delete project:', error);
-    return { error: 'Gagal menghapus proyek.' };
+    return { error: 'Delete failed: Unable to remove project.' };
   }
 }
 
@@ -234,10 +235,10 @@ export async function reorderProjects(updates: { id: string; order: number }[]) 
     await prisma.$transaction(queries);
     
     revalidatePath('/');
-    revalidatePath('/admin/projects');
+    revalidatePath(getAdminPath('projects'));
     return { success: true };
   } catch (error) {
     console.error('Failed to reorder projects:', error);
-    return { error: 'Gagal mengubah urutan proyek.' };
+    return { error: 'Reorder failed: Unable to save new order.' };
   }
 }

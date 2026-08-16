@@ -3,6 +3,7 @@
 import { prisma } from '@/lib/prisma';
 import { getSession } from '@/lib/auth';
 import { revalidatePath } from 'next/cache';
+import { getAdminPath } from '@/lib/routes';
 import { z } from 'zod';
 
 const TestimonialSchema = z.object({
@@ -31,7 +32,7 @@ export async function getTestimonials() {
     return { testimonials };
   } catch (error) {
     console.error('Failed to fetch testimonials:', error);
-    return { error: 'Failed to load testimonials', testimonials: [] };
+    return { error: 'Fetch failed: Unable to retrieve testimonials.', testimonials: [] };
   }
 }
 
@@ -54,7 +55,7 @@ export async function createTestimonial(
   if (!validated.success) {
     return {
       fieldErrors: validated.error.flatten().fieldErrors,
-      error: 'Please correct the errors in the form.',
+      error: 'Validation error: Check highlighted fields.',
     };
   }
 
@@ -77,11 +78,11 @@ export async function createTestimonial(
     });
 
     revalidatePath('/');
-    revalidatePath('/admin/testimonials');
-    return { success: 'Testimonial created successfully!' };
+    revalidatePath(getAdminPath('testimonials'));
+    return { success: 'Testimonial created.' };
   } catch (error) {
     console.error('Failed to create testimonial:', error);
-    return { error: 'An unexpected error occurred. Please try again.' };
+    return { error: 'Save failed: Unable to create testimonial.' };
   }
 }
 
@@ -105,7 +106,7 @@ export async function updateTestimonial(
   if (!validated.success) {
     return {
       fieldErrors: validated.error.flatten().fieldErrors,
-      error: 'Please correct the errors in the form.',
+      error: 'Validation error: Check highlighted fields.',
     };
   }
 
@@ -121,11 +122,11 @@ export async function updateTestimonial(
     });
 
     revalidatePath('/');
-    revalidatePath('/admin/testimonials');
-    return { success: 'Testimonial updated successfully!' };
+    revalidatePath(getAdminPath('testimonials'));
+    return { success: 'Testimonial updated.' };
   } catch (error) {
     console.error('Failed to update testimonial:', error);
-    return { error: 'An unexpected error occurred. Please try again.' };
+    return { error: 'Save failed: Unable to update testimonial.' };
   }
 }
 
@@ -136,10 +137,10 @@ export async function deleteTestimonial(id: string): Promise<TestimonialActionSt
   try {
     await prisma.testimonial.delete({ where: { id } });
     revalidatePath('/');
-    revalidatePath('/admin/testimonials');
-    return { success: 'Testimonial deleted successfully.' };
+    revalidatePath(getAdminPath('testimonials'));
+    return { success: 'Testimonial deleted.' };
   } catch (error) {
-    return { error: 'Failed to delete testimonial.' };
+    return { error: 'Delete failed: Unable to remove testimonial.' };
   }
 }
 
@@ -156,10 +157,10 @@ export async function toggleTestimonialVisibility(
       data: { isVisible },
     });
     revalidatePath('/');
-    revalidatePath('/admin/testimonials');
+    revalidatePath(getAdminPath('testimonials'));
     return { success: 'Visibility updated.' };
   } catch (error) {
-    return { error: 'Failed to update visibility.' };
+    return { error: 'Update failed: Unable to save visibility.' };
   }
 }
 
@@ -188,9 +189,9 @@ export async function moveTestimonialOrder(
     ]);
 
     revalidatePath('/');
-    revalidatePath('/admin/testimonials');
+    revalidatePath(getAdminPath('testimonials'));
     return { success: 'Order updated.' };
   } catch (error) {
-    return { error: 'Failed to reorder.' };
+    return { error: 'Reorder failed: Unable to save new order.' };
   }
 }

@@ -63,12 +63,12 @@ function MinimalTestimonialCard({
             >
               {isExpanded ? (
                 <>
-                  <span>Show less</span>
+                  <span>Collapse payload</span>
                   <ChevronUp className="w-3.5 h-3.5" />
                 </>
               ) : (
                 <>
-                  <span>Read full testimonial</span>
+                  <span>Expand payload</span>
                   <ChevronDown className="w-3.5 h-3.5" />
                 </>
               )}
@@ -121,19 +121,19 @@ export default function MinimalTestimonialsSection({
         {/* Section Header */}
         <div className="mb-16 sm:mb-20">
           <p className="text-xs font-mono uppercase tracking-widest text-[var(--text-tertiary)] mb-3">
-            // Testimonials
+            // Professional Feedback
           </p>
           <div className="flex flex-col md:flex-row md:items-end justify-between gap-6">
             <div>
               <h2 className="text-3xl sm:text-4xl md:text-5xl font-bold text-[var(--text-primary)] tracking-tight">
-                Kind Words.
+                Endorsements.
               </h2>
               <p className="text-[var(--text-secondary)] mt-3 text-base sm:text-lg max-w-xl leading-relaxed">
-                What colleagues, clients, and collaborators say about working together.
+                Verified accounts of professional collaborations and technical execution.
               </p>
             </div>
             <div className="text-xs sm:text-sm font-mono text-[var(--text-secondary)] bg-[var(--bg-surface)] px-4 py-2 rounded-lg border border-[var(--border-subtle)] self-start md:self-auto shadow-sm">
-              {testimonials.length} {testimonials.length === 1 ? 'Testimonial' : 'Testimonials'}
+              {testimonials.length} {testimonials.length === 1 ? 'Record' : 'Records'}
             </div>
           </div>
         </div>

@@ -50,10 +50,10 @@ export default function ResetPasswordForm({
 
   const strengthLabel = useMemo(() => {
     if (password.length === 0) return '';
-    if (strength <= 1) return 'Lemah (min 8 karakter)';
-    if (strength === 2) return 'Cukup';
-    if (strength === 3) return 'Kuat';
-    return 'Sangat Kuat';
+    if (strength <= 1) return 'Weak (min. 8 characters)';
+    if (strength === 2) return 'Fair';
+    if (strength === 3) return 'Strong';
+    return 'Optimal';
   }, [password, strength]);
 
   // If token is invalid or expired
@@ -65,11 +65,11 @@ export default function ResetPasswordForm({
         </div>
 
         <h1 className="text-2xl font-bold tracking-tight text-white mb-2">
-          Tautan Tidak Valid
+          Invalid Token
         </h1>
         <p className="text-zinc-400 text-sm leading-relaxed mb-8">
           {errorMessage ||
-            'Tautan pemulihan kata sandi ini sudah kedaluwarsa (berlaku 1 jam) atau sudah pernah digunakan sebelumnya.'}
+            'The recovery token is expired or has already been utilized.'}
         </p>
 
         <div className="space-y-3">
@@ -77,13 +77,13 @@ export default function ResetPasswordForm({
             href="/forgot-password"
             className="w-full flex items-center justify-center gap-2 py-3 px-4 bg-white text-black font-semibold text-sm rounded-lg hover:bg-zinc-200 transition-colors shadow-sm"
           >
-            Minta Tautan Baru
+            Request New Token
           </Link>
           <Link
             href="/login"
             className="w-full block py-2.5 text-xs text-zinc-400 hover:text-white transition-colors"
           >
-            Kembali ke Login
+            Return to Authentication
           </Link>
         </div>
       </div>
@@ -99,7 +99,7 @@ export default function ResetPasswordForm({
         </div>
 
         <h1 className="text-2xl font-bold tracking-tight text-white mb-2">
-          Kata Sandi Berhasil Diubah!
+          Credentials Updated Successfully
         </h1>
         <p className="text-zinc-400 text-sm leading-relaxed mb-8">
           {state.success}
@@ -109,7 +109,7 @@ export default function ResetPasswordForm({
           href="/login"
           className="w-full flex items-center justify-center gap-2 py-3 px-4 bg-white text-black font-semibold text-sm rounded-lg hover:bg-zinc-200 transition-colors shadow-sm"
         >
-          Masuk ke Dashboard
+          Access Control Panel
           <ArrowRight className="w-4 h-4" />
         </Link>
       </div>
@@ -127,10 +127,10 @@ export default function ResetPasswordForm({
             <KeyRound className="w-5 h-5" />
           </div>
           <h1 className="text-2xl sm:text-3xl font-bold tracking-tight text-white mb-1.5">
-            Atur Ulang Password
+            Configure New Credentials
           </h1>
           <p className="text-zinc-400 text-sm">
-            {email ? `Memperbarui kata sandi untuk akun ${email}` : 'Masukkan kata sandi baru Anda.'}
+            {email ? `Configuring credentials for ${email}` : 'Enter your new credentials.'}
           </p>
         </div>
 
@@ -146,7 +146,7 @@ export default function ResetPasswordForm({
           {/* New Password */}
           <div className="space-y-2">
             <label htmlFor="password" className="block text-sm font-medium text-zinc-300">
-              Password Baru (Min. 8 Karakter)
+              New Password (Min. 8 Characters)
             </label>
             <div className="relative group/input">
               <input
@@ -163,7 +163,7 @@ export default function ResetPasswordForm({
                 type="button"
                 onClick={() => setShowPassword(!showPassword)}
                 className="absolute right-3.5 top-1/2 -translate-y-1/2 text-zinc-500 hover:text-zinc-300 transition-colors"
-                title={showPassword ? 'Sembunyikan' : 'Lihat'}
+                title={showPassword ? 'Hide' : 'Reveal'}
               >
                 {showPassword ? <EyeOff className="w-4 h-4" /> : <Eye className="w-4 h-4" />}
               </button>
@@ -187,7 +187,7 @@ export default function ResetPasswordForm({
                   ))}
                 </div>
                 <div className="flex justify-between items-center text-[11px] font-mono text-zinc-400">
-                  <span>Kekuatan:</span>
+                  <span>Strength:</span>
                   <span className="text-zinc-300 font-semibold">{strengthLabel}</span>
                 </div>
               </div>
@@ -197,7 +197,7 @@ export default function ResetPasswordForm({
           {/* Confirm Password */}
           <div className="space-y-2">
             <label htmlFor="confirmPassword" className="block text-sm font-medium text-zinc-300">
-              Konfirmasi Password Baru
+              Confirm New Password
             </label>
             <div className="relative group/input">
               <input
@@ -212,7 +212,7 @@ export default function ResetPasswordForm({
               />
             </div>
             {confirmPassword && password !== confirmPassword && (
-              <p className="text-xs text-red-400 pt-0.5">Konfirmasi password belum cocok.</p>
+              <p className="text-xs text-red-400 pt-0.5">Passwords do not match.</p>
             )}
           </div>
 
@@ -228,7 +228,7 @@ export default function ResetPasswordForm({
             ) : (
               <>
                 <Lock className="w-4 h-4" />
-                <span>Simpan Password Baru</span>
+                <span>Save Credentials</span>
                 <ArrowRight
                   className={`w-4 h-4 transition-transform duration-300 ${
                     isHovered ? 'translate-x-1' : ''

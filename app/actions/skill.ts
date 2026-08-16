@@ -4,6 +4,7 @@ import { z } from 'zod';
 import { prisma } from '@/lib/prisma';
 import { getSession } from '@/lib/auth';
 import { revalidatePath } from 'next/cache';
+import { getAdminPath } from '@/lib/routes';
 import { SkillCategory } from '@/app/generated/prisma/client';
 
 const skillSchema = z.object({
@@ -29,7 +30,7 @@ export async function getSkills() {
     return { skills };
   } catch (error) {
     console.error('Failed to get skills:', error);
-    return { error: 'Gagal mengambil data skill' };
+    return { error: 'Fetch failed: Unable to retrieve skills data.' };
   }
 }
 
@@ -46,7 +47,7 @@ export async function createSkill(prevState: any, formData: FormData): Promise<S
   const validated = skillSchema.safeParse(rawData);
   if (!validated.success) {
     return {
-      error: 'Validasi gagal.',
+      error: 'Validation error: Check highlighted fields.',
       fieldErrors: validated.error.flatten().fieldErrors,
     };
   }
@@ -73,11 +74,11 @@ export async function createSkill(prevState: any, formData: FormData): Promise<S
     });
 
     revalidatePath('/');
-    revalidatePath('/admin/skills');
-    return { success: 'Skill berhasil ditambahkan!' };
+    revalidatePath(getAdminPath('skills'));
+    return { success: 'Skill added.' };
   } catch (error) {
     console.error('Failed to create skill:', error);
-    return { error: 'Terjadi kesalahan saat menambahkan skill.' };
+    return { error: 'Save failed: Unable to create skill.' };
   }
 }
 
@@ -94,7 +95,7 @@ export async function updateSkill(id: string, prevState: any, formData: FormData
   const validated = skillSchema.safeParse(rawData);
   if (!validated.success) {
     return {
-      error: 'Validasi gagal.',
+      error: 'Validation error: Check highlighted fields.',
       fieldErrors: validated.error.flatten().fieldErrors,
     };
   }
@@ -104,7 +105,7 @@ export async function updateSkill(id: string, prevState: any, formData: FormData
 
   try {
     const existing = await prisma.skill.findUnique({ where: { id } });
-    if (!existing) return { error: 'Skill tidak ditemukan.' };
+    if (!existing) return { error: 'Update failed: Skill not found.' };
 
     let newOrder = existing.order;
     // If category changed, assign new order at the end of the new category
@@ -127,11 +128,11 @@ export async function updateSkill(id: string, prevState: any, formData: FormData
     });
 
     revalidatePath('/');
-    revalidatePath('/admin/skills');
-    return { success: 'Skill berhasil diperbarui!' };
+    revalidatePath(getAdminPath('skills'));
+    return { success: 'Skill updated.' };
   } catch (error) {
     console.error('Failed to update skill:', error);
-    return { error: 'Terjadi kesalahan saat memperbarui skill.' };
+    return { error: 'Save failed: Unable to update skill.' };
   }
 }
 
@@ -142,11 +143,11 @@ export async function deleteSkill(id: string) {
   try {
     await prisma.skill.delete({ where: { id } });
     revalidatePath('/');
-    revalidatePath('/admin/skills');
-    return { success: 'Skill berhasil dihapus!' };
+    revalidatePath(getAdminPath('skills'));
+    return { success: 'Skill deleted.' };
   } catch (error) {
     console.error('Failed to delete skill:', error);
-    return { error: 'Gagal menghapus skill.' };
+    return { error: 'Delete failed: Unable to remove skill.' };
   }
 }
 
@@ -166,10 +167,10 @@ export async function reorderSkills(updates: { id: string; order: number }[]) {
     await prisma.$transaction(queries);
     
     revalidatePath('/');
-    revalidatePath('/admin/skills');
+    revalidatePath(getAdminPath('skills'));
     return { success: true };
   } catch (error) {
     console.error('Failed to reorder skills:', error);
-    return { error: 'Gagal mengubah urutan skill.' };
+    return { error: 'Reorder failed: Unable to save new order.' };
   }
 }

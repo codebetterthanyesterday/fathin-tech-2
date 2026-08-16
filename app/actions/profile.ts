@@ -4,6 +4,7 @@ import { z } from 'zod';
 import { prisma } from '@/lib/prisma';
 import { getSession } from '@/lib/auth';
 import { revalidatePath } from 'next/cache';
+import { getAdminPath } from '@/lib/routes';
 
 // Using Zod to parse and validate social links stringified JSON
 const socialLinksSchema = z.array(
@@ -32,7 +33,7 @@ export async function getProfile() {
     return { profile };
   } catch (error) {
     console.error('Failed to get profile:', error);
-    return { error: 'Gagal mengambil data profil' };
+    return { error: 'Fetch failed: Unable to retrieve profile data.' };
   }
 }
 
@@ -67,7 +68,7 @@ export async function upsertProfile(prevState: any, formData: FormData): Promise
   if (!validatedFields.success) {
     const errors = validatedFields.error.flatten().fieldErrors;
     return {
-      error: 'Validasi gagal, silakan periksa kembali input Anda.',
+      error: 'Validation error: Check highlighted fields.',
       fieldErrors: errors,
     };
   }
@@ -83,11 +84,11 @@ export async function upsertProfile(prevState: any, formData: FormData): Promise
       if (!validatedSocial.success) {
         const firstIssue = validatedSocial.error.issues[0];
         const errorMessage = firstIssue ? firstIssue.message : 'harus berupa JSON array';
-        return { error: `Format Social Links tidak valid: ${errorMessage}` };
+        return { error: `Parse error: Invalid social links format (${errorMessage}).` };
       }
       socialLinksJson = validatedSocial.data;
     } catch (e) {
-      return { error: 'Format Social Links tidak valid: Pastikan menggunakan format JSON yang benar' };
+      return { error: 'Parse error: Invalid social links JSON format.' };
     }
   }
 
@@ -123,12 +124,12 @@ export async function upsertProfile(prevState: any, formData: FormData): Promise
     }
 
     revalidatePath('/');
-    revalidatePath('/admin/profile');
-    revalidatePath('/admin/settings');
+    revalidatePath(getAdminPath('profile'));
+    revalidatePath(getAdminPath('settings'));
 
-    return { success: 'Profil berhasil disimpan!' };
+    return { success: 'Profile saved.' };
   } catch (error) {
     console.error('Failed to upsert profile:', error);
-    return { error: 'Terjadi kesalahan saat menyimpan profil ke database.' };
+    return { error: 'Save failed: Unable to write profile to database.' };
   }
 }

@@ -44,10 +44,10 @@ export default function ImmersiveExperienceTimeline({ experiences }: ExperienceT
           className="text-center mb-24"
         >
           <h2 className="text-5xl sm:text-6xl md:text-7xl font-black text-[var(--text-primary)] tracking-tighter mb-6">
-            The Journey.
+            Professional Trajectory.
           </h2>
           <p className="text-[var(--text-secondary)] text-lg max-w-2xl mx-auto leading-relaxed">
-            A timeline of my professional experience and academic background, shaping the way I build today.
+            Chronological record of professional tenure and academic background.
           </p>
         </motion.div>
 

@@ -7,6 +7,64 @@ import { prisma } from '@/lib/prisma';
 import { createSession, deleteSession } from '@/lib/auth';
 import { redirect } from 'next/navigation';
 import { sendPasswordResetEmail } from '@/lib/email';
+import { getAdminPath } from '@/lib/routes';
+
+// --- In-Memory Rate Limiting for Login ---
+interface LoginAttempt {
+  count: number;
+  firstAttemptAt: number;
+  blockedUntil?: number;
+}
+
+const loginAttempts = new Map<string, LoginAttempt>();
+const MAX_ATTEMPTS = 5;
+const WINDOW_MS = 15 * 60 * 1000; // 15 minutes
+const BLOCK_DURATION_MS = 15 * 60 * 1000; // 15 minutes
+
+function checkLoginRateLimit(key: string): { allowed: boolean; retryAfterMinutes?: number } {
+  const now = Date.now();
+  const record = loginAttempts.get(key);
+
+  if (!record) return { allowed: true };
+
+  // Check if currently blocked
+  if (record.blockedUntil && now < record.blockedUntil) {
+    const retryAfterMinutes = Math.ceil((record.blockedUntil - now) / (60 * 1000));
+    return { allowed: false, retryAfterMinutes };
+  }
+
+  // If window expired, reset
+  if (now - record.firstAttemptAt > WINDOW_MS) {
+    loginAttempts.delete(key);
+    return { allowed: true };
+  }
+
+  if (record.count >= MAX_ATTEMPTS) {
+    record.blockedUntil = now + BLOCK_DURATION_MS;
+    const retryAfterMinutes = Math.ceil(BLOCK_DURATION_MS / (60 * 1000));
+    return { allowed: false, retryAfterMinutes };
+  }
+
+  return { allowed: true };
+}
+
+function recordFailedLoginAttempt(key: string) {
+  const now = Date.now();
+  const record = loginAttempts.get(key);
+
+  if (!record || now - record.firstAttemptAt > WINDOW_MS) {
+    loginAttempts.set(key, { count: 1, firstAttemptAt: now });
+  } else {
+    record.count += 1;
+    if (record.count >= MAX_ATTEMPTS) {
+      record.blockedUntil = now + BLOCK_DURATION_MS;
+    }
+  }
+}
+
+function clearLoginAttempts(key: string) {
+  loginAttempts.delete(key);
+}
 
 const loginSchema = z.object({
   email: z.string().email('Format email tidak valid'),
@@ -36,11 +94,22 @@ export async function login(prevState: any, formData: FormData) {
   const email = formData.get('email');
   const password = formData.get('password');
 
+  const normalizedEmail = String(email || '').toLowerCase().trim();
+  const rateLimitKey = normalizedEmail || 'anonymous';
+  const rateCheck = checkLoginRateLimit(rateLimitKey);
+
+  if (!rateCheck.allowed) {
+    return {
+      error: `Rate limit exceeded. Retry in ${rateCheck.retryAfterMinutes || 15} minutes.`,
+    };
+  }
+
   const validatedFields = loginSchema.safeParse({ email, password });
 
   if (!validatedFields.success) {
+    recordFailedLoginAttempt(rateLimitKey);
     return {
-      error: 'Email atau password tidak valid.',
+      error: 'Invalid credentials.',
     };
   }
 
@@ -50,8 +119,9 @@ export async function login(prevState: any, formData: FormData) {
     });
 
     if (!user) {
+      recordFailedLoginAttempt(rateLimitKey);
       return {
-        error: 'Email atau password salah.',
+        error: 'Invalid credentials.',
       };
     }
 
@@ -61,10 +131,13 @@ export async function login(prevState: any, formData: FormData) {
     );
 
     if (!passwordMatch) {
+      recordFailedLoginAttempt(rateLimitKey);
       return {
-        error: 'Email atau password salah.',
+        error: 'Invalid credentials.',
       };
     }
+
+    clearLoginAttempts(rateLimitKey);
 
     await createSession({
       userId: user.id,
@@ -72,11 +145,11 @@ export async function login(prevState: any, formData: FormData) {
     });
   } catch (error) {
     return {
-      error: 'Terjadi kesalahan saat memproses login.',
+      error: 'Authentication failed.',
     };
   }
 
-  redirect('/admin');
+  redirect(getAdminPath());
 }
 
 export async function logout() {
@@ -97,11 +170,11 @@ export async function forgotPassword(
   const validated = forgotPasswordSchema.safeParse({ email });
 
   const genericSuccessMessage =
-    'Jika email terdaftar di sistem, kami telah mengirimkan tautan untuk mengatur ulang kata sandi. Silakan periksa kotak masuk atau folder spam Anda.';
+    'If the email is registered, a reset link has been dispatched.';
 
   if (!validated.success) {
     return {
-      error: 'Mohon masukkan format email yang valid.',
+      error: 'Validation error: Invalid email format.',
       fieldErrors: validated.error.flatten().fieldErrors,
     };
   }
@@ -169,7 +242,7 @@ export async function verifyResetToken(token: string): Promise<{
   error?: string;
 }> {
   if (!token || typeof token !== 'string') {
-    return { valid: false, error: 'Tautan reset tidak valid.' };
+    return { valid: false, error: 'Invalid reset link.' };
   }
 
   try {
@@ -181,14 +254,14 @@ export async function verifyResetToken(token: string): Promise<{
     if (!resetRecord) {
       return {
         valid: false,
-        error: 'Tautan reset tidak valid atau telah digunakan sebelumnya.',
+        error: 'Invalid or used reset link.',
       };
     }
 
     if (new Date() > resetRecord.expiresAt) {
       return {
         valid: false,
-        error: 'Tautan reset telah kedaluwarsa (masa berlaku 1 jam). Silakan minta tautan baru.',
+        error: 'Reset link expired.',
       };
     }
 
@@ -198,7 +271,7 @@ export async function verifyResetToken(token: string): Promise<{
     };
   } catch (error) {
     console.error('Verify reset token error:', error);
-    return { valid: false, error: 'Terjadi kesalahan saat memverifikasi tautan.' };
+    return { valid: false, error: 'Verification failed.' };
   }
 }
 
@@ -221,7 +294,7 @@ export async function resetPassword(
 
   if (!validated.success) {
     const firstError =
-      validated.error.issues[0]?.message || 'Isian formulir tidak valid.';
+      validated.error.issues[0]?.message || 'Validation error.';
     return {
       error: firstError,
       fieldErrors: validated.error.flatten().fieldErrors,
@@ -236,14 +309,14 @@ export async function resetPassword(
     if (!resetRecord) {
       return {
         error:
-          'Tautan reset tidak valid atau telah digunakan sebelumnya. Silakan minta tautan baru.',
+          'Invalid or used reset link.',
       };
     }
 
     if (new Date() > resetRecord.expiresAt) {
       return {
         error:
-          'Tautan reset telah kedaluwarsa. Silakan minta tautan baru.',
+          'Reset link expired.',
       };
     }
 
@@ -263,12 +336,12 @@ export async function resetPassword(
 
     return {
       success:
-        'Kata sandi Anda berhasil diperbarui! Silakan masuk dengan kata sandi baru.',
+        'Password updated.',
     };
   } catch (error) {
     console.error('Reset password error:', error);
     return {
-      error: 'Terjadi kesalahan saat memperbarui kata sandi. Silakan coba lagi.',
+      error: 'Update failed: Unable to save new password.',
     };
   }
 }

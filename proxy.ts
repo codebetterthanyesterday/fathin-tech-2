@@ -2,12 +2,18 @@ import { NextResponse } from 'next/server';
 import type { NextRequest } from 'next/server';
 import { verifyToken } from './lib/auth';
 
-const protectedRoutes = ['/admin'];
 const publicRoutes = ['/login'];
 
 export default async function proxy(req: NextRequest) {
   const path = req.nextUrl.pathname;
-  const isProtectedRoute = protectedRoutes.some((route) => path.startsWith(route));
+  const adminSlug =
+    process.env.ADMIN_ROUTE_SECRET ||
+    process.env.NEXT_PUBLIC_ADMIN_ROUTE_SECRET ||
+    'portal';
+  const adminBasePath = `/${adminSlug}`;
+
+  const isProtectedRoute =
+    path === adminBasePath || path.startsWith(`${adminBasePath}/`);
   const isPublicRoute = publicRoutes.some((route) => path.startsWith(route));
 
   const sessionCookie = req.cookies.get('session')?.value;
@@ -22,8 +28,8 @@ export default async function proxy(req: NextRequest) {
   }
 
   // Redirect to admin dashboard if accessing login while already authenticated
-  if (isPublicRoute && session && !path.startsWith('/admin')) {
-    return NextResponse.redirect(new URL('/admin', req.nextUrl));
+  if (isPublicRoute && session && !isProtectedRoute) {
+    return NextResponse.redirect(new URL(adminBasePath, req.nextUrl));
   }
 
   return NextResponse.next();

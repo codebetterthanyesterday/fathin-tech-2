@@ -108,7 +108,7 @@ export default function TestimonialFormModal({
         </button>
 
         <h2 className="text-2xl font-bold text-white mb-6">
-          {testimonial ? 'Edit Testimonial' : 'Add Testimonial'}
+          {testimonial ? 'Edit Entry' : 'Create Entry'}
         </h2>
 
         {error && (
@@ -147,15 +147,15 @@ export default function TestimonialFormModal({
               )}
             </div>
             <div>
-              <h3 className="text-sm font-medium text-zinc-200">Author Photo</h3>
-              <p className="text-xs text-zinc-500 mb-2 mt-1">Optional. Recommended: Square, less than 5MB.</p>
+              <h3 className="text-sm font-medium text-zinc-200">Endorser Profile Media</h3>
+              <p className="text-xs text-zinc-500 mb-2 mt-1">Optimal constraint: Square aspect ratio, &lt;5MB.</p>
               <button 
                 type="button"
                 onClick={() => fileInputRef.current?.click()}
                 className="px-3 py-1.5 bg-zinc-900 hover:bg-zinc-800 border border-zinc-700 rounded-md text-xs font-medium transition-colors disabled:opacity-50"
                 disabled={isUploading}
               >
-                Choose Image
+                Upload Media
               </button>
               <input 
                 ref={fileInputRef}
@@ -177,7 +177,7 @@ export default function TestimonialFormModal({
                 defaultValue={testimonial?.name || ''}
                 required
                 className="w-full px-4 py-2.5 bg-zinc-900 border border-zinc-800 rounded-lg text-white placeholder:text-zinc-600 focus:outline-none focus:ring-1 focus:ring-white/30"
-                placeholder="Jane Doe"
+                placeholder="Enter full name..."
               />
             </div>
 
@@ -189,7 +189,7 @@ export default function TestimonialFormModal({
                 type="text"
                 defaultValue={testimonial?.role || ''}
                 className="w-full px-4 py-2.5 bg-zinc-900 border border-zinc-800 rounded-lg text-white placeholder:text-zinc-600 focus:outline-none focus:ring-1 focus:ring-white/30"
-                placeholder="CEO at TechCorp"
+                placeholder="Enter designation..."
               />
             </div>
 
@@ -202,7 +202,7 @@ export default function TestimonialFormModal({
                 rows={5}
                 defaultValue={testimonial?.quote || ''}
                 className="w-full px-4 py-2.5 bg-zinc-900 border border-zinc-800 rounded-lg text-white placeholder:text-zinc-600 focus:outline-none focus:ring-1 focus:ring-white/30 resize-y"
-                placeholder="Their recommendation..."
+                placeholder="Enter endorsement copy..."
               />
             </div>
           </div>
@@ -222,7 +222,7 @@ export default function TestimonialFormModal({
               className="flex items-center gap-2 px-5 py-2.5 bg-white text-black text-sm font-semibold rounded-lg hover:bg-zinc-200 transition-colors disabled:opacity-50"
             >
               {isPending ? <Loader2 className="w-4 h-4 animate-spin" /> : <Save className="w-4 h-4" />}
-              {testimonial ? 'Save Changes' : 'Add Testimonial'}
+              {testimonial ? 'Update Entry' : 'Create Entry'}
             </button>
           </div>
         </form>

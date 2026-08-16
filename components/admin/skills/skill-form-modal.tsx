@@ -74,7 +74,7 @@ export default function SkillFormModal({
         </button>
 
         <h2 className="text-xl font-bold text-white mb-6">
-          {skill ? 'Edit Skill' : 'Add New Skill'}
+          {skill ? 'Edit Entry' : 'Create Entry'}
         </h2>
 
         {state?.error && (
@@ -155,7 +155,7 @@ export default function SkillFormModal({
               className="relative flex items-center justify-center gap-2 px-6 py-2.5 bg-white text-black text-sm font-semibold rounded-lg disabled:opacity-50 transition-transform active:scale-95"
             >
               {isPending ? <Loader2 className="w-4 h-4 animate-spin" /> : null}
-              {skill ? 'Save Changes' : 'Add Skill'}
+              {skill ? 'Update Entry' : 'Create Entry'}
             </button>
           </div>
         </form>

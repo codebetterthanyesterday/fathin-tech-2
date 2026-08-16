@@ -3,6 +3,7 @@
 import { useState, useActionState, useEffect } from 'react';
 import { useRouter } from 'next/navigation';
 import { upsertProject } from '@/app/actions/project';
+import { getAdminPath } from '@/lib/routes';
 import { Loader2, Save, ArrowLeft, CheckCircle, AlertCircle } from 'lucide-react';
 import TagInput from './tag-input';
 import ImageGallery, { ProjectImage } from './image-gallery';
@@ -22,7 +23,7 @@ export default function ProjectForm({ project }: { project?: any }) {
   useEffect(() => {
     if (state?.success) {
       const timer = setTimeout(() => {
-        router.push('/admin/projects');
+        router.push(getAdminPath('projects'));
       }, 1000);
       return () => clearTimeout(timer);
     }
@@ -66,7 +67,7 @@ export default function ProjectForm({ project }: { project?: any }) {
                 defaultValue={project?.title || ''}
                 required
                 className="w-full px-4 py-3 bg-zinc-900/50 border border-zinc-800 rounded-lg text-white placeholder:text-zinc-600 focus:outline-none focus:ring-2 focus:ring-white/20 transition-all"
-                placeholder="Awesome Portfolio CMS"
+                placeholder="System Architecture Overview"
               />
               {state?.fieldErrors?.title && <p className="text-red-400 text-xs">{state.fieldErrors.title[0]}</p>}
             </div>
@@ -79,7 +80,7 @@ export default function ProjectForm({ project }: { project?: any }) {
                 type="text"
                 defaultValue={project?.slug || ''}
                 className="w-full px-4 py-3 bg-zinc-900/50 border border-zinc-800 rounded-lg text-white placeholder:text-zinc-600 focus:outline-none focus:ring-2 focus:ring-white/20 transition-all font-mono text-sm"
-                placeholder="Leave blank to auto-generate"
+                placeholder="Auto-generated if empty"
               />
               {state?.fieldErrors?.slug && <p className="text-red-400 text-xs">{state.fieldErrors.slug[0]}</p>}
             </div>
@@ -93,7 +94,7 @@ export default function ProjectForm({ project }: { project?: any }) {
                 defaultValue={project?.summary || ''}
                 required
                 className="w-full px-4 py-3 bg-zinc-900/50 border border-zinc-800 rounded-lg text-white placeholder:text-zinc-600 focus:outline-none focus:ring-2 focus:ring-white/20 transition-all"
-                placeholder="A brief 1-2 sentence overview of the project."
+                placeholder="Concise overview (1-2 sentences)."
               />
               {state?.fieldErrors?.summary && <p className="text-red-400 text-xs">{state.fieldErrors.summary[0]}</p>}
             </div>
@@ -106,7 +107,7 @@ export default function ProjectForm({ project }: { project?: any }) {
                 rows={8}
                 defaultValue={project?.description || ''}
                 className="w-full px-4 py-3 bg-zinc-900/50 border border-zinc-800 rounded-lg text-white placeholder:text-zinc-600 focus:outline-none focus:ring-2 focus:ring-white/20 transition-all font-mono text-sm resize-y"
-                placeholder="Write detailed case study here..."
+                placeholder="Enter technical case study..."
               />
             </div>
           </div>
@@ -122,7 +123,7 @@ export default function ProjectForm({ project }: { project?: any }) {
               <TagInput 
                 tags={techStack} 
                 onChange={setTechStack} 
-                placeholder="Type tech (e.g. Next.js) and press Enter"
+                placeholder="Enter technology (e.g. Next.js)..."
               />
             </div>
 
@@ -194,7 +195,7 @@ export default function ProjectForm({ project }: { project?: any }) {
         <div className="pt-8 border-t border-zinc-800 flex flex-col-reverse sm:flex-row items-center justify-end gap-4">
           <button
             type="button"
-            onClick={() => router.push('/admin/projects')}
+            onClick={() => router.push(getAdminPath('projects'))}
             disabled={isPending}
             className="w-full sm:w-auto px-6 py-3 text-sm font-medium text-zinc-400 hover:text-white transition-colors"
           >
@@ -212,7 +213,7 @@ export default function ProjectForm({ project }: { project?: any }) {
               ) : (
                 <Save className="w-4 h-4 transition-transform duration-300 group-hover/btn:-translate-y-0.5" />
               )}
-              <span>{project ? 'Save Changes' : 'Publish Project'}</span>
+              <span>{project ? 'Update Entry' : 'Create Entry'}</span>
             </div>
           </button>
         </div>

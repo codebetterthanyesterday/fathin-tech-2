@@ -116,8 +116,8 @@ export default function ProfileForm({ initialData }: { initialData: any }) {
 
       <div className="relative z-10">
         <div className="mb-8">
-          <h2 className="text-2xl font-bold tracking-tight text-white">Profile Details</h2>
-          <p className="text-zinc-400 text-sm mt-1">Manage your public information and identity.</p>
+          <h2 className="text-2xl font-bold tracking-tight text-white">System Profile Data</h2>
+          <p className="text-zinc-400 text-sm mt-1">Configure identity credentials and public metadata.</p>
         </div>
 
         {/* Global Feedback Messages */}
@@ -173,15 +173,15 @@ export default function ProfileForm({ initialData }: { initialData: any }) {
               )}
             </div>
             <div>
-              <h3 className="text-sm font-medium text-zinc-200">Profile Photo</h3>
-              <p className="text-xs text-zinc-500 mb-3 mt-1">Recommended: Square, less than 5MB.</p>
+              <h3 className="text-sm font-medium text-zinc-200">Avatar Image</h3>
+              <p className="text-xs text-zinc-500 mb-3 mt-1">Constraint: Square aspect ratio, &lt;5MB limit.</p>
               <button
                 type="button"
                 onClick={() => fileInputRef.current?.click()}
                 className="px-4 py-2 bg-zinc-900 hover:bg-zinc-800 border border-zinc-700 rounded-md text-sm font-medium transition-colors disabled:opacity-50"
                 disabled={isUploading}
               >
-                Change Photo
+                Update Avatar
               </button>
               <input
                 ref={fileInputRef}
@@ -206,7 +206,7 @@ export default function ProfileForm({ initialData }: { initialData: any }) {
                 defaultValue={initialData?.name || ''}
                 required
                 className="w-full px-4 py-3 bg-zinc-900/50 border border-zinc-800 rounded-lg text-white placeholder:text-zinc-600 focus:outline-none focus:ring-2 focus:ring-white/20 focus:border-white/30 transition-all duration-300"
-                placeholder="John Doe"
+                placeholder="Enter full name..."
               />
               {state?.fieldErrors?.name && (
                 <p className="text-red-400 text-xs mt-1">{state.fieldErrors.name[0]}</p>
@@ -224,7 +224,7 @@ export default function ProfileForm({ initialData }: { initialData: any }) {
                 type="text"
                 defaultValue={initialData?.tagline || ''}
                 className="w-full px-4 py-3 bg-zinc-900/50 border border-zinc-800 rounded-lg text-white placeholder:text-zinc-600 focus:outline-none focus:ring-2 focus:ring-white/20 focus:border-white/30 transition-all duration-300"
-                placeholder="Software Engineer"
+                placeholder="Enter designation..."
               />
             </div>
 
@@ -239,7 +239,7 @@ export default function ProfileForm({ initialData }: { initialData: any }) {
                 type="email"
                 defaultValue={initialData?.email || ''}
                 className="w-full px-4 py-3 bg-zinc-900/50 border border-zinc-800 rounded-lg text-white placeholder:text-zinc-600 focus:outline-none focus:ring-2 focus:ring-white/20 focus:border-white/30 transition-all duration-300"
-                placeholder="hello@example.com"
+                placeholder="Enter contact email..."
               />
               {state?.fieldErrors?.email && (
                 <p className="text-red-400 text-xs mt-1">{state.fieldErrors.email[0]}</p>
@@ -257,7 +257,7 @@ export default function ProfileForm({ initialData }: { initialData: any }) {
                 type="text"
                 defaultValue={initialData?.phone || ''}
                 className="w-full px-4 py-3 bg-zinc-900/50 border border-zinc-800 rounded-lg text-white placeholder:text-zinc-600 focus:outline-none focus:ring-2 focus:ring-white/20 focus:border-white/30 transition-all duration-300"
-                placeholder="+1 234 567 890"
+                placeholder="Enter contact number..."
               />
             </div>
 
@@ -272,7 +272,7 @@ export default function ProfileForm({ initialData }: { initialData: any }) {
                 type="text"
                 defaultValue={initialData?.location || ''}
                 className="w-full px-4 py-3 bg-zinc-900/50 border border-zinc-800 rounded-lg text-white placeholder:text-zinc-600 focus:outline-none focus:ring-2 focus:ring-white/20 focus:border-white/30 transition-all duration-300"
-                placeholder="Jakarta, Indonesia"
+                placeholder="Enter primary location..."
               />
             </div>
 
@@ -287,7 +287,7 @@ export default function ProfileForm({ initialData }: { initialData: any }) {
                 rows={4}
                 defaultValue={initialData?.bio || ''}
                 className="w-full px-4 py-3 bg-zinc-900/50 border border-zinc-800 rounded-lg text-white placeholder:text-zinc-600 focus:outline-none focus:ring-2 focus:ring-white/20 focus:border-white/30 transition-all duration-300 resize-none"
-                placeholder="A short biography about yourself..."
+                placeholder="Enter profile biography..."
               />
             </div>
 
@@ -301,13 +301,13 @@ export default function ProfileForm({ initialData }: { initialData: any }) {
                   className="flex items-center gap-1.5 px-3 py-1.5 bg-zinc-800 hover:bg-zinc-700 text-white rounded-md text-xs font-medium transition-colors"
                 >
                   <Plus className="w-3.5 h-3.5" />
-                  Add Link
+                  Create Entry
                 </button>
               </div>
 
               {socialLinks.length === 0 ? (
                 <div className="text-center py-6 bg-zinc-900/30 border border-zinc-800/50 rounded-lg border-dashed">
-                  <p className="text-sm text-zinc-500">No social links added yet.</p>
+                  <p className="text-sm text-zinc-500">No entries found. Action required: Create an entry.</p>
                 </div>
               ) : (
                 <div className="space-y-3">
@@ -334,7 +334,7 @@ export default function ProfileForm({ initialData }: { initialData: any }) {
                           type="text"
                           value={link.platform}
                           onChange={(e) => updateSocialLink(idx, 'platform', e.target.value)}
-                          placeholder="e.g. GitHub"
+                          placeholder="Enter platform identifier..."
                           className="w-full px-3 py-2 bg-zinc-900 border border-zinc-800 rounded-md text-sm text-white focus:outline-none focus:ring-1 focus:ring-white/30"
                         />
                       </div>
@@ -348,7 +348,7 @@ export default function ProfileForm({ initialData }: { initialData: any }) {
                           type="url"
                           value={link.url}
                           onChange={(e) => updateSocialLink(idx, 'url', e.target.value)}
-                          placeholder="https://..."
+                          placeholder="Enter target URI..."
                           className="w-full px-3 py-2 bg-zinc-900 border border-zinc-800 rounded-md text-sm text-white focus:outline-none focus:ring-1 focus:ring-white/30"
                         />
                       </div>
@@ -397,7 +397,7 @@ export default function ProfileForm({ initialData }: { initialData: any }) {
                 type="url"
                 defaultValue={initialData?.resumeUrl || ''}
                 className="w-full px-4 py-3 bg-zinc-900/50 border border-zinc-800 rounded-lg text-white placeholder:text-zinc-600 focus:outline-none focus:ring-2 focus:ring-white/20 focus:border-white/30 transition-all duration-300"
-                placeholder="https://link-to-resume.pdf"
+                placeholder="Enter document URI..."
               />
               {state?.fieldErrors?.resumeUrl && (
                 <p className="text-red-400 text-xs mt-1">{state.fieldErrors.resumeUrl[0]}</p>
@@ -418,7 +418,7 @@ export default function ProfileForm({ initialData }: { initialData: any }) {
                 ) : (
                   <Save className="w-4 h-4 transition-transform duration-300 group-hover/btn:-translate-y-0.5" />
                 )}
-                <span>Save Profile</span>
+                <span>Update Configuration</span>
               </div>
             </button>
           </div>

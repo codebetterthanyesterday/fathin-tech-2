@@ -7,6 +7,7 @@ import { reorderProjects, deleteProject } from '@/app/actions/project';
 import DeleteConfirmModal from '../skills/delete-confirm-modal';
 import Link from 'next/link';
 import Image from 'next/image';
+import { getAdminPath } from '@/lib/routes';
 
 export default function ProjectListClient({ initialProjects }: { initialProjects: any[] }) {
   const [projects, setProjects] = useState(initialProjects);
@@ -60,13 +61,13 @@ export default function ProjectListClient({ initialProjects }: { initialProjects
   return (
     <div className="space-y-8">
       <div className="flex justify-between items-center">
-        <h2 className="text-xl font-semibold">Your Projects</h2>
+        <h2 className="text-xl font-semibold">Project Index</h2>
         <Link
-          href="/admin/projects/new"
+          href={getAdminPath('projects/new')}
           className="flex items-center gap-2 px-4 py-2 bg-white text-black font-semibold rounded-lg hover:bg-zinc-200 transition-colors"
         >
           <Plus className="w-4 h-4" />
-          Add Project
+          Create Entry
         </Link>
       </div>
 
@@ -131,7 +132,7 @@ export default function ProjectListClient({ initialProjects }: { initialProjects
                           {/* Actions (Desktop) */}
                           <div className="hidden sm:flex items-center gap-2">
                             <Link
-                              href={`/admin/projects/${project.id}`}
+                              href={getAdminPath(`projects/${project.id}`)}
                               className="p-2 text-zinc-400 hover:text-white hover:bg-zinc-800 rounded-lg transition-colors"
                               aria-label="Edit project"
                             >
@@ -171,7 +172,7 @@ export default function ProjectListClient({ initialProjects }: { initialProjects
                             <GripVertical className="w-5 h-5" />
                           </div>
                           <Link
-                            href={`/admin/projects/${project.id}`}
+                            href={getAdminPath(`projects/${project.id}`)}
                             className="p-2 text-zinc-400 hover:text-white hover:bg-zinc-800 rounded-lg transition-colors"
                           >
                             <Edit2 className="w-4 h-4" />
@@ -192,13 +193,13 @@ export default function ProjectListClient({ initialProjects }: { initialProjects
               
               {projects.length === 0 && (
                 <div className="text-center py-20 bg-zinc-900/20 border border-dashed border-zinc-800 rounded-2xl">
-                  <p className="text-zinc-500 mb-4">No projects found.</p>
+                  <p className="text-zinc-500 mb-4">No entries found. Action required: Create an entry.</p>
                   <Link
-                    href="/admin/projects/new"
+                    href={getAdminPath('projects/new')}
                     className="inline-flex items-center gap-2 px-4 py-2 bg-white text-black font-semibold rounded-lg hover:bg-zinc-200 transition-colors"
                   >
                     <Plus className="w-4 h-4" />
-                    Create First Project
+                    Create Entry
                   </Link>
                 </div>
               )}
@@ -211,8 +212,8 @@ export default function ProjectListClient({ initialProjects }: { initialProjects
         isOpen={isDeleteOpen}
         onClose={() => setIsDeleteOpen(false)}
         onConfirm={confirmDelete}
-        title="Delete Project"
-        description={`Are you sure you want to delete "${deletingProject?.title}"? All associated images will also be removed. This action cannot be undone.`}
+        title="Delete Entry"
+        description={`Confirm deletion of "${deletingProject?.title}". Associated media will be purged. This action is irreversible.`}
       />
     </div>
   );
