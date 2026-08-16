@@ -1,11 +1,11 @@
 import type { Metadata } from "next";
-import Script from "next/script";
 import { Geist, Geist_Mono, Inter, Space_Grotesk, Playfair_Display, JetBrains_Mono } from "next/font/google";
 import "./globals.css";
 import { getProfile } from "./actions/profile";
 import { ThemeProvider } from "@/components/providers/theme-provider";
 import { generateThemeColorTokens } from "@/lib/theme/colors";
 import PreviewSyncListener from "@/components/public/preview-sync-listener";
+import { FontAwesomeLoader } from "@/components/public/layout/font-awesome-loader";
 import { Suspense } from "react";
 import { SpeedInsights } from "@vercel/speed-insights/next";
 import { Analytics } from "@vercel/analytics/next";
@@ -90,21 +90,12 @@ export default async function RootLayout({ children }: { children: React.ReactNo
     >
       <head>
         <link rel="preload" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.1/css/all.min.css" as="style" />
-        <link suppressHydrationWarning rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.1/css/all.min.css" media="print" id="fa-stylesheet" />
+        <FontAwesomeLoader />
         <noscript>
           <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.1/css/all.min.css" />
         </noscript>
       </head>
       <body className="min-h-full flex flex-col bg-[var(--bg-primary)] text-[var(--text-primary)] antialiased transition-colors duration-300">
-        <Script id="fa-swap" strategy="beforeInteractive">
-          {`
-            const fa = document.getElementById('fa-stylesheet');
-            if (fa) {
-              fa.onload = function() { this.media = 'all'; };
-              if (fa.sheet) { fa.media = 'all'; }
-            }
-          `}
-        </Script>
         <ThemeProvider>
           <Suspense fallback={null}>
             <PreviewSyncListener />
