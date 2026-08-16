@@ -14,23 +14,6 @@ export default function ImmersiveHeroSection({ profile, ctaOverride }: HeroSecti
 
   if (!profile) return null;
 
-  // Staggering text animation
-  const container = {
-    hidden: { opacity: 0 },
-    show: {
-      opacity: 1,
-      transition: {
-        staggerChildren: 0.1,
-        delayChildren: 0.2
-      }
-    }
-  };
-
-  const item = {
-    hidden: { opacity: 0, y: prefersReducedMotion ? 0 : 50, filter: 'blur(10px)' },
-    show: { opacity: 1, y: 0, filter: 'blur(0px)', transition: { duration: 0.8, ease: [0.2, 0.65, 0.3, 0.9] as const } }
-  };
-
   const marqueeText = Array(10).fill(profile.tagline || profile.name).join(" • ");
 
   return (
@@ -47,45 +30,42 @@ export default function ImmersiveHeroSection({ profile, ctaOverride }: HeroSecti
         </motion.div>
       </div>
 
-      <motion.div 
+      <div 
         className="w-full max-w-7xl mx-auto z-10 grid grid-cols-1 lg:grid-cols-12 gap-8 items-center"
-        variants={container}
-        initial="hidden"
-        animate="show"
       >
         
         {/* Text Content (Left aligned, span 7) */}
         <div className="col-span-1 lg:col-span-7 flex flex-col items-start text-left">
           
-          <motion.div variants={item} className="mb-4 inline-block">
+          <div className="mb-4 inline-block animate-immersive-fade-in" style={{ animationDelay: '0.2s' }}>
             <span className="text-[var(--accent-text)] font-semibold tracking-widest uppercase text-sm md:text-base border border-[var(--border-strong)] px-4 py-1.5 rounded-full bg-[var(--accent-soft)] backdrop-blur-md shadow-sm">
               Hello, I&apos;m
             </span>
-          </motion.div>
+          </div>
 
-          <motion.h1 
-            variants={item} 
-            className="text-6xl sm:text-7xl md:text-8xl lg:text-[7rem] font-black tracking-tighter text-[var(--text-primary)] mb-6 leading-[0.9]"
+          <h1 
+            className="text-6xl sm:text-7xl md:text-8xl lg:text-[7rem] font-black tracking-tighter text-[var(--text-primary)] mb-6 leading-[0.9] animate-immersive-fade-in"
+            style={{ animationDelay: '0.3s' }}
           >
             {profile.name}
-          </motion.h1>
+          </h1>
           
-          <motion.p 
-            variants={item} 
-            className="text-xl sm:text-2xl md:text-3xl text-[var(--text-secondary)] font-medium max-w-2xl mb-8 leading-tight"
+          <p 
+            className="text-xl sm:text-2xl md:text-3xl text-[var(--text-secondary)] font-medium max-w-2xl mb-8 leading-tight animate-immersive-fade-in"
+            style={{ animationDelay: '0.4s' }}
           >
             {profile.tagline}
-          </motion.p>
+          </p>
 
           {profile.bio && (
-            <motion.div variants={item} className="max-w-xl mb-12">
+            <div className="max-w-xl mb-12 animate-immersive-fade-in" style={{ animationDelay: '0.5s' }}>
               <p className="text-base sm:text-lg text-[var(--text-tertiary)] leading-relaxed">
                 {profile.bio}
               </p>
-            </motion.div>
+            </div>
           )}
 
-          <motion.div variants={item} className="flex flex-wrap items-center gap-6">
+          <div className="flex flex-wrap items-center gap-6 animate-immersive-fade-in" style={{ animationDelay: '0.6s' }}>
             {(profile.resumeUrl || ctaOverride?.ctaUrl) && (
               <a
                 href={ctaOverride?.ctaUrl || profile.resumeUrl}
@@ -112,21 +92,22 @@ export default function ImmersiveHeroSection({ profile, ctaOverride }: HeroSecti
                 </a>
               ))}
             </div>
-          </motion.div>
+          </div>
         </div>
 
         {/* Image Content (Asymmetrical Right, span 5) */}
         {profile.photoUrl && (
-          <motion.div 
-            variants={item} 
-            className="col-span-1 lg:col-span-5 relative mt-12 lg:mt-0 lg:ml-12"
+          <div 
+            className="col-span-1 lg:col-span-5 relative mt-12 lg:mt-0 lg:ml-12 animate-immersive-fade-in"
+            style={{ animationDelay: '0.4s' }}
           >
             <div className="relative aspect-[3/4] w-full max-w-md mx-auto rounded-3xl overflow-hidden border border-[var(--border-strong)] shadow-2xl group/img bg-[var(--bg-surface)]">
               <div className="absolute inset-0 bg-gradient-to-t from-black/50 via-black/15 to-transparent z-10" />
               <Image 
                 src={profile.photoUrl} 
                 alt={profile.name} 
-                fill 
+                fill
+                sizes="(max-width: 1024px) 100vw, 50vw" 
                 className="object-cover transition-transform duration-700 group-hover/img:scale-105"
                 priority
               />
@@ -134,10 +115,10 @@ export default function ImmersiveHeroSection({ profile, ctaOverride }: HeroSecti
             
             {/* Decorative element */}
             <div className="absolute -bottom-6 -left-6 w-32 h-32 border-l border-b border-[var(--border-strong)] rounded-bl-3xl hidden lg:block pointer-events-none" />
-          </motion.div>
+          </div>
         )}
 
-      </motion.div>
+      </div>
     </section>
   );
 }

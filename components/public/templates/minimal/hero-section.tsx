@@ -12,23 +12,6 @@ interface HeroSectionProps {
 export default function HeroSection({ profile, ctaOverride }: HeroSectionProps) {
   const prefersReducedMotion = useReducedMotion();
 
-  // Animations configuration
-  const container = {
-    hidden: { opacity: 0 },
-    show: {
-      opacity: 1,
-      transition: {
-        staggerChildren: 0.15,
-        delayChildren: 0.2
-      }
-    }
-  };
-
-  const item = {
-    hidden: { opacity: 0, y: prefersReducedMotion ? 0 : 20 },
-    show: { opacity: 1, y: 0, transition: { duration: 0.8, ease: "easeOut" as const } }
-  };
-
   if (!profile) return null;
 
   return (
@@ -46,47 +29,45 @@ export default function HeroSection({ profile, ctaOverride }: HeroSectionProps) 
         />
       </div>
 
-      <motion.div 
+      <div 
         className="w-full max-w-4xl mx-auto flex flex-col items-center text-center z-10"
-        variants={container}
-        initial="hidden"
-        animate="show"
       >
         {/* Avatar */}
         {profile.photoUrl && (
-          <motion.div variants={item} className="mb-8">
+          <div className="mb-8 animate-fade-in-up" style={{ animationDelay: '0.2s' }}>
             <div className="relative w-28 h-28 sm:w-32 sm:h-32 rounded-full overflow-hidden border border-[var(--border-strong)] ring-4 ring-[var(--bg-primary)] shadow-2xl bg-[var(--bg-surface)]">
               <Image 
                 src={profile.photoUrl} 
                 alt={profile.name} 
                 fill 
+                sizes="(max-width: 768px) 150px, 150px"
                 className="object-cover"
                 priority
               />
             </div>
-          </motion.div>
+          </div>
         )}
 
         {/* Name & Tagline */}
-        <motion.h1 variants={item} className="text-4xl sm:text-6xl md:text-7xl font-bold tracking-tight text-[var(--text-primary)] mb-4">
+        <h1 className="text-4xl sm:text-6xl md:text-7xl font-bold tracking-tight text-[var(--text-primary)] mb-4 animate-fade-in-up" style={{ animationDelay: '0.35s' }}>
           {profile.name}
-        </motion.h1>
+        </h1>
         
-        <motion.p variants={item} className="text-lg sm:text-xl md:text-2xl text-[var(--text-secondary)] font-medium max-w-2xl mb-8 leading-relaxed">
+        <p className="text-lg sm:text-xl md:text-2xl text-[var(--text-secondary)] font-medium max-w-2xl mb-8 leading-relaxed animate-fade-in-up" style={{ animationDelay: '0.5s' }}>
           {profile.tagline}
-        </motion.p>
+        </p>
 
         {/* Bio */}
         {profile.bio && (
-          <motion.div variants={item} className="max-w-2xl mb-10">
+          <div className="max-w-2xl mb-10 animate-fade-in-up" style={{ animationDelay: '0.65s' }}>
             <p className="text-sm sm:text-base text-[var(--text-tertiary)] leading-relaxed whitespace-pre-wrap">
               {profile.bio}
             </p>
-          </motion.div>
+          </div>
         )}
 
         {/* Social Links & CTA */}
-        <motion.div variants={item} className="flex flex-wrap items-center justify-center gap-4">
+        <div className="flex flex-wrap items-center justify-center gap-4 animate-fade-in-up" style={{ animationDelay: '0.8s' }}>
           {profile.socialLinks && Array.isArray(profile.socialLinks) && profile.socialLinks.map((link: any, index: number) => {
             return (
               <a
@@ -112,8 +93,8 @@ export default function HeroSection({ profile, ctaOverride }: HeroSectionProps) 
               {ctaOverride?.ctaLabel || 'Resume'}
             </a>
           )}
-        </motion.div>
-      </motion.div>
+        </div>
+      </div>
 
       {/* Scroll indicator */}
       <motion.div 
