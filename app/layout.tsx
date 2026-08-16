@@ -90,7 +90,7 @@ export default async function RootLayout({ children }: { children: React.ReactNo
     >
       <head>
         <link rel="preload" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.1/css/all.min.css" as="style" />
-        <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.1/css/all.min.css" media="print" id="fa-stylesheet" />
+        <link suppressHydrationWarning rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.1/css/all.min.css" media="print" id="fa-stylesheet" />
         <Script id="fa-swap" strategy="beforeInteractive">
           {`
             const fa = document.getElementById('fa-stylesheet');
