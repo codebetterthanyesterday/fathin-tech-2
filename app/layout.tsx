@@ -1,4 +1,5 @@
 import type { Metadata } from "next";
+import Script from "next/script";
 import { Geist, Geist_Mono, Inter, Space_Grotesk, Playfair_Display, JetBrains_Mono } from "next/font/google";
 import "./globals.css";
 import { getProfile } from "./actions/profile";
@@ -90,11 +91,15 @@ export default async function RootLayout({ children }: { children: React.ReactNo
       <head>
         <link rel="preload" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.1/css/all.min.css" as="style" />
         <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.1/css/all.min.css" media="print" id="fa-stylesheet" />
-        <script dangerouslySetInnerHTML={{ __html: `
-          const fa = document.getElementById('fa-stylesheet');
-          fa.onload = function() { this.media = 'all'; };
-          if (fa.sheet) { fa.media = 'all'; }
-        ` }} />
+        <Script id="fa-swap" strategy="beforeInteractive">
+          {`
+            const fa = document.getElementById('fa-stylesheet');
+            if (fa) {
+              fa.onload = function() { this.media = 'all'; };
+              if (fa.sheet) { fa.media = 'all'; }
+            }
+          `}
+        </Script>
         <noscript>
           <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.1/css/all.min.css" />
         </noscript>
