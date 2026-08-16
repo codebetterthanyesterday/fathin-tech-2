@@ -174,7 +174,7 @@ export default function ProfileForm({ initialData }: { initialData: any }) {
             </div>
             <div>
               <h3 className="text-sm font-medium text-zinc-200">Avatar Image</h3>
-              <p className="text-xs text-zinc-500 mb-3 mt-1">Constraint: Square aspect ratio, &lt;5MB limit.</p>
+              <p className="text-xs text-zinc-500 mb-3 mt-1">Constraint: Square aspect ratio, &lt;10MB limit.</p>
               <button
                 type="button"
                 onClick={() => fileInputRef.current?.click()}

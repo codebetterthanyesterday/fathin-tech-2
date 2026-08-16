@@ -21,8 +21,8 @@ export async function uploadImage(formData: FormData) {
       return { error: 'Invalid file type. Only images are allowed.' };
     }
 
-    if (file.size > 5 * 1024 * 1024) {
-      return { error: 'File size exceeds 5MB limit.' };
+    if (file.size > 10 * 1024 * 1024) {
+      return { error: 'File size exceeds 10MB limit.' };
     }
 
     const fileExt = file.name.split('.').pop();
