@@ -157,12 +157,7 @@ async function fetchArticlesData(content: ArticlesListContent) {
 
 // ─── Main page ───────────────────────────────────────────────────────────────
 
-export default async function Home(
-  props: {
-    searchParams?: Promise<{ [key: string]: string | string[] | undefined }>
-  }
-) {
-  const searchParams = await props.searchParams;
+export default async function Home() {
   const { profile, error } = await getPortfolioData();
   const { sections } = await getSections();
 
@@ -193,8 +188,7 @@ export default async function Home(
       : [],
   };
 
-  const templateQuery = searchParams?.template;
-  const themeTemplate = (templateQuery as 'minimal' | 'immersive') || (profile.themeTemplate as 'minimal' | 'immersive') || 'minimal';
+  const themeTemplate = (profile.themeTemplate as 'minimal' | 'immersive') || 'minimal';
   const Template = templates[themeTemplate] || templates['minimal'];
 
   // Floating Theme Toggle button

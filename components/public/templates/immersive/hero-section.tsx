@@ -46,7 +46,7 @@ export default function ImmersiveHeroSection({ profile, ctaOverride }: HeroSecti
 
           <h1
             className="text-6xl sm:text-7xl md:text-8xl lg:text-[7rem] font-black tracking-tighter text-[var(--text-primary)] mb-6 leading-[0.9] animate-immersive-fade-in"
-            style={{ animationDelay: '0.3s' }}
+            style={{ animationDelay: '0s' }}
           >
             {profile.name}
           </h1>
@@ -100,7 +100,7 @@ export default function ImmersiveHeroSection({ profile, ctaOverride }: HeroSecti
         {profile.photoUrl && (
           <div
             className="col-span-1 lg:col-span-5 relative mt-12 lg:mt-0 lg:ml-12 animate-immersive-fade-in"
-            style={{ animationDelay: '0.4s' }}
+            style={{ animationDelay: '0s' }}
           >
             <div className="relative aspect-[3/4] w-full max-w-md mx-auto rounded-3xl overflow-hidden border border-[var(--border-strong)] shadow-2xl group/img bg-[var(--bg-surface)]">
               <div className="absolute inset-0 bg-gradient-to-t from-black/50 via-black/15 to-transparent z-10" />

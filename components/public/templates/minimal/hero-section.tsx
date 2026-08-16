@@ -34,7 +34,7 @@ export default function HeroSection({ profile, ctaOverride }: HeroSectionProps) 
       >
         {/* Avatar */}
         {profile.photoUrl && (
-          <div className="mb-8 animate-fade-in-up" style={{ animationDelay: '0.2s' }}>
+          <div className="mb-8 animate-fade-in-up" style={{ animationDelay: '0s' }}>
             <div className="relative w-28 h-28 sm:w-32 sm:h-32 rounded-full overflow-hidden border border-[var(--border-strong)] ring-4 ring-[var(--bg-primary)] shadow-2xl bg-[var(--bg-surface)]">
               <Image 
                 src={profile.photoUrl} 
@@ -49,7 +49,7 @@ export default function HeroSection({ profile, ctaOverride }: HeroSectionProps) 
         )}
 
         {/* Name & Tagline */}
-        <h1 className="text-4xl sm:text-6xl md:text-7xl font-bold tracking-tight text-[var(--text-primary)] mb-4 animate-fade-in-up" style={{ animationDelay: '0.35s' }}>
+        <h1 className="text-4xl sm:text-6xl md:text-7xl font-bold tracking-tight text-[var(--text-primary)] mb-4 animate-fade-in-up" style={{ animationDelay: '0s' }}>
           {profile.name}
         </h1>
         
