@@ -8,9 +8,14 @@
     "search": "Cari..."
   },
   "hero": {
+    "greeting": "Halo, saya",
     "viewResume": "Lihat Resume",
     "accessRecord": "Akses Dokumen",
     "scrollDown": "Gulir ke bawah"
+  },
+  "theme": {
+    "switchToLight": "Ganti ke mode terang",
+    "switchToDark": "Ganti ke mode gelap"
   },
   "skills": {
     "minimalTitle": "Keahlian & Spesialisasi",

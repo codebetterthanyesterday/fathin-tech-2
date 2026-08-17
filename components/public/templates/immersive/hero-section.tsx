@@ -3,7 +3,7 @@
 import { motion, useReducedMotion } from 'framer-motion';
 import { ArrowRight } from 'lucide-react';
 import Image from 'next/image';
-import { useTranslations } from 'next-intl';
+import { useTranslations, useLocale } from 'next-intl';
 
 interface HeroSectionProps {
   profile: any;
@@ -13,11 +13,17 @@ interface HeroSectionProps {
 export default function ImmersiveHeroSection({ profile, ctaOverride }: HeroSectionProps) {
   const prefersReducedMotion = useReducedMotion();
   const t = useTranslations('hero');
+  const locale = useLocale();
 
   if (!profile) return null;
 
   const baseText = profile.tagline || profile.name || 'PORTFOLIO';
   const marqueeText = Array(8).fill(baseText).join(' • ') + ' • ';
+  const greetingText = t.has('greeting')
+    ? t('greeting')
+    : locale === 'id'
+    ? 'Halo, saya'
+    : "Hello, I'm";
 
   return (
     <section className="relative min-h-[100vh] flex flex-col justify-center px-4 sm:px-12 md:px-24 overflow-hidden pt-24 pb-12 group/section">
@@ -42,7 +48,7 @@ export default function ImmersiveHeroSection({ profile, ctaOverride }: HeroSecti
 
           <div className="mb-4 inline-block animate-immersive-fade-in" style={{ animationDelay: '0.05s' }}>
             <span className="text-[var(--accent-text)] font-semibold tracking-widest uppercase text-sm md:text-base border border-[var(--border-strong)] px-4 py-1.5 rounded-full bg-[var(--accent-soft)] backdrop-blur-md shadow-sm">
-              Hello, I&apos;m
+              {greetingText}
             </span>
           </div>
 

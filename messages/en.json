@@ -8,9 +8,14 @@
     "search": "Search..."
   },
   "hero": {
+    "greeting": "Hello, I'm",
     "viewResume": "View Resume",
     "accessRecord": "Access Record",
     "scrollDown": "Scroll down"
+  },
+  "theme": {
+    "switchToLight": "Switch to light mode",
+    "switchToDark": "Switch to dark mode"
   },
   "skills": {
     "minimalTitle": "Skills & Expertise",

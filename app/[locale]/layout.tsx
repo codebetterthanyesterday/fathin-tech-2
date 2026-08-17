@@ -4,6 +4,7 @@ import { notFound } from 'next/navigation';
 import { routing, Locale } from '@/i18n/routing';
 import { SearchProvider } from '@/components/public/search/search-context';
 import CommandPalette from '@/components/public/search/command-palette';
+import HtmlLangSetter from '@/components/public/layout/html-lang-setter';
 
 export function generateStaticParams() {
   return routing.locales.map((locale) => ({ locale }));
@@ -30,6 +31,7 @@ export default async function LocaleLayout({ children, params }: LocaleLayoutPro
 
   return (
     <NextIntlClientProvider messages={messages} locale={locale}>
+      <HtmlLangSetter locale={locale} />
       <SearchProvider>
         {children}
         <CommandPalette />

@@ -4,6 +4,7 @@ import { useTheme } from 'next-themes';
 import { useEffect, useState } from 'react';
 import { Sun, Moon } from 'lucide-react';
 import { motion, useReducedMotion } from 'framer-motion';
+import { useLocale } from 'next-intl';
 
 interface ThemeToggleProps {
   className?: string;
@@ -14,6 +15,14 @@ export default function ThemeToggle({ className = '', variant = 'default' }: The
   const { resolvedTheme, setTheme } = useTheme();
   const [mounted, setMounted] = useState(false);
   const prefersReducedMotion = useReducedMotion();
+
+  let locale = 'en';
+  try {
+    // eslint-disable-next-line react-hooks/rules-of-hooks
+    locale = useLocale();
+  } catch {
+    locale = 'en';
+  }
 
   useEffect(() => {
     setMounted(true);
@@ -33,7 +42,9 @@ export default function ThemeToggle({ className = '', variant = 'default' }: The
     setTheme(isDark ? 'light' : 'dark');
   };
 
-  const label = isDark ? 'Switch to light mode' : 'Switch to dark mode';
+  const label = isDark
+    ? (locale === 'id' ? 'Ganti ke mode terang' : 'Switch to light mode')
+    : (locale === 'id' ? 'Ganti ke mode gelap' : 'Switch to dark mode');
 
   return (
     <button
