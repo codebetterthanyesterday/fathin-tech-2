@@ -99,7 +99,7 @@ export default function ImmersiveHeroSection({ profile, ctaOverride }: HeroSecti
         {/* Image Content (Asymmetrical Right, span 5) */}
         {profile.photoUrl && (
           <div
-            className="col-span-1 lg:col-span-5 relative mt-12 lg:mt-0 lg:ml-12 animate-immersive-fade-in"
+            className="col-span-1 lg:col-span-5 relative mt-12 lg:mt-0 lg:ml-12 animate-immersive-fade-in group/hero-img"
             style={{ animationDelay: '0s' }}
           >
             <div className="relative aspect-[3/4] w-full max-w-md mx-auto rounded-3xl overflow-hidden border border-[var(--border-strong)] shadow-2xl group/img bg-[var(--bg-surface)]">
@@ -115,7 +115,7 @@ export default function ImmersiveHeroSection({ profile, ctaOverride }: HeroSecti
             </div>
 
             {/* Decorative element */}
-            <div className="absolute -bottom-6 -left-6 w-32 h-32 border-l border-b border-[var(--border-strong)] rounded-bl-3xl hidden lg:block pointer-events-none" />
+            <div className="immersive-decorative-corner absolute -bottom-6 -left-6 w-32 h-32 border-l border-b border-[var(--border-strong)] rounded-bl-3xl hidden lg:block pointer-events-none" />
           </div>
         )}
 

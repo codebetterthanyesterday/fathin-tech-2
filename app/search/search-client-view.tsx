@@ -1,6 +1,6 @@
 'use client';
 
-import React, { useState, useEffect, useCallback } from 'react';
+import React, { useState, useEffect, useCallback, useRef } from 'react';
 import { useRouter, useSearchParams } from 'next/navigation';
 import Link from 'next/link';
 import {
@@ -14,6 +14,7 @@ import {
   ChevronLeft,
   ChevronRight,
   Filter,
+  Loader2,
 } from 'lucide-react';
 import ThemeToggle from '@/components/public/layout/theme-toggle';
 import HighlightMatch from '@/components/public/search/highlight-match';
@@ -37,17 +38,49 @@ export default function SearchClientView() {
   const [totalPages, setTotalPages] = useState(0);
   const [isLoading, setIsLoading] = useState(false);
 
-  // Sync state with URL params changes
+  const inputRef = useRef<HTMLInputElement>(null);
+
+  // Sync state when URL params change externally (e.g. browser back/forward)
   useEffect(() => {
     const q = searchParams.get('q') || '';
     const t = searchParams.get('type') || 'all';
     const p = parseInt(searchParams.get('page') || '1', 10);
 
-    setInputQuery(q);
-    setActiveQuery(q);
+    if (q !== activeQuery) {
+      setInputQuery(q);
+      setActiveQuery(q);
+    }
     setActiveType(t);
     setCurrentPage(p);
-  }, [searchParams]);
+  }, [searchParams]); // eslint-disable-line react-hooks/exhaustive-deps
+
+  // Update URL helper (uses router.replace with scroll: false to avoid cluttering history)
+  const updateUrl = useCallback(
+    (q: string, t: string, p: number) => {
+      const params = new URLSearchParams();
+      if (q.trim()) params.set('q', q.trim());
+      if (t !== 'all') params.set('type', t);
+      if (p > 1) params.set('page', p.toString());
+
+      const queryString = params.toString();
+      router.replace(`/search${queryString ? `?${queryString}` : ''}`, { scroll: false });
+    },
+    [router]
+  );
+
+  // Real-time as-you-type search debouncer (250ms)
+  useEffect(() => {
+    const timer = setTimeout(() => {
+      const trimmed = inputQuery.trim();
+      if (trimmed !== activeQuery) {
+        setActiveQuery(trimmed);
+        setCurrentPage(1);
+        updateUrl(trimmed, activeType, 1);
+      }
+    }, 250);
+
+    return () => clearTimeout(timer);
+  }, [inputQuery, activeQuery, activeType, updateUrl]);
 
   // Execute search API request
   const fetchResults = useCallback(async (query: string, type: string, page: number) => {
@@ -92,24 +125,13 @@ export default function SearchClientView() {
     fetchResults(activeQuery, activeType, currentPage);
   }, [activeQuery, activeType, currentPage, fetchResults]);
 
-  // Update URL helper
-  const updateUrl = (q: string, t: string, p: number) => {
-    const params = new URLSearchParams();
-    if (q.trim()) params.set('q', q.trim());
-    if (t !== 'all') params.set('type', t);
-    if (p > 1) params.set('page', p.toString());
-
-    const queryString = params.toString();
-    router.push(`/search${queryString ? `?${queryString}` : ''}`, { scroll: false });
-  };
-
   const handleSearchSubmit = (e: React.FormEvent) => {
     e.preventDefault();
-    if (inputQuery.trim() !== activeQuery || currentPage !== 1) {
-      setActiveQuery(inputQuery.trim());
-      setCurrentPage(1);
-      updateUrl(inputQuery.trim(), activeType, 1);
-    }
+    const trimmed = inputQuery.trim();
+    setActiveQuery(trimmed);
+    setCurrentPage(1);
+    updateUrl(trimmed, activeType, 1);
+    fetchResults(trimmed, activeType, 1);
   };
 
   const handleTypeChange = (newType: string) => {
@@ -124,7 +146,30 @@ export default function SearchClientView() {
     window.scrollTo({ top: 0, behavior: 'smooth' });
   };
 
-  const quickSearchSuggestions = ['Next.js', 'PostgreSQL', 'Full-Stack', 'Prisma', 'Tailwind', 'Architecture'];
+  const handleSuggestionClick = (suggestion: string) => {
+    setInputQuery(suggestion);
+    setActiveQuery(suggestion);
+    setCurrentPage(1);
+    updateUrl(suggestion, activeType, 1);
+    inputRef.current?.focus();
+  };
+
+  const handleClear = () => {
+    setInputQuery('');
+    setActiveQuery('');
+    setCurrentPage(1);
+    updateUrl('', activeType, 1);
+    inputRef.current?.focus();
+  };
+
+  const quickSearchSuggestions = [
+    'Next.js',
+    'PostgreSQL',
+    'Full-Stack',
+    'Prisma',
+    'Tailwind',
+    'Architecture',
+  ];
 
   return (
     <main className="min-h-screen bg-[var(--bg-primary)] text-[var(--text-primary)] selection:bg-[var(--selection-bg)] selection:text-[var(--selection-text)] pb-32">
@@ -162,7 +207,7 @@ export default function SearchClientView() {
               Search Portfolio
             </h1>
             <p className="text-sm sm:text-base text-[var(--text-secondary)]">
-              Find technical case studies, featured projects, architectural notes, and articles.
+              Real-time search across technical case studies, featured projects, and published articles.
             </p>
           </div>
 
@@ -171,6 +216,7 @@ export default function SearchClientView() {
             <div className="relative flex items-center">
               <Search className="absolute left-4 w-5 h-5 text-[var(--text-tertiary)] pointer-events-none" />
               <input
+                ref={inputRef}
                 type="text"
                 value={inputQuery}
                 onChange={(e) => setInputQuery(e.target.value)}
@@ -178,20 +224,20 @@ export default function SearchClientView() {
                 className="w-full pl-12 pr-28 py-4 bg-[var(--bg-surface)] border border-[var(--border-strong)] rounded-2xl text-[var(--text-primary)] placeholder:text-[var(--text-tertiary)] focus:outline-none focus:ring-2 focus:ring-[var(--accent-color)] shadow-lg text-base sm:text-lg transition-all"
               />
               <div className="absolute right-3 flex items-center gap-2">
-                {inputQuery && (
+                {isLoading ? (
+                  <div className="p-2">
+                    <Loader2 className="w-4 h-4 animate-spin text-[var(--accent-text)]" />
+                  </div>
+                ) : inputQuery ? (
                   <button
                     type="button"
-                    onClick={() => {
-                      setInputQuery('');
-                      setActiveQuery('');
-                      updateUrl('', activeType, 1);
-                    }}
+                    onClick={handleClear}
                     className="p-1.5 rounded-lg text-[var(--text-tertiary)] hover:text-[var(--text-primary)] transition-colors"
                     aria-label="Clear input"
                   >
                     <X className="w-4 h-4" />
                   </button>
-                )}
+                ) : null}
                 <button
                   type="submit"
                   className="px-4 py-2 bg-[var(--accent-btn-bg)] text-[var(--accent-btn-fg)] hover:brightness-110 font-semibold rounded-xl text-xs sm:text-sm transition-all shadow-md active:scale-95"
@@ -209,7 +255,7 @@ export default function SearchClientView() {
               onClick={() => handleTypeChange('all')}
               className={`flex items-center gap-2 px-4 py-2 rounded-xl text-xs sm:text-sm font-medium transition-all ${
                 activeType === 'all'
-                  ? 'bg-[var(--accent-color)] text-[var(--accent-btn-fg)] shadow-sm'
+                  ? 'bg-[var(--accent-color)] text-[var(--accent-btn-fg)] shadow-sm font-semibold'
                   : 'bg-[var(--bg-surface)] text-[var(--text-secondary)] hover:text-[var(--text-primary)] border border-[var(--border-subtle)]'
               }`}
             >
@@ -222,7 +268,7 @@ export default function SearchClientView() {
               onClick={() => handleTypeChange('project')}
               className={`flex items-center gap-2 px-4 py-2 rounded-xl text-xs sm:text-sm font-medium transition-all ${
                 activeType === 'project'
-                  ? 'bg-[var(--accent-color)] text-[var(--accent-btn-fg)] shadow-sm'
+                  ? 'bg-[var(--accent-color)] text-[var(--accent-btn-fg)] shadow-sm font-semibold'
                   : 'bg-[var(--bg-surface)] text-[var(--text-secondary)] hover:text-[var(--text-primary)] border border-[var(--border-subtle)]'
               }`}
             >
@@ -235,7 +281,7 @@ export default function SearchClientView() {
               onClick={() => handleTypeChange('article')}
               className={`flex items-center gap-2 px-4 py-2 rounded-xl text-xs sm:text-sm font-medium transition-all ${
                 activeType === 'article'
-                  ? 'bg-[var(--accent-color)] text-[var(--accent-btn-fg)] shadow-sm'
+                  ? 'bg-[var(--accent-color)] text-[var(--accent-btn-fg)] shadow-sm font-semibold'
                   : 'bg-[var(--bg-surface)] text-[var(--text-secondary)] hover:text-[var(--text-primary)] border border-[var(--border-subtle)]'
               }`}
             >
@@ -253,7 +299,9 @@ export default function SearchClientView() {
           {activeQuery.trim().length >= 2 && (
             <div className="flex items-center justify-between mb-6 pb-3 border-b border-[var(--border-subtle)] text-xs font-mono text-[var(--text-tertiary)]">
               <span>
-                {isLoading ? 'Searching...' : `Found ${totalResults} result${totalResults === 1 ? '' : 's'}`} for &ldquo;{activeQuery}&rdquo;
+                {isLoading
+                  ? 'Searching...'
+                  : `Found ${totalResults} result${totalResults === 1 ? '' : 's'}`} for &ldquo;{activeQuery}&rdquo;
               </span>
               {totalPages > 1 && (
                 <span>
@@ -292,7 +340,7 @@ export default function SearchClientView() {
                 Type something to search
               </h2>
               <p className="text-sm text-[var(--text-secondary)] max-w-md mx-auto mb-8">
-                Search queries match across titles, summaries, tech stacks, and full markdown bodies with typo tolerance.
+                Search queries match across titles, summaries, tech stacks, and full markdown bodies with real-time typo tolerance.
               </p>
 
               <div className="space-y-3">
@@ -304,12 +352,8 @@ export default function SearchClientView() {
                     <button
                       key={suggestion}
                       type="button"
-                      onClick={() => {
-                        setInputQuery(suggestion);
-                        setActiveQuery(suggestion);
-                        updateUrl(suggestion, activeType, 1);
-                      }}
-                      className="px-3.5 py-1.5 rounded-full bg-[var(--bg-surface)] hover:bg-[var(--bg-card)] border border-[var(--border-subtle)] hover:border-[var(--border-strong)] text-xs font-mono text-[var(--text-secondary)] hover:text-[var(--text-primary)] transition-all shadow-sm"
+                      onClick={() => handleSuggestionClick(suggestion)}
+                      className="px-3.5 py-1.5 rounded-full bg-[var(--bg-surface)] hover:bg-[var(--bg-card)] border border-[var(--border-subtle)] hover:border-[var(--border-strong)] text-xs font-mono text-[var(--text-secondary)] hover:text-[var(--text-primary)] transition-all shadow-sm active:scale-95"
                     >
                       {suggestion}
                     </button>
@@ -333,12 +377,8 @@ export default function SearchClientView() {
               </p>
               <button
                 type="button"
-                onClick={() => {
-                  setInputQuery('');
-                  setActiveQuery('');
-                  updateUrl('', 'all', 1);
-                }}
-                className="px-5 py-2.5 rounded-full bg-[var(--bg-surface)] border border-[var(--border-subtle)] text-xs font-medium text-[var(--text-primary)] hover:border-[var(--border-strong)] transition-all"
+                onClick={handleClear}
+                className="px-5 py-2.5 rounded-full bg-[var(--bg-surface)] border border-[var(--border-subtle)] text-xs font-medium text-[var(--text-primary)] hover:border-[var(--border-strong)] transition-all active:scale-95"
               >
                 Clear Search
               </button>
@@ -434,7 +474,7 @@ export default function SearchClientView() {
                     onClick={() => handlePageChange(pageNum)}
                     className={`w-9 h-9 rounded-xl text-xs font-mono font-medium transition-all ${
                       pageNum === currentPage
-                        ? 'bg-[var(--accent-color)] text-[var(--accent-btn-fg)] shadow-sm'
+                        ? 'bg-[var(--accent-color)] text-[var(--accent-btn-fg)] shadow-sm font-bold'
                         : 'bg-[var(--bg-surface)] text-[var(--text-secondary)] hover:text-[var(--text-primary)] border border-[var(--border-subtle)]'
                     }`}
                   >
