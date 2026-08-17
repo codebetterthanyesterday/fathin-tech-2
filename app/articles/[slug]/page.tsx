@@ -8,6 +8,7 @@ import { getPortfolioData } from '@/lib/data';
 import { renderMarkdownServer } from '@/lib/markdown/server';
 import JsonLd from '@/components/public/json-ld';
 import ThemeToggle from '@/components/public/layout/theme-toggle';
+import SearchTrigger from '@/components/public/search/search-trigger';
 
 export async function generateMetadata({
   params,
@@ -125,10 +126,11 @@ export default async function ArticleDetailPage({
             All Articles
           </Link>
           
-          <div className="flex items-center gap-4">
+          <div className="flex items-center gap-3">
             <span className="text-xs font-mono text-[var(--text-tertiary)] truncate max-w-[160px] sm:max-w-xs hidden sm:inline-block">
               {article.title}
             </span>
+            <SearchTrigger variant="compact" />
             <ThemeToggle />
           </div>
         </div>

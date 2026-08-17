@@ -11,6 +11,7 @@ import { prisma } from '@/lib/prisma';
 import ContactSection from '@/components/public/contact-section';
 import JsonLd from '@/components/public/json-ld';
 import ThemeToggle from '@/components/public/layout/theme-toggle';
+import SearchTrigger from '@/components/public/search/search-trigger';
 
 // Minimal Template Imports
 import MinimalHeroSection from '@/components/public/templates/minimal/hero-section';
@@ -201,9 +202,10 @@ export default async function Home(props: HomePageProps) {
   ) || 'minimal';
   const Template = templates[themeTemplate] || templates['minimal'];
 
-  // Floating Theme Toggle button
+  // Floating Controls (Theme Toggle + Search)
   const floatingToggle = (
-    <div className="fixed top-6 right-6 z-50">
+    <div className="fixed top-6 right-6 z-50 flex items-center gap-3">
+      <SearchTrigger variant="compact" className="shadow-lg backdrop-blur-xl bg-[var(--bg-elevated)]/85" />
       <ThemeToggle />
     </div>
   );

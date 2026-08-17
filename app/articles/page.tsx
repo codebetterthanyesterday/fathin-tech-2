@@ -5,6 +5,7 @@ import { ArrowLeft, ArrowRight, Calendar, Clock, FileText, Sparkles } from 'luci
 import { getPublishedArticles } from '@/app/actions/article';
 import { getPortfolioData } from '@/lib/data';
 import ThemeToggle from '@/components/public/layout/theme-toggle';
+import SearchTrigger from '@/components/public/search/search-trigger';
 
 export async function generateMetadata(): Promise<Metadata> {
   const { profile } = await getPortfolioData();
@@ -52,10 +53,11 @@ export default async function ArticlesPage() {
             Back to Home
           </Link>
           
-          <div className="flex items-center gap-4">
+          <div className="flex items-center gap-3">
             <span className="text-xs font-mono text-[var(--text-tertiary)] uppercase tracking-widest hidden sm:inline-block">
               Writing & Notes
             </span>
+            <SearchTrigger variant="compact" />
             <ThemeToggle />
           </div>
         </div>

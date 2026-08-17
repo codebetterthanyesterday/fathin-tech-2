@@ -7,6 +7,7 @@ import { ExternalLink, ArrowLeft } from 'lucide-react';
 import ProjectGallery from '@/components/public/project-gallery';
 import JsonLd from '@/components/public/json-ld';
 import ThemeToggle from '@/components/public/layout/theme-toggle';
+import SearchTrigger from '@/components/public/search/search-trigger';
 import { Metadata } from 'next';
 
 export async function generateMetadata({ params }: { params: Promise<{ slug: string }> }): Promise<Metadata> {
@@ -87,7 +88,10 @@ export default async function ProjectDetailPage({ params }: { params: Promise<{ 
             Back to Home
           </Link>
           
-          <ThemeToggle />
+          <div className="flex items-center gap-3">
+            <SearchTrigger variant="compact" />
+            <ThemeToggle />
+          </div>
         </div>
       </nav>
 

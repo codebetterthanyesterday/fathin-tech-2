@@ -6,6 +6,8 @@ import { Menu, X } from 'lucide-react';
 import ThemeToggle from './theme-toggle';
 import { motion, AnimatePresence } from 'framer-motion';
 
+import SearchTrigger from '../search/search-trigger';
+
 interface PublicHeaderProps {
   profileName?: string;
   tagline?: string;
@@ -52,7 +54,7 @@ export default function PublicHeader({
         </Link>
 
         {/* Desktop Nav Actions */}
-        <nav className="hidden md:flex items-center gap-6" aria-label="Main Navigation">
+        <nav className="hidden md:flex items-center gap-5" aria-label="Main Navigation">
           {navLinks.map((link) => (
             <Link
               key={link.href}
@@ -63,6 +65,9 @@ export default function PublicHeader({
             </Link>
           ))}
 
+          {/* Search Trigger Button */}
+          <SearchTrigger variant="compact" />
+
           {/* Divider */}
           <div className="h-4 w-px bg-[var(--border-subtle)]" />
 
@@ -71,7 +76,8 @@ export default function PublicHeader({
         </nav>
 
         {/* Mobile Actions */}
-        <div className="flex md:hidden items-center gap-3">
+        <div className="flex md:hidden items-center gap-2.5">
+          <SearchTrigger variant="icon" />
           <ThemeToggle variant={themeTemplate} />
 
           <button
