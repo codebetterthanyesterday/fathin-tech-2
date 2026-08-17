@@ -131,6 +131,16 @@ model Project {
   isFeatured  Boolean  @default(false)
   order       Int      @default(0)
 
+  // Enriched schema fields
+  role        String?
+  duration    String?
+  teamSize    Int?
+  keyMetrics  String[] @default([])
+  challenges  String?  @db.Text
+  solutions   String?  @db.Text
+  videoUrl    String?
+  categories  String[] @default([])
+
   images ProjectImage[]
 
   createdAt DateTime @default(now())

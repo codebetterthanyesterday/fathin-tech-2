@@ -34,6 +34,15 @@ const projectSchema = z.object({
   repoUrl: z.string().url('URL tidak valid').optional().or(z.literal('')),
   isFeatured: z.boolean().default(false),
   images: z.array(projectImageSchema).default([]),
+  // Enriched fields
+  role: z.string().optional(),
+  duration: z.string().optional(),
+  teamSize: z.coerce.number().optional().or(z.literal('')),
+  keyMetrics: z.array(z.string()).default([]),
+  challenges: z.string().optional(),
+  solutions: z.string().optional(),
+  videoUrl: z.string().url('URL tidak valid').optional().or(z.literal('')),
+  categories: z.array(z.string()).default([]),
 });
 
 export type ProjectActionState = {
@@ -117,6 +126,24 @@ export async function upsertProject(
     return { error: 'Parse error: Invalid images format.' };
   }
 
+  // keyMetrics is submitted as JSON string array
+  const keyMetricsRaw = formData.get('keyMetrics');
+  let keyMetrics = [];
+  try {
+    if (keyMetricsRaw) keyMetrics = JSON.parse(keyMetricsRaw as string);
+  } catch (e) {
+    return { error: 'Parse error: Invalid keyMetrics format.' };
+  }
+
+  // categories is submitted as JSON string array
+  const categoriesRaw = formData.get('categories');
+  let categories = [];
+  try {
+    if (categoriesRaw) categories = JSON.parse(categoriesRaw as string);
+  } catch (e) {
+    return { error: 'Parse error: Invalid categories format.' };
+  }
+
   const rawData = {
     title: formData.get('title') as string,
     slug: formData.get('slug') as string,
@@ -127,6 +154,14 @@ export async function upsertProject(
     isFeatured: formData.get('isFeatured') === 'on' || formData.get('isFeatured') === 'true',
     techStack,
     images,
+    role: formData.get('role') as string,
+    duration: formData.get('duration') as string,
+    teamSize: formData.get('teamSize'),
+    challenges: formData.get('challenges') as string,
+    solutions: formData.get('solutions') as string,
+    videoUrl: formData.get('videoUrl') as string,
+    keyMetrics,
+    categories,
   };
 
   const validated = projectSchema.safeParse(rawData);
@@ -153,6 +188,14 @@ export async function upsertProject(
       demoUrl: data.demoUrl || null,
       repoUrl: data.repoUrl || null,
       isFeatured: data.isFeatured,
+      role: data.role || null,
+      duration: data.duration || null,
+      teamSize: typeof data.teamSize === 'number' ? data.teamSize : null,
+      challenges: data.challenges || null,
+      solutions: data.solutions || null,
+      videoUrl: data.videoUrl || null,
+      keyMetrics: data.keyMetrics,
+      categories: data.categories,
     };
 
     if (id) {
@@ -240,5 +283,41 @@ export async function reorderProjects(updates: { id: string; order: number }[]) 
   } catch (error) {
     console.error('Failed to reorder projects:', error);
     return { error: 'Reorder failed: Unable to save new order.' };
+  }
+}
+
+export async function getExistingTechStacks() {
+  const session = await getSession();
+  if (!session) return { error: 'Unauthorized' };
+
+  try {
+    const projects = await prisma.project.findMany({
+      select: { techStack: true },
+    });
+
+    // Flatten and get unique tags
+    const allTags = projects.flatMap((p) => p.techStack);
+    const uniqueTags = Array.from(new Set(allTags)).sort();
+
+    return { tags: uniqueTags };
+  } catch (error) {
+    console.error('Failed to fetch tech stacks:', error);
+    return { error: 'Failed to retrieve tags.' };
+  }
+}
+
+export async function checkProjectSlug(slug: string, excludeId?: string) {
+  const session = await getSession();
+  if (!session) return { error: 'Unauthorized' };
+
+  try {
+    const existing = await prisma.project.findUnique({ where: { slug } });
+    if (existing && existing.id !== excludeId) {
+      return { isAvailable: false };
+    }
+    return { isAvailable: true };
+  } catch (error) {
+    console.error('Failed to check slug:', error);
+    return { error: 'Failed to check slug availability.' };
   }
 }

@@ -1,4 +1,5 @@
 import { getProjectBySlug } from '@/lib/data';
+import { renderMarkdownServer } from '@/lib/markdown/server';
 import { notFound } from 'next/navigation';
 import Image from 'next/image';
 import Link from 'next/link';
@@ -56,6 +57,9 @@ export default async function ProjectDetailPage({ params }: { params: Promise<{ 
   }
 
   const mainImage = project.images[0]?.url;
+  const renderedDescription = await renderMarkdownServer(project.description || '');
+  const renderedChallenges = await renderMarkdownServer(project.challenges || '');
+  const renderedSolutions = await renderMarkdownServer(project.solutions || '');
 
   const projectSchema = {
     '@context': 'https://schema.org',
@@ -133,7 +137,7 @@ export default async function ProjectDetailPage({ params }: { params: Promise<{ 
 
           {/* Main Cover Image */}
           {mainImage && (
-            <div className="w-full aspect-[21/9] sm:aspect-[2.5/1] relative rounded-2xl overflow-hidden bg-[var(--bg-surface)] border border-[var(--border-subtle)] shadow-2xl mb-16">
+            <div className="w-full aspect-[21/9] sm:aspect-[2.5/1] relative rounded-2xl overflow-hidden bg-[var(--bg-surface)] border border-[var(--border-subtle)] shadow-2xl mb-12">
               <Image
                 src={mainImage}
                 alt={`${project.title} Cover`}
@@ -145,27 +149,116 @@ export default async function ProjectDetailPage({ params }: { params: Promise<{ 
             </div>
           )}
 
-          {/* Tech Stack */}
-          <div className="mb-16">
-            <h3 className="text-sm font-bold tracking-widest text-[var(--text-tertiary)] uppercase mb-4">Technologies</h3>
-            <div className="flex flex-wrap gap-2">
-              {project.techStack.map((tech, i) => (
-                <span 
-                  key={i} 
-                  className="px-4 py-2 bg-[var(--bg-surface)] border border-[var(--border-subtle)] rounded-full text-sm font-mono text-[var(--text-secondary)] shadow-sm"
-                >
-                  {tech}
-                </span>
-              ))}
+          {/* Key Project Meta (Role, Duration, Team) */}
+          {(project.role || project.duration || project.teamSize) && (
+            <div className="grid grid-cols-2 md:grid-cols-4 gap-4 p-6 bg-[var(--bg-surface)] border border-[var(--border-subtle)] rounded-2xl mb-12">
+              {project.role && (
+                <div>
+                  <p className="text-sm font-medium text-[var(--text-tertiary)] mb-1">Role</p>
+                  <p className="text-base font-semibold text-[var(--text-primary)]">{project.role}</p>
+                </div>
+              )}
+              {project.duration && (
+                <div>
+                  <p className="text-sm font-medium text-[var(--text-tertiary)] mb-1">Duration</p>
+                  <p className="text-base font-semibold text-[var(--text-primary)]">{project.duration}</p>
+                </div>
+              )}
+              {project.teamSize && (
+                <div>
+                  <p className="text-sm font-medium text-[var(--text-tertiary)] mb-1">Team Size</p>
+                  <p className="text-base font-semibold text-[var(--text-primary)]">{project.teamSize} people</p>
+                </div>
+              )}
             </div>
+          )}
+
+          {/* Key Metrics */}
+          {project.keyMetrics && project.keyMetrics.length > 0 && (
+            <div className="mb-16">
+              <h3 className="text-sm font-bold tracking-widest text-[var(--text-tertiary)] uppercase mb-6">Key Impact</h3>
+              <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 gap-4">
+                {project.keyMetrics.map((metric: string, idx: number) => (
+                  <div key={idx} className="p-5 rounded-2xl bg-emerald-500/10 border border-emerald-500/20 flex items-start gap-3">
+                    <div className="mt-1 w-2 h-2 rounded-full bg-emerald-500 shrink-0" />
+                    <p className="text-emerald-950 dark:text-emerald-100 font-medium leading-relaxed">{metric}</p>
+                  </div>
+                ))}
+              </div>
+            </div>
+          )}
+
+          {/* Tech Stack & Categories */}
+          <div className="mb-16 grid grid-cols-1 md:grid-cols-2 gap-8">
+            {project.techStack.length > 0 && (
+              <div>
+                <h3 className="text-sm font-bold tracking-widest text-[var(--text-tertiary)] uppercase mb-4">Technologies</h3>
+                <div className="flex flex-wrap gap-2">
+                  {project.techStack.map((tech: string, i: number) => (
+                    <span 
+                      key={i} 
+                      className="px-4 py-2 bg-[var(--bg-surface)] border border-[var(--border-subtle)] rounded-full text-sm font-mono text-[var(--text-secondary)] shadow-sm"
+                    >
+                      {tech}
+                    </span>
+                  ))}
+                </div>
+              </div>
+            )}
+            
+            {project.categories && project.categories.length > 0 && (
+              <div>
+                <h3 className="text-sm font-bold tracking-widest text-[var(--text-tertiary)] uppercase mb-4">Categories</h3>
+                <div className="flex flex-wrap gap-2">
+                  {project.categories.map((cat: string, i: number) => (
+                    <span 
+                      key={i} 
+                      className="px-4 py-2 bg-zinc-900 dark:bg-white text-white dark:text-black rounded-full text-sm font-medium shadow-sm"
+                    >
+                      {cat}
+                    </span>
+                  ))}
+                </div>
+              </div>
+            )}
           </div>
 
           {/* Description */}
-          {project.description && (
-            <div className="prose dark:prose-invert prose-zinc max-w-3xl prose-p:leading-relaxed prose-p:text-[var(--text-secondary)] prose-headings:text-[var(--text-primary)] prose-a:text-[var(--text-primary)] hover:prose-a:text-[var(--accent-text)] prose-strong:text-[var(--text-primary)] text-lg">
-              {project.description.split('\n').map((paragraph, idx) => (
-                paragraph.trim() ? <p key={idx}>{paragraph}</p> : <br key={idx} />
-              ))}
+          {renderedDescription && (
+            <div className="mb-16 prose dark:prose-invert prose-zinc max-w-3xl prose-p:leading-relaxed prose-p:text-[var(--text-secondary)] prose-headings:text-[var(--text-primary)] prose-a:text-[var(--text-primary)] hover:prose-a:text-[var(--accent-text)] prose-strong:text-[var(--text-primary)] text-lg"
+                 dangerouslySetInnerHTML={{ __html: renderedDescription }} />
+          )}
+
+          {/* Video URL */}
+          {project.videoUrl && (
+            <div className="mb-16">
+              <h3 className="text-2xl font-bold text-[var(--text-primary)] mb-6">Video Walkthrough</h3>
+              <div className="relative w-full max-w-3xl aspect-video rounded-2xl overflow-hidden border border-[var(--border-subtle)] shadow-xl bg-black">
+                <iframe
+                  src={project.videoUrl.replace('watch?v=', 'embed/').replace('youtu.be/', 'www.youtube.com/embed/')}
+                  className="absolute inset-0 w-full h-full"
+                  allowFullScreen
+                  allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture"
+                ></iframe>
+              </div>
+            </div>
+          )}
+
+          {/* Challenges & Solutions */}
+          {(renderedChallenges || renderedSolutions) && (
+            <div className="max-w-3xl mb-16 space-y-12 bg-[var(--bg-surface)] p-8 sm:p-12 border border-[var(--border-subtle)] rounded-3xl">
+              {renderedChallenges && (
+                <div>
+                  <h3 className="text-2xl font-bold text-[var(--text-primary)] mb-6">Challenges & Hurdles</h3>
+                  <div className="prose dark:prose-invert prose-zinc prose-p:leading-relaxed prose-p:text-[var(--text-secondary)]" dangerouslySetInnerHTML={{ __html: renderedChallenges }} />
+                </div>
+              )}
+              {renderedSolutions && (
+                <div>
+                  <h3 className="text-2xl font-bold text-[var(--text-primary)] mb-6">Solutions & Architecture</h3>
+                  <div className="prose dark:prose-invert prose-zinc prose-p:leading-relaxed prose-p:text-[var(--text-secondary)]" dangerouslySetInnerHTML={{ __html: renderedSolutions }} />
+                </div>
+              )}
             </div>
           )}
 
