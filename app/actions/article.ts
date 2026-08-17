@@ -5,6 +5,7 @@ import { prisma } from '@/lib/prisma';
 import { getSession } from '@/lib/auth';
 import { revalidatePath } from 'next/cache';
 import { getAdminPath } from '@/lib/routes';
+import { resolveArticle, ResolvedArticle } from '@/lib/translations';
 
 function slugify(text: string) {
   return text
@@ -18,10 +19,15 @@ function slugify(text: string) {
 }
 
 const articleSchema = z.object({
-  title: z.string().min(1, 'Judul wajib diisi').max(200, 'Judul maksimal 200 karakter'),
+  title_id: z.string().min(1, 'Judul (ID) wajib diisi').max(200, 'Judul maksimal 200 karakter'),
+  excerpt_id: z.string().max(500, 'Ringkasan maksimal 500 karakter').optional().or(z.literal('')),
+  contentMd_id: z.string().min(1, 'Konten artikel markdown (ID) wajib diisi'),
+
+  title_en: z.string().max(200, 'Judul maksimal 200 karakter').optional().or(z.literal('')),
+  excerpt_en: z.string().max(500, 'Ringkasan maksimal 500 karakter').optional().or(z.literal('')),
+  contentMd_en: z.string().optional().or(z.literal('')),
+
   slug: z.string().optional(),
-  excerpt: z.string().max(500, 'Ringkasan maksimal 500 karakter').optional().or(z.literal('')),
-  contentMd: z.string().min(1, 'Konten artikel markdown wajib diisi'),
   coverImage: z.string().url('URL gambar tidak valid').optional().or(z.literal('')),
   isPublished: z.boolean().default(false),
 });
@@ -37,6 +43,9 @@ export async function getArticles() {
   try {
     const articles = await prisma.article.findMany({
       orderBy: { createdAt: 'desc' },
+      include: {
+        translations: true,
+      },
     });
     return { articles };
   } catch (error) {
@@ -49,6 +58,9 @@ export async function getArticleById(id: string) {
   try {
     const article = await prisma.article.findUnique({
       where: { id },
+      include: {
+        translations: true,
+      },
     });
     return { article };
   } catch (error) {
@@ -57,13 +69,24 @@ export async function getArticleById(id: string) {
   }
 }
 
-export async function getPublishedArticles(limit?: number) {
+export async function getPublishedArticles(limit?: number, locale: string = 'id'): Promise<{
+  articles: ResolvedArticle[];
+  error?: string;
+}> {
   try {
-    const articles = await prisma.article.findMany({
+    const rawArticles = await prisma.article.findMany({
       where: { isPublished: true },
       orderBy: { publishedAt: 'desc' },
       take: limit,
+      include: {
+        translations: true,
+      },
     });
+
+    const articles = rawArticles
+      .map((a) => resolveArticle(a, locale))
+      .filter((a): a is ResolvedArticle => a !== null);
+
     return { articles };
   } catch (error) {
     console.error('Failed to get published articles:', error);
@@ -71,15 +94,22 @@ export async function getPublishedArticles(limit?: number) {
   }
 }
 
-export async function getPublishedArticleBySlug(slug: string) {
+export async function getPublishedArticleBySlug(
+  slug: string,
+  locale: string = 'id'
+): Promise<ResolvedArticle | null> {
   try {
-    const article = await prisma.article.findFirst({
+    const rawArticle = await prisma.article.findFirst({
       where: {
         slug,
         isPublished: true,
       },
+      include: {
+        translations: true,
+      },
     });
-    return article;
+
+    return resolveArticle(rawArticle, locale);
   } catch (error) {
     console.error(`Failed to get article by slug ${slug}:`, error);
     return null;
@@ -109,10 +139,15 @@ export async function upsertArticle(
   if (!session) return { error: 'Unauthorized' };
 
   const rawData = {
-    title: formData.get('title') as string,
+    title_id: (formData.get('title_id') as string) || (formData.get('title') as string) || '',
+    excerpt_id: (formData.get('excerpt_id') as string) || (formData.get('excerpt') as string) || '',
+    contentMd_id: (formData.get('contentMd_id') as string) || (formData.get('contentMd') as string) || '',
+
+    title_en: (formData.get('title_en') as string) || '',
+    excerpt_en: (formData.get('excerpt_en') as string) || '',
+    contentMd_en: (formData.get('contentMd_en') as string) || '',
+
     slug: formData.get('slug') as string,
-    excerpt: formData.get('excerpt') as string,
-    contentMd: formData.get('contentMd') as string,
     coverImage: formData.get('coverImage') as string,
     isPublished: formData.get('isPublished') === 'on' || formData.get('isPublished') === 'true',
   };
@@ -128,17 +163,16 @@ export async function upsertArticle(
   const data = validated.data;
 
   try {
-    const baseSlug = data.slug && data.slug.trim() !== '' ? slugify(data.slug) : slugify(data.title);
+    const baseSlug = data.slug && data.slug.trim() !== '' ? slugify(data.slug) : slugify(data.title_id);
     const uniqueSlug = await ensureUniqueArticleSlug(baseSlug, id || undefined);
+
+    let articleId: string;
 
     if (id) {
       // UPDATE
       const existing = await prisma.article.findUnique({ where: { id } });
       if (!existing) return { error: 'Update failed: Article not found.' };
 
-      // publishedAt logic:
-      // Set publishedAt ONLY if currently null AND isPublished becomes true.
-      // If already has publishedAt, retain it forever even if unpublished/republished.
       let newPublishedAt = existing.publishedAt;
       if (existing.publishedAt === null && data.isPublished) {
         newPublishedAt = new Date();
@@ -147,54 +181,83 @@ export async function upsertArticle(
       const updated = await prisma.article.update({
         where: { id },
         data: {
-          title: data.title,
           slug: uniqueSlug,
-          excerpt: data.excerpt || null,
-          contentMd: data.contentMd,
           coverImage: data.coverImage || null,
           isPublished: data.isPublished,
           publishedAt: newPublishedAt,
         },
       });
-
-      revalidatePath('/');
-      revalidatePath('/articles');
-      revalidatePath(`/articles/${uniqueSlug}`);
-      if (existing.slug !== uniqueSlug) {
-        revalidatePath(`/articles/${existing.slug}`);
-      }
-      revalidatePath(getAdminPath('articles'));
-
-      return {
-        success: 'Article updated.',
-        articleId: updated.id,
-      };
+      articleId = updated.id;
     } else {
       // CREATE
       const publishedAt = data.isPublished ? new Date() : null;
 
       const created = await prisma.article.create({
         data: {
-          title: data.title,
           slug: uniqueSlug,
-          excerpt: data.excerpt || null,
-          contentMd: data.contentMd,
           coverImage: data.coverImage || null,
           isPublished: data.isPublished,
           publishedAt,
         },
       });
-
-      revalidatePath('/');
-      revalidatePath('/articles');
-      revalidatePath(`/articles/${uniqueSlug}`);
-      revalidatePath(getAdminPath('articles'));
-
-      return {
-        success: 'Article created.',
-        articleId: created.id,
-      };
+      articleId = created.id;
     }
+
+    // Upsert Indonesian Translation (Default)
+    await prisma.articleTranslation.upsert({
+      where: {
+        articleId_locale: {
+          articleId,
+          locale: 'id',
+        },
+      },
+      create: {
+        articleId,
+        locale: 'id',
+        title: data.title_id,
+        excerpt: data.excerpt_id || null,
+        contentMd: data.contentMd_id,
+      },
+      update: {
+        title: data.title_id,
+        excerpt: data.excerpt_id || null,
+        contentMd: data.contentMd_id,
+      },
+    });
+
+    // Upsert English Translation (if provided)
+    if (data.title_en?.trim() || data.contentMd_en?.trim()) {
+      await prisma.articleTranslation.upsert({
+        where: {
+          articleId_locale: {
+            articleId,
+            locale: 'en',
+          },
+        },
+        create: {
+          articleId,
+          locale: 'en',
+          title: data.title_en || data.title_id,
+          excerpt: data.excerpt_en || null,
+          contentMd: data.contentMd_en || data.contentMd_id,
+        },
+        update: {
+          title: data.title_en || data.title_id,
+          excerpt: data.excerpt_en || null,
+          contentMd: data.contentMd_en || data.contentMd_id,
+        },
+      });
+    }
+
+    revalidatePath('/', 'layout');
+    revalidatePath('/[locale]', 'layout');
+    revalidatePath('/[locale]/articles', 'layout');
+    revalidatePath(getAdminPath('articles'));
+
+    return {
+      success: id ? 'Artikel berhasil diperbarui.' : 'Artikel berhasil dibuat.',
+      articleId,
+    };
   } catch (error) {
     console.error('Failed to upsert article:', error);
     return { error: 'Save failed: Unable to write article to database.' };
@@ -211,12 +274,12 @@ export async function deleteArticle(id: string): Promise<ArticleActionState> {
 
     await prisma.article.delete({ where: { id } });
 
-    revalidatePath('/');
-    revalidatePath('/articles');
-    revalidatePath(`/articles/${existing.slug}`);
+    revalidatePath('/', 'layout');
+    revalidatePath('/[locale]', 'layout');
+    revalidatePath('/[locale]/articles', 'layout');
     revalidatePath(getAdminPath('articles'));
 
-    return { success: 'Article deleted.' };
+    return { success: 'Artikel berhasil dihapus.' };
   } catch (error) {
     console.error('Failed to delete article:', error);
     return { error: 'Delete failed: Unable to remove article.' };
@@ -247,12 +310,12 @@ export async function toggleArticlePublished(
       },
     });
 
-    revalidatePath('/');
-    revalidatePath('/articles');
-    revalidatePath(`/articles/${updated.slug}`);
+    revalidatePath('/', 'layout');
+    revalidatePath('/[locale]', 'layout');
+    revalidatePath('/[locale]/articles', 'layout');
     revalidatePath(getAdminPath('articles'));
 
-    return { success: isPublished ? 'Status: Published.' : 'Status: Draft.' };
+    return { success: isPublished ? 'Status: Dipublikasikan.' : 'Status: Draf.' };
   } catch (error) {
     console.error('Failed to toggle article published:', error);
     return { error: 'Status update failed: Unable to toggle publication.' };

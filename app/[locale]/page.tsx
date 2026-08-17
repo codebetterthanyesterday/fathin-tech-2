@@ -14,7 +14,12 @@ import ThemeToggle from '@/components/public/layout/theme-toggle';
 import SearchTrigger from '@/components/public/search/search-trigger';
 import LanguageSwitcher from '@/components/public/layout/language-switcher';
 import { setRequestLocale } from 'next-intl/server';
-import { routing, Locale } from '@/i18n/routing';
+import {
+  resolveProject,
+  resolveExperience,
+  resolveTestimonial,
+  resolveArticle,
+} from '@/lib/translations';
 
 // Minimal Template Imports
 import MinimalHeroSection from '@/components/public/templates/minimal/hero-section';
@@ -57,7 +62,7 @@ export async function generateMetadata({
   params: Promise<{ locale: string }>;
 }): Promise<Metadata> {
   const { locale } = await params;
-  const { profile } = await getPortfolioData();
+  const { profile } = await getPortfolioData(locale);
 
   if (!profile) {
     return {
@@ -96,44 +101,60 @@ export async function generateMetadata({
   };
 }
 
-// ─── Section data fetchers scoped per type ───────────────────────────────────
+// ─── Section data fetchers scoped per type with localized resolution ───────────
 
-async function fetchProjectsData(content: ProjectsGridContent) {
+async function fetchProjectsData(content: ProjectsGridContent, locale: string) {
   const filter = content.filter ?? 'featured';
   const limit = content.limit;
 
+  let rawProjects;
   if (filter === 'featured') {
-    let projects = await prisma.project.findMany({
+    rawProjects = await prisma.project.findMany({
       where: { isFeatured: true },
       orderBy: { order: 'asc' },
       take: limit,
-      include: { images: { orderBy: { order: 'asc' } } },
+      include: {
+        images: { orderBy: { order: 'asc' } },
+        translations: true,
+      },
     });
-    if (projects.length === 0) {
-      projects = await prisma.project.findMany({
+    if (rawProjects.length === 0) {
+      rawProjects = await prisma.project.findMany({
         take: limit ?? 3,
         orderBy: { order: 'asc' },
-        include: { images: { orderBy: { order: 'asc' } } },
+        include: {
+          images: { orderBy: { order: 'asc' } },
+          translations: true,
+        },
       });
     }
-    return projects;
+  } else {
+    rawProjects = await prisma.project.findMany({
+      orderBy: { order: 'asc' },
+      take: limit,
+      include: {
+        images: { orderBy: { order: 'asc' } },
+        translations: true,
+      },
+    });
   }
 
-  return prisma.project.findMany({
-    orderBy: { order: 'asc' },
-    take: limit,
-    include: { images: { orderBy: { order: 'asc' } } },
-  });
+  return rawProjects
+    .map((p) => resolveProject(p, locale))
+    .filter(Boolean);
 }
 
-async function fetchExperienceData(content: ExperienceTimelineContent) {
+async function fetchExperienceData(content: ExperienceTimelineContent, locale: string) {
   const types = content.types && content.types.length > 0 ? content.types : undefined;
   const rawExperiences = await prisma.experience.findMany({
     where: types ? { type: { in: types } } : undefined,
     take: content.limit,
+    include: {
+      translations: true,
+    },
   });
 
-  return rawExperiences.sort((a, b) => {
+  const sorted = rawExperiences.sort((a, b) => {
     if (a.endDate === null && b.endDate !== null) return -1;
     if (b.endDate === null && a.endDate !== null) return 1;
     if (a.endDate && b.endDate) {
@@ -142,6 +163,10 @@ async function fetchExperienceData(content: ExperienceTimelineContent) {
     }
     return b.startDate.getTime() - a.startDate.getTime();
   });
+
+  return sorted
+    .map((e) => resolveExperience(e, locale))
+    .filter(Boolean);
 }
 
 async function fetchSkillsData(content: SkillsGridContent) {
@@ -152,20 +177,34 @@ async function fetchSkillsData(content: SkillsGridContent) {
   });
 }
 
-async function fetchTestimonialsData(content: TestimonialsContent) {
-  return prisma.testimonial.findMany({
+async function fetchTestimonialsData(content: TestimonialsContent, locale: string) {
+  const rawTestimonials = await prisma.testimonial.findMany({
     where: { isVisible: true },
     take: content.limit || undefined,
     orderBy: { order: 'asc' },
+    include: {
+      translations: true,
+    },
   });
+
+  return rawTestimonials
+    .map((t) => resolveTestimonial(t, locale))
+    .filter(Boolean);
 }
 
-async function fetchArticlesData(content: ArticlesListContent) {
-  return prisma.article.findMany({
+async function fetchArticlesData(content: ArticlesListContent, locale: string) {
+  const rawArticles = await prisma.article.findMany({
     where: { isPublished: true },
     take: content.limit || 3,
     orderBy: { publishedAt: 'desc' },
+    include: {
+      translations: true,
+    },
   });
+
+  return rawArticles
+    .map((a) => resolveArticle(a, locale))
+    .filter(Boolean);
 }
 
 // ─── Main page ───────────────────────────────────────────────────────────────
@@ -180,7 +219,7 @@ export default async function Home(props: HomePageProps) {
   setRequestLocale(locale);
 
   const searchParams = await props.searchParams;
-  const { profile, error } = await getPortfolioData();
+  const { profile, error } = await getPortfolioData(locale);
   const { sections } = await getSections();
 
   if (error || !profile) {
@@ -227,26 +266,36 @@ export default async function Home(props: HomePageProps) {
     </div>
   );
 
-  // If no sections configured yet, fall back to the legacy hardcoded layout
+  // If no sections configured yet, fall back to the legacy layout
   if (sections.length === 0) {
     const [skills, projects, rawExperiences] = await Promise.all([
       prisma.skill.findMany({ orderBy: { order: 'asc' } }),
-      prisma.project.findMany({ where: { isFeatured: true }, orderBy: { order: 'asc' }, include: { images: { orderBy: { order: 'asc' } } } }),
-      prisma.experience.findMany(),
+      prisma.project.findMany({
+        where: { isFeatured: true },
+        orderBy: { order: 'asc' },
+        include: { images: { orderBy: { order: 'asc' } }, translations: true },
+      }),
+      prisma.experience.findMany({
+        include: { translations: true },
+      }),
     ]);
-    const experiences = rawExperiences.sort((a, b) => {
+
+    const resolvedProjects = projects.map((p) => resolveProject(p, locale)).filter(Boolean);
+    const sorted = rawExperiences.sort((a, b) => {
       if (a.endDate === null && b.endDate !== null) return -1;
       if (b.endDate === null && a.endDate !== null) return 1;
       return b.startDate.getTime() - a.startDate.getTime();
     });
+    const resolvedExperiences = sorted.map((e) => resolveExperience(e, locale)).filter(Boolean);
+
     return (
       <main className="min-h-screen bg-[var(--bg-primary)] text-[var(--text-primary)] selection:bg-[var(--selection-bg)] selection:text-[var(--selection-text)] overflow-hidden relative">
         <JsonLd data={personSchema} />
         {floatingToggle}
         <Template.HeroSection profile={profile} />
         {skills.length > 0 && <Template.SkillsSection skills={skills} />}
-        {projects.length > 0 && <Template.FeaturedProjects projects={projects} />}
-        {experiences.length > 0 && <Template.ExperienceTimeline experiences={experiences} />}
+        {resolvedProjects.length > 0 && <Template.FeaturedProjects projects={resolvedProjects} />}
+        {resolvedExperiences.length > 0 && <Template.ExperienceTimeline experiences={resolvedExperiences} />}
         <ContactSection />
         <footer className="py-8 text-center border-t border-[var(--border-subtle)] text-sm text-[var(--text-tertiary)] bg-[var(--bg-surface)]">
           <p>© {new Date().getFullYear()} {profile.name}. All rights reserved.</p>
@@ -276,7 +325,7 @@ export default async function Home(props: HomePageProps) {
       }
 
       case 'PROJECTS_GRID': {
-        const projects = await fetchProjectsData(rawContent as ProjectsGridContent);
+        const projects = await fetchProjectsData(rawContent as ProjectsGridContent, locale);
         if (projects.length > 0) {
           renderedSections.push(<Template.FeaturedProjects key={section.id} projects={projects} />);
         }
@@ -284,7 +333,7 @@ export default async function Home(props: HomePageProps) {
       }
 
       case 'EXPERIENCE_TIMELINE': {
-        const experiences = await fetchExperienceData(rawContent as ExperienceTimelineContent);
+        const experiences = await fetchExperienceData(rawContent as ExperienceTimelineContent, locale);
         if (experiences.length > 0) {
           renderedSections.push(<Template.ExperienceTimeline key={section.id} experiences={experiences} />);
         }
@@ -306,7 +355,7 @@ export default async function Home(props: HomePageProps) {
       }
 
       case 'TESTIMONIALS': {
-        const testimonials = await fetchTestimonialsData(rawContent as TestimonialsContent);
+        const testimonials = await fetchTestimonialsData(rawContent as TestimonialsContent, locale);
         if (testimonials.length > 0) {
           renderedSections.push(<Template.TestimonialsSection key={section.id} testimonials={testimonials} />);
         }
@@ -314,7 +363,7 @@ export default async function Home(props: HomePageProps) {
       }
 
       case 'ARTICLES_LIST': {
-        const articles = await fetchArticlesData(rawContent as ArticlesListContent);
+        const articles = await fetchArticlesData(rawContent as ArticlesListContent, locale);
         if (articles.length > 0) {
           renderedSections.push(<Template.ArticlesSection key={section.id} articles={articles} />);
         }

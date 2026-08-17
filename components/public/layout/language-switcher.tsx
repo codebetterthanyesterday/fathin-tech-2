@@ -29,7 +29,7 @@ function LanguageSwitcherContent({
       // Reconstruct query parameters if any exist
       const queryString = searchParams?.toString();
       const target = queryString ? `${pathname}?${queryString}` : pathname;
-      router.replace(target, { locale: nextLocale });
+      router.replace(target, { locale: nextLocale, scroll: false });
     });
   };
 

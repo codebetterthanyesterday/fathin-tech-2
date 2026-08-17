@@ -7,7 +7,7 @@ export const contentType = 'image/png';
 
 export default async function Image({ params }: { params: Promise<{ locale: string; slug: string }> }) {
   const resolvedParams = await params;
-  const project = await getProjectBySlug(resolvedParams.slug);
+  const project = await getProjectBySlug(resolvedParams.slug, resolvedParams.locale);
   
   if (!project) {
     return new ImageResponse(

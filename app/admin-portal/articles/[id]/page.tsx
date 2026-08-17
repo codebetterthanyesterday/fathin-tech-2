@@ -21,18 +21,7 @@ export default async function EditArticlePage({
 
   return (
     <div>
-      <ArticleForm
-        initialData={{
-          id: article.id,
-          title: article.title,
-          slug: article.slug,
-          excerpt: article.excerpt || '',
-          contentMd: article.contentMd,
-          coverImage: article.coverImage || '',
-          isPublished: article.isPublished,
-          publishedAt: article.publishedAt,
-        }}
-      />
+      <ArticleForm initialData={article} />
     </div>
   );
 }

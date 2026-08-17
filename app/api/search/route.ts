@@ -69,31 +69,33 @@ export async function GET(request: NextRequest) {
     if (type === 'all' || type === 'project') {
       const projectQuery = prisma.$queryRawUnsafe<any[]>(
         `
-        SELECT 
+        SELECT DISTINCT ON (p.id)
           'project' AS type,
           p.id,
-          p.title,
+          pt.title,
           p.slug,
           ('/projects/' || p.slug) AS url,
-          coalesce(p.summary, '') AS snippet,
+          coalesce(pt.summary, '') AS snippet,
           p."techStack" AS tags,
           p."isFeatured" AS featured,
           (
-            coalesce(ts_rank(p.search_vector, websearch_to_tsquery('simple', $1)), 0.0) * 2.5 +
-            coalesce(ts_rank(p.search_vector, to_tsquery('simple', $2)), 0.0) * 1.5 +
-            coalesce(similarity(p.title, $1), 0.0) * 2.0 +
-            (CASE WHEN p.title ILIKE ('%' || $1 || '%') THEN 1.0 ELSE 0.0 END)
+            coalesce(ts_rank(pt.search_vector, websearch_to_tsquery('simple', $1)), 0.0) * 2.5 +
+            coalesce(ts_rank(pt.search_vector, to_tsquery('simple', $2)), 0.0) * 1.5 +
+            coalesce(similarity(pt.title, $1), 0.0) * 2.0 +
+            (CASE WHEN pt.title ILIKE ('%' || $1 || '%') THEN 1.0 ELSE 0.0 END)
           )::float AS score,
           p."createdAt" AS "publishedAt"
         FROM "Project" p
+        JOIN "ProjectTranslation" pt ON pt."projectId" = p.id
         WHERE 
           (
-            p.search_vector @@ websearch_to_tsquery('simple', $1)
-            OR p.search_vector @@ to_tsquery('simple', $2)
-            OR similarity(p.title, $1) > 0.15
-            OR p.title ILIKE ('%' || $1 || '%')
-            OR p.summary ILIKE ('%' || $1 || '%')
+            pt.search_vector @@ websearch_to_tsquery('simple', $1)
+            OR pt.search_vector @@ to_tsquery('simple', $2)
+            OR similarity(pt.title, $1) > 0.15
+            OR pt.title ILIKE ('%' || $1 || '%')
+            OR pt.summary ILIKE ('%' || $1 || '%')
           )
+        ORDER BY p.id, score DESC
         `,
         trimmedQuery,
         prefixQuery
@@ -109,31 +111,33 @@ export async function GET(request: NextRequest) {
     if (type === 'all' || type === 'article') {
       const articleQuery = prisma.$queryRawUnsafe<any[]>(
         `
-        SELECT 
+        SELECT DISTINCT ON (a.id)
           'article' AS type,
           a.id,
-          a.title,
+          at.title,
           a.slug,
           ('/articles/' || a.slug) AS url,
-          coalesce(a.excerpt, substring(a."contentMd" from 1 for 200), '') AS snippet,
+          coalesce(at.excerpt, substring(at."contentMd" from 1 for 200), '') AS snippet,
           ARRAY[]::text[] AS tags,
           false AS featured,
           (
-            coalesce(ts_rank(a.search_vector, websearch_to_tsquery('simple', $1)), 0.0) * 2.5 +
-            coalesce(ts_rank(a.search_vector, to_tsquery('simple', $2)), 0.0) * 1.5 +
-            coalesce(similarity(a.title, $1), 0.0) * 2.0 +
-            (CASE WHEN a.title ILIKE ('%' || $1 || '%') THEN 1.0 ELSE 0.0 END)
+            coalesce(ts_rank(at.search_vector, websearch_to_tsquery('simple', $1)), 0.0) * 2.5 +
+            coalesce(ts_rank(at.search_vector, to_tsquery('simple', $2)), 0.0) * 1.5 +
+            coalesce(similarity(at.title, $1), 0.0) * 2.0 +
+            (CASE WHEN at.title ILIKE ('%' || $1 || '%') THEN 1.0 ELSE 0.0 END)
           )::float AS score,
           a."publishedAt" AS "publishedAt"
         FROM "Article" a
+        JOIN "ArticleTranslation" at ON at."articleId" = a.id
         WHERE a."isPublished" = true
           AND (
-            a.search_vector @@ websearch_to_tsquery('simple', $1)
-            OR a.search_vector @@ to_tsquery('simple', $2)
-            OR similarity(a.title, $1) > 0.15
-            OR a.title ILIKE ('%' || $1 || '%')
-            OR a.excerpt ILIKE ('%' || $1 || '%')
+            at.search_vector @@ websearch_to_tsquery('simple', $1)
+            OR at.search_vector @@ to_tsquery('simple', $2)
+            OR similarity(at.title, $1) > 0.15
+            OR at.title ILIKE ('%' || $1 || '%')
+            OR at.excerpt ILIKE ('%' || $1 || '%')
           )
+        ORDER BY a.id, score DESC
         `,
         trimmedQuery,
         prefixQuery

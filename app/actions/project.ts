@@ -25,22 +25,31 @@ const projectImageSchema = z.object({
 });
 
 const projectSchema = z.object({
-  title: z.string().min(1, 'Judul wajib diisi'),
-  slug: z.string().optional(), // If empty, we'll auto-generate
-  summary: z.string().min(1, 'Ringkasan wajib diisi'),
-  description: z.string().optional(),
+  title_id: z.string().min(1, 'Judul (ID) wajib diisi'),
+  summary_id: z.string().min(1, 'Ringkasan (ID) wajib diisi'),
+  description_id: z.string().optional(),
+  role_id: z.string().optional(),
+  duration_id: z.string().optional(),
+  challenges_id: z.string().optional(),
+  solutions_id: z.string().optional(),
+  keyMetrics_id: z.array(z.string()).default([]),
+
+  title_en: z.string().optional(),
+  summary_en: z.string().optional(),
+  description_en: z.string().optional(),
+  role_en: z.string().optional(),
+  duration_en: z.string().optional(),
+  challenges_en: z.string().optional(),
+  solutions_en: z.string().optional(),
+  keyMetrics_en: z.array(z.string()).default([]),
+
+  slug: z.string().optional(), // If empty, we'll auto-generate from title_id
   techStack: z.array(z.string()).default([]),
   demoUrl: z.string().url('URL tidak valid').optional().or(z.literal('')),
   repoUrl: z.string().url('URL tidak valid').optional().or(z.literal('')),
   isFeatured: z.boolean().default(false),
   images: z.array(projectImageSchema).default([]),
-  // Enriched fields
-  role: z.string().optional(),
-  duration: z.string().optional(),
   teamSize: z.coerce.number().optional().or(z.literal('')),
-  keyMetrics: z.array(z.string()).default([]),
-  challenges: z.string().optional(),
-  solutions: z.string().optional(),
   videoUrl: z.string().url('URL tidak valid').optional().or(z.literal('')),
   categories: z.array(z.string()).default([]),
 });
@@ -59,6 +68,7 @@ export async function getProjects() {
         images: {
           orderBy: { order: 'asc' },
         },
+        translations: true,
       },
     });
     return { projects };
@@ -76,6 +86,7 @@ export async function getProject(id: string) {
         images: {
           orderBy: { order: 'asc' },
         },
+        translations: true,
       },
     });
     return { project };
@@ -100,67 +111,58 @@ async function ensureUniqueSlug(baseSlug: string, excludeId?: string): Promise<s
 }
 
 export async function upsertProject(
-  id: string | null,
   prevState: any,
   formData: FormData
 ): Promise<ProjectActionState> {
   const session = await getSession();
   if (!session) return { error: 'Unauthorized' };
 
-  // Parse complex data from formData
-  // techStack is submitted as JSON string array
-  const techStackRaw = formData.get('techStack');
-  let techStack = [];
-  try {
-    if (techStackRaw) techStack = JSON.parse(techStackRaw as string);
-  } catch (e) {
-    return { error: 'Parse error: Invalid techStack format.' };
-  }
+  const id = (formData.get('id') as string) || null;
 
-  // images is submitted as JSON string array
-  const imagesRaw = formData.get('images');
-  let images = [];
-  try {
-    if (imagesRaw) images = JSON.parse(imagesRaw as string);
-  } catch (e) {
-    return { error: 'Parse error: Invalid images format.' };
-  }
+  // Parse arrays from JSON form data
+  const parseJsonArray = (fieldName: string) => {
+    const raw = formData.get(fieldName);
+    if (!raw) return [];
+    try {
+      return JSON.parse(raw as string);
+    } catch {
+      return [];
+    }
+  };
 
-  // keyMetrics is submitted as JSON string array
-  const keyMetricsRaw = formData.get('keyMetrics');
-  let keyMetrics = [];
-  try {
-    if (keyMetricsRaw) keyMetrics = JSON.parse(keyMetricsRaw as string);
-  } catch (e) {
-    return { error: 'Parse error: Invalid keyMetrics format.' };
-  }
-
-  // categories is submitted as JSON string array
-  const categoriesRaw = formData.get('categories');
-  let categories = [];
-  try {
-    if (categoriesRaw) categories = JSON.parse(categoriesRaw as string);
-  } catch (e) {
-    return { error: 'Parse error: Invalid categories format.' };
-  }
+  const techStack = parseJsonArray('techStack');
+  const images = parseJsonArray('images');
+  const categories = parseJsonArray('categories');
+  const keyMetrics_id = parseJsonArray('keyMetrics_id');
+  const keyMetrics_en = parseJsonArray('keyMetrics_en');
 
   const rawData = {
-    title: formData.get('title') as string,
+    title_id: (formData.get('title_id') as string) || (formData.get('title') as string) || '',
+    summary_id: (formData.get('summary_id') as string) || (formData.get('summary') as string) || '',
+    description_id: (formData.get('description_id') as string) || (formData.get('description') as string) || '',
+    role_id: (formData.get('role_id') as string) || (formData.get('role') as string) || '',
+    duration_id: (formData.get('duration_id') as string) || (formData.get('duration') as string) || '',
+    challenges_id: (formData.get('challenges_id') as string) || (formData.get('challenges') as string) || '',
+    solutions_id: (formData.get('solutions_id') as string) || (formData.get('solutions') as string) || '',
+    keyMetrics_id,
+
+    title_en: (formData.get('title_en') as string) || '',
+    summary_en: (formData.get('summary_en') as string) || '',
+    description_en: (formData.get('description_en') as string) || '',
+    role_en: (formData.get('role_en') as string) || '',
+    duration_en: (formData.get('duration_en') as string) || '',
+    challenges_en: (formData.get('challenges_en') as string) || '',
+    solutions_en: (formData.get('solutions_en') as string) || '',
+    keyMetrics_en,
+
     slug: formData.get('slug') as string,
-    summary: formData.get('summary') as string,
-    description: formData.get('description') as string,
     demoUrl: formData.get('demoUrl') as string,
     repoUrl: formData.get('repoUrl') as string,
     isFeatured: formData.get('isFeatured') === 'on' || formData.get('isFeatured') === 'true',
     techStack,
     images,
-    role: formData.get('role') as string,
-    duration: formData.get('duration') as string,
     teamSize: formData.get('teamSize'),
-    challenges: formData.get('challenges') as string,
-    solutions: formData.get('solutions') as string,
     videoUrl: formData.get('videoUrl') as string,
-    keyMetrics,
     categories,
   };
 
@@ -175,38 +177,29 @@ export async function upsertProject(
   const data = validated.data;
   
   try {
-    // Determine slug
-    const baseSlug = data.slug ? slugify(data.slug) : slugify(data.title);
+    // Determine unique slug
+    const baseSlug = data.slug ? slugify(data.slug) : slugify(data.title_id);
     const uniqueSlug = await ensureUniqueSlug(baseSlug, id || undefined);
 
-    const payload = {
-      title: data.title,
+    const basePayload = {
       slug: uniqueSlug,
-      summary: data.summary,
-      description: data.description || null,
       techStack: data.techStack,
       demoUrl: data.demoUrl || null,
       repoUrl: data.repoUrl || null,
       isFeatured: data.isFeatured,
-      role: data.role || null,
-      duration: data.duration || null,
       teamSize: typeof data.teamSize === 'number' ? data.teamSize : null,
-      challenges: data.challenges || null,
-      solutions: data.solutions || null,
       videoUrl: data.videoUrl || null,
-      keyMetrics: data.keyMetrics,
       categories: data.categories,
     };
 
+    let projectId: string;
+
     if (id) {
-      // UPDATE
+      // UPDATE BASE
       await prisma.project.update({
         where: { id },
         data: {
-          ...payload,
-          // Since it's a 1-to-many, the easiest way to handle images is delete all and recreate them,
-          // OR use a transactional create/update/delete.
-          // Because we only care about the URL and order, deleting and recreating is safe and clean.
+          ...basePayload,
           images: {
             deleteMany: {},
             create: data.images.map((img, idx) => ({
@@ -217,16 +210,17 @@ export async function upsertProject(
           },
         },
       });
+      projectId = id;
     } else {
-      // CREATE
+      // CREATE BASE
       const lastProject = await prisma.project.findFirst({
         orderBy: { order: 'desc' },
       });
       const newOrder = lastProject ? lastProject.order + 1 : 0;
 
-      await prisma.project.create({
+      const created = await prisma.project.create({
         data: {
-          ...payload,
+          ...basePayload,
           order: newOrder,
           images: {
             create: data.images.map((img, idx) => ({
@@ -237,11 +231,79 @@ export async function upsertProject(
           },
         },
       });
+      projectId = created.id;
     }
 
-    revalidatePath('/');
+    // Upsert Indonesian Translation (Default)
+    await prisma.projectTranslation.upsert({
+      where: {
+        projectId_locale: {
+          projectId,
+          locale: 'id',
+        },
+      },
+      create: {
+        projectId,
+        locale: 'id',
+        title: data.title_id,
+        summary: data.summary_id,
+        description: data.description_id || null,
+        role: data.role_id || null,
+        duration: data.duration_id || null,
+        challenges: data.challenges_id || null,
+        solutions: data.solutions_id || null,
+        keyMetrics: data.keyMetrics_id,
+      },
+      update: {
+        title: data.title_id,
+        summary: data.summary_id,
+        description: data.description_id || null,
+        role: data.role_id || null,
+        duration: data.duration_id || null,
+        challenges: data.challenges_id || null,
+        solutions: data.solutions_id || null,
+        keyMetrics: data.keyMetrics_id,
+      },
+    });
+
+    // Upsert English Translation (if provided)
+    if (data.title_en?.trim() || data.summary_en?.trim()) {
+      await prisma.projectTranslation.upsert({
+        where: {
+          projectId_locale: {
+            projectId,
+            locale: 'en',
+          },
+        },
+        create: {
+          projectId,
+          locale: 'en',
+          title: data.title_en || data.title_id,
+          summary: data.summary_en || data.summary_id,
+          description: data.description_en || null,
+          role: data.role_en || null,
+          duration: data.duration_en || null,
+          challenges: data.challenges_en || null,
+          solutions: data.solutions_en || null,
+          keyMetrics: data.keyMetrics_en,
+        },
+        update: {
+          title: data.title_en || data.title_id,
+          summary: data.summary_en || data.summary_id,
+          description: data.description_en || null,
+          role: data.role_en || null,
+          duration: data.duration_en || null,
+          challenges: data.challenges_en || null,
+          solutions: data.solutions_en || null,
+          keyMetrics: data.keyMetrics_en,
+        },
+      });
+    }
+
+    revalidatePath('/', 'layout');
+    revalidatePath('/[locale]', 'layout');
     revalidatePath(getAdminPath('projects'));
-    return { success: id ? 'Project updated.' : 'Project created.' };
+    return { success: id ? 'Proyek berhasil diperbarui.' : 'Proyek berhasil dibuat.' };
   } catch (error) {
     console.error('Failed to upsert project:', error);
     return { error: 'Save failed: Unable to write project to database.' };
@@ -254,9 +316,10 @@ export async function deleteProject(id: string) {
 
   try {
     await prisma.project.delete({ where: { id } });
-    revalidatePath('/');
+    revalidatePath('/', 'layout');
+    revalidatePath('/[locale]', 'layout');
     revalidatePath(getAdminPath('projects'));
-    return { success: 'Project deleted.' };
+    return { success: 'Proyek berhasil dihapus.' };
   } catch (error) {
     console.error('Failed to delete project:', error);
     return { error: 'Delete failed: Unable to remove project.' };
@@ -277,47 +340,68 @@ export async function reorderProjects(updates: { id: string; order: number }[]) 
     
     await prisma.$transaction(queries);
     
-    revalidatePath('/');
+    revalidatePath('/', 'layout');
+    revalidatePath('/[locale]', 'layout');
     revalidatePath(getAdminPath('projects'));
-    return { success: true };
+    return { success: 'Urutan proyek berhasil diperbarui.' };
   } catch (error) {
     console.error('Failed to reorder projects:', error);
-    return { error: 'Reorder failed: Unable to save new order.' };
+    return { error: 'Reorder failed: Unable to update projects order.' };
+  }
+}
+
+export async function toggleFeaturedProject(id: string, isFeatured: boolean) {
+  const session = await getSession();
+  if (!session) return { error: 'Unauthorized' };
+
+  try {
+    await prisma.project.update({
+      where: { id },
+      data: { isFeatured },
+    });
+    
+    revalidatePath('/', 'layout');
+    revalidatePath('/[locale]', 'layout');
+    revalidatePath(getAdminPath('projects'));
+    return { success: `Proyek ${isFeatured ? 'dijadikan unggulan' : 'batal diunggulkan'}.` };
+  } catch (error) {
+    console.error('Failed to toggle featured status:', error);
+    return { error: 'Toggle failed: Unable to update project.' };
   }
 }
 
 export async function getExistingTechStacks() {
-  const session = await getSession();
-  if (!session) return { error: 'Unauthorized' };
-
   try {
     const projects = await prisma.project.findMany({
       select: { techStack: true },
     });
-
-    // Flatten and get unique tags
-    const allTags = projects.flatMap((p) => p.techStack);
-    const uniqueTags = Array.from(new Set(allTags)).sort();
-
-    return { tags: uniqueTags };
-  } catch (error) {
-    console.error('Failed to fetch tech stacks:', error);
-    return { error: 'Failed to retrieve tags.' };
-  }
-}
-
-export async function checkProjectSlug(slug: string, excludeId?: string) {
-  const session = await getSession();
-  if (!session) return { error: 'Unauthorized' };
-
-  try {
-    const existing = await prisma.project.findUnique({ where: { slug } });
-    if (existing && existing.id !== excludeId) {
-      return { isAvailable: false };
+    const set = new Set<string>();
+    for (const p of projects) {
+      if (Array.isArray(p.techStack)) {
+        for (const t of p.techStack) {
+          if (t) set.add(t);
+        }
+      }
     }
-    return { isAvailable: true };
+    return { tags: Array.from(set) };
   } catch (error) {
-    console.error('Failed to check slug:', error);
-    return { error: 'Failed to check slug availability.' };
+    console.error('Failed to get existing tech stacks:', error);
+    return { tags: [] };
   }
 }
+
+export async function checkProjectSlug(slug: string, currentId?: string) {
+  try {
+    const project = await prisma.project.findUnique({
+      where: { slug },
+      select: { id: true },
+    });
+    return {
+      available: !project || project.id === currentId,
+    };
+  } catch (error) {
+    console.error('Failed to check project slug:', error);
+    return { available: true };
+  }
+}
+

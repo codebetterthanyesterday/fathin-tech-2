@@ -9,9 +9,11 @@ import { ExperienceType } from '@/app/generated/prisma/client';
 
 const experienceSchema = z.object({
   type: z.nativeEnum(ExperienceType),
-  title: z.string().min(1, 'Posisi/Gelar wajib diisi'),
+  title_id: z.string().min(1, 'Posisi/Gelar (ID) wajib diisi'),
+  description_id: z.string().optional(),
+  title_en: z.string().optional(),
+  description_en: z.string().optional(),
   institution: z.string().min(1, 'Institusi wajib diisi'),
-  description: z.string().optional(),
   startDate: z.string().min(1, 'Tanggal mulai wajib diisi').transform((str) => new Date(str)),
   endDate: z.string().optional().transform((str) => (str ? new Date(str) : null)),
   isCurrent: z.boolean().default(false),
@@ -39,7 +41,11 @@ export type ExperienceActionState = {
 
 export async function getExperiences() {
   try {
-    const rawExperiences = await prisma.experience.findMany();
+    const rawExperiences = await prisma.experience.findMany({
+      include: {
+        translations: true,
+      },
+    });
 
     // Custom sort:
     // 1. endDate NULL (Present) comes first
@@ -76,18 +82,21 @@ export async function getExperiences() {
 }
 
 export async function upsertExperience(
-  id: string | null,
   prevState: any,
   formData: FormData
 ): Promise<ExperienceActionState> {
   const session = await getSession();
   if (!session) return { error: 'Unauthorized' };
 
+  const id = (formData.get('id') as string) || null;
+
   const rawData = {
     type: formData.get('type') as string,
-    title: formData.get('title') as string,
+    title_id: (formData.get('title_id') as string) || (formData.get('title') as string) || '',
+    description_id: (formData.get('description_id') as string) || (formData.get('description') as string) || '',
+    title_en: (formData.get('title_en') as string) || '',
+    description_en: (formData.get('description_en') as string) || '',
     institution: formData.get('institution') as string,
-    description: formData.get('description') as string,
     startDate: formData.get('startDate') as string,
     endDate: formData.get('endDate') as string,
     isCurrent: formData.get('isCurrent') === 'on' || formData.get('isCurrent') === 'true',
@@ -104,32 +113,77 @@ export async function upsertExperience(
   const data = validated.data;
 
   try {
-    const payload = {
+    const basePayload = {
       type: data.type,
-      title: data.title,
       institution: data.institution,
-      description: data.description || null,
       startDate: data.startDate,
       endDate: data.isCurrent ? null : data.endDate,
     };
 
+    let experienceId: string;
+
     if (id) {
-      await prisma.experience.update({
+      const updated = await prisma.experience.update({
         where: { id },
-        data: payload,
+        data: basePayload,
       });
+      experienceId = updated.id;
     } else {
-      await prisma.experience.create({
+      const created = await prisma.experience.create({
         data: {
-          ...payload,
+          ...basePayload,
           order: 0,
+        },
+      });
+      experienceId = created.id;
+    }
+
+    // Upsert Indonesian Translation
+    await prisma.experienceTranslation.upsert({
+      where: {
+        experienceId_locale: {
+          experienceId,
+          locale: 'id',
+        },
+      },
+      create: {
+        experienceId,
+        locale: 'id',
+        title: data.title_id,
+        description: data.description_id || null,
+      },
+      update: {
+        title: data.title_id,
+        description: data.description_id || null,
+      },
+    });
+
+    // Upsert English Translation
+    if (data.title_en?.trim() || data.description_en?.trim()) {
+      await prisma.experienceTranslation.upsert({
+        where: {
+          experienceId_locale: {
+            experienceId,
+            locale: 'en',
+          },
+        },
+        create: {
+          experienceId,
+          locale: 'en',
+          title: data.title_en || data.title_id,
+          description: data.description_en || null,
+        },
+        update: {
+          title: data.title_en || data.title_id,
+          description: data.description_en || null,
         },
       });
     }
 
-    revalidatePath('/');
+    revalidatePath('/', 'layout');
+    revalidatePath('/[locale]', 'layout');
     revalidatePath(getAdminPath('experience'));
-    return { success: id ? 'Record updated.' : 'Record created.' };
+    return { success: id ? 'Pengalaman berhasil diperbarui.' : 'Pengalaman berhasil dibuat.' };
   } catch (error) {
     console.error('Failed to upsert experience:', error);
     return { error: 'Save failed: Unable to write data.' };
@@ -142,9 +196,10 @@ export async function deleteExperience(id: string) {
 
   try {
     await prisma.experience.delete({ where: { id } });
-    revalidatePath('/');
+    revalidatePath('/', 'layout');
+    revalidatePath('/[locale]', 'layout');
     revalidatePath(getAdminPath('experience'));
-    return { success: 'Record deleted.' };
+    return { success: 'Pengalaman berhasil dihapus.' };
   } catch (error) {
     console.error('Failed to delete experience:', error);
     return { error: 'Delete failed: Unable to remove record.' };

@@ -20,7 +20,7 @@ export async function generateMetadata({
   params,
 }: ArticleDetailPageProps): Promise<Metadata> {
   const { locale, slug } = await params;
-  const article = await getPublishedArticleBySlug(slug);
+  const article = await getPublishedArticleBySlug(slug, locale);
 
   if (!article) {
     return {
@@ -28,7 +28,7 @@ export async function generateMetadata({
     };
   }
 
-  const { profile } = await getPortfolioData();
+  const { profile } = await getPortfolioData(locale);
   const authorName = profile?.name || 'Author';
   const title = `${article.title} — ${authorName}`;
   const description = article.excerpt || `Read ${article.title} on ${authorName}'s technical portfolio.`;
@@ -86,13 +86,13 @@ export default async function ArticleDetailPage({ params }: ArticleDetailPagePro
   setRequestLocale(locale);
 
   const t = await getTranslations('articles');
-  const article = await getPublishedArticleBySlug(slug);
+  const article = await getPublishedArticleBySlug(slug, locale);
 
   if (!article) {
     notFound();
   }
 
-  const { profile } = await getPortfolioData();
+  const { profile } = await getPortfolioData(locale);
   const htmlContent = await renderMarkdownServer(article.contentMd);
   const readTime = calculateReadingTime(article.contentMd);
 

@@ -13,51 +13,41 @@ import {
   EyeOff,
   Calendar,
   Sparkles,
+  Globe,
 } from 'lucide-react';
 import { deleteArticle, toggleArticlePublished } from '@/app/actions/article';
 import DeleteConfirmModal from '@/components/admin/skills/delete-confirm-modal';
 import { getAdminPath } from '@/lib/routes';
+import { resolveArticle } from '@/lib/translations';
 
-type ArticleItem = {
-  id: string;
-  slug: string;
-  title: string;
-  excerpt: string | null;
-  contentMd: string;
-  coverImage: string | null;
-  isPublished: boolean;
-  publishedAt: Date | null;
-  createdAt: Date;
-  updatedAt: Date;
-};
-
-export default function ArticleListClient({ initialArticles }: { initialArticles: ArticleItem[] }) {
-  const [articles, setArticles] = useState<ArticleItem[]>(initialArticles);
+export default function ArticleListClient({ initialArticles }: { initialArticles: any[] }) {
+  const [articles, setArticles] = useState<any[]>(initialArticles);
   const [searchQuery, setSearchQuery] = useState('');
   const [statusFilter, setStatusFilter] = useState<'all' | 'published' | 'draft'>('all');
   const [isProcessingId, setIsProcessingId] = useState<string | null>(null);
 
   // Delete modal state
   const [isDeleteOpen, setIsDeleteOpen] = useState(false);
-  const [deletingArticle, setDeletingArticle] = useState<ArticleItem | null>(null);
+  const [deletingArticle, setDeletingArticle] = useState<any | null>(null);
 
-  const filteredArticles = articles.filter((article) => {
+  const filteredArticles = articles.filter((rawArticle) => {
+    const article = resolveArticle(rawArticle, 'id') || rawArticle;
     const matchesSearch =
       article.title.toLowerCase().includes(searchQuery.toLowerCase()) ||
-      article.slug.toLowerCase().includes(searchQuery.toLowerCase()) ||
+      rawArticle.slug.toLowerCase().includes(searchQuery.toLowerCase()) ||
       (article.excerpt && article.excerpt.toLowerCase().includes(searchQuery.toLowerCase()));
 
     if (!matchesSearch) return false;
 
-    if (statusFilter === 'published') return article.isPublished;
-    if (statusFilter === 'draft') return !article.isPublished;
+    if (statusFilter === 'published') return rawArticle.isPublished;
+    if (statusFilter === 'draft') return !rawArticle.isPublished;
     return true;
   });
 
   const publishedCount = articles.filter((a) => a.isPublished).length;
   const draftCount = articles.filter((a) => !a.isPublished).length;
 
-  const handleTogglePublish = async (article: ArticleItem) => {
+  const handleTogglePublish = async (article: any) => {
     setIsProcessingId(article.id);
     const newStatus = !article.isPublished;
     const res = await toggleArticlePublished(article.id, newStatus);
@@ -79,7 +69,7 @@ export default function ArticleListClient({ initialArticles }: { initialArticles
     setIsProcessingId(null);
   };
 
-  const handleDeleteClick = (article: ArticleItem) => {
+  const handleDeleteClick = (article: any) => {
     setDeletingArticle(article);
     setIsDeleteOpen(true);
   };
@@ -94,9 +84,9 @@ export default function ArticleListClient({ initialArticles }: { initialArticles
   };
 
   const formatDate = (date: Date | string | null) => {
-    if (!date) return 'Not published yet';
+    if (!date) return 'Belum dipublikasikan';
     const d = new Date(date);
-    return d.toLocaleDateString('en-US', {
+    return d.toLocaleDateString('id-ID', {
       month: 'short',
       day: 'numeric',
       year: 'numeric',
@@ -105,212 +95,187 @@ export default function ArticleListClient({ initialArticles }: { initialArticles
 
   return (
     <div className="space-y-6">
-      {/* Controls Bar: Search & Filter Tabs */}
+      {/* Action and Search Toolbar */}
       <div className="flex flex-col sm:flex-row items-stretch sm:items-center justify-between gap-4">
         {/* Search */}
         <div className="relative flex-1 max-w-md">
-          <Search className="w-4 h-4 text-zinc-500 absolute left-3.5 top-1/2 -translate-y-1/2" />
+          <Search className="absolute left-3.5 top-1/2 -translate-y-1/2 w-4 h-4 text-zinc-500" />
           <input
             type="text"
+            placeholder="Cari judul, ringkasan, atau slug artikel..."
             value={searchQuery}
             onChange={(e) => setSearchQuery(e.target.value)}
-            placeholder="Search articles by title, slug, or excerpt..."
-            className="w-full pl-10 pr-4 py-2.5 bg-zinc-900/60 border border-zinc-800 rounded-lg text-sm text-white placeholder:text-zinc-500 focus:outline-none focus:ring-1 focus:ring-white/30 transition-colors"
+            className="w-full pl-10 pr-4 py-2 bg-zinc-900/60 border border-zinc-800 rounded-xl text-sm text-white placeholder:text-zinc-600 focus:outline-none focus:ring-1 focus:ring-zinc-700"
           />
         </div>
 
-        {/* Status Filter Tabs */}
-        <div className="flex items-center gap-1 bg-zinc-900/60 border border-zinc-800 p-1 rounded-lg">
+        {/* Status Filters */}
+        <div className="flex items-center gap-1.5 p-1 bg-zinc-900/60 border border-zinc-800 rounded-xl self-start sm:self-auto">
           <button
+            type="button"
             onClick={() => setStatusFilter('all')}
-            className={`px-3 py-1.5 text-xs font-medium rounded-md transition-colors ${
+            className={`px-3 py-1.5 rounded-lg text-xs font-medium transition-colors ${
               statusFilter === 'all'
-                ? 'bg-zinc-800 text-white shadow-sm'
-                : 'text-zinc-400 hover:text-zinc-200'
+                ? 'bg-zinc-800 text-white font-semibold'
+                : 'text-zinc-400 hover:text-white'
             }`}
           >
-            All ({articles.length})
+            Semua ({articles.length})
           </button>
           <button
+            type="button"
             onClick={() => setStatusFilter('published')}
-            className={`px-3 py-1.5 text-xs font-medium rounded-md transition-colors ${
+            className={`px-3 py-1.5 rounded-lg text-xs font-medium transition-colors ${
               statusFilter === 'published'
-                ? 'bg-zinc-800 text-white shadow-sm'
-                : 'text-zinc-400 hover:text-zinc-200'
+                ? 'bg-emerald-950 text-emerald-300 border border-emerald-800/50 font-semibold'
+                : 'text-zinc-400 hover:text-white'
             }`}
           >
-            Published ({publishedCount})
+            Publik ({publishedCount})
           </button>
           <button
+            type="button"
             onClick={() => setStatusFilter('draft')}
-            className={`px-3 py-1.5 text-xs font-medium rounded-md transition-colors ${
+            className={`px-3 py-1.5 rounded-lg text-xs font-medium transition-colors ${
               statusFilter === 'draft'
-                ? 'bg-zinc-800 text-white shadow-sm'
-                : 'text-zinc-400 hover:text-zinc-200'
+                ? 'bg-zinc-800 text-amber-300 font-semibold'
+                : 'text-zinc-400 hover:text-white'
             }`}
           >
-            Drafts ({draftCount})
+            Draf ({draftCount})
           </button>
         </div>
       </div>
 
-      {/* Articles List */}
-      {filteredArticles.length === 0 ? (
-        <div className="text-center py-16 border border-zinc-800/80 border-dashed rounded-2xl bg-zinc-950/40">
-          <FileText className="w-10 h-10 text-zinc-600 mx-auto mb-3" />
-          <h3 className="text-base font-medium text-white mb-1">No entries found</h3>
-          <p className="text-sm text-zinc-500 max-w-sm mx-auto mb-6">
-            {searchQuery || statusFilter !== 'all'
-              ? 'No matching entries found for the current query.'
-              : 'Action required: Create an entry.'}
-          </p>
-          {!searchQuery && statusFilter === 'all' && (
-            <Link
-              href={getAdminPath('articles/new')}
-              className="inline-flex items-center gap-2 px-4 py-2 bg-white text-black font-semibold text-xs rounded-lg hover:bg-zinc-200 transition-colors"
-            >
-              <Sparkles className="w-3.5 h-3.5" />
-              Create Entry
-            </Link>
-          )}
-        </div>
-      ) : (
-        <div className="grid gap-4">
-          {filteredArticles.map((article) => (
+      {/* Article List Cards */}
+      <div className="space-y-3">
+        {filteredArticles.map((rawArticle) => {
+          const article = resolveArticle(rawArticle, 'id') || rawArticle;
+          const hasId = rawArticle.translations?.some((t: any) => t.locale === 'id');
+          const hasEn = rawArticle.translations?.some((t: any) => t.locale === 'en');
+
+          return (
             <div
-              key={article.id}
-              className={`flex flex-col md:flex-row gap-4 md:items-center justify-between p-5 rounded-2xl border transition-all duration-200 ${
-                article.isPublished
-                  ? 'bg-zinc-900/40 border-zinc-800/60 hover:border-zinc-700'
-                  : 'bg-zinc-900/20 border-zinc-800/30 opacity-75 hover:opacity-100 hover:border-zinc-700'
-              }`}
+              key={rawArticle.id}
+              className="p-5 bg-zinc-900/40 border border-zinc-800/80 hover:border-zinc-700/80 rounded-2xl transition-all duration-200 flex flex-col md:flex-row items-start md:items-center justify-between gap-5 group"
             >
-              {/* Left: Thumbnail & Info */}
-              <div className="flex items-start gap-4 min-w-0 flex-1">
-                {/* Thumbnail */}
-                <div className="w-16 h-16 sm:w-20 sm:h-20 rounded-xl bg-zinc-900 border border-zinc-800 overflow-hidden flex-shrink-0 relative flex items-center justify-center">
-                  {article.coverImage ? (
+              {/* Left Details */}
+              <div className="flex items-start gap-4 flex-1 min-w-0">
+                {/* Cover Thumbnail */}
+                <div className="relative w-20 h-16 sm:w-28 sm:h-20 rounded-xl overflow-hidden bg-zinc-950 border border-zinc-800/80 shrink-0">
+                  {rawArticle.coverImage ? (
                     <Image
-                      src={article.coverImage}
+                      src={rawArticle.coverImage}
                       alt={article.title}
                       fill
-                      className="object-cover"
+                      className="object-cover transition-transform duration-500 group-hover:scale-105"
                     />
                   ) : (
-                    <FileText className="w-6 h-6 text-zinc-600" />
+                    <div className="w-full h-full flex items-center justify-center text-zinc-700">
+                      <FileText className="w-6 h-6" />
+                    </div>
                   )}
                 </div>
 
-                {/* Details */}
-                <div className="min-w-0 flex-1 space-y-1">
-                  <div className="flex flex-wrap items-center gap-2">
+                <div className="flex-1 min-w-0">
+                  <div className="flex items-center gap-2.5 flex-wrap">
+                    <h3 className="text-base font-bold text-white group-hover:text-zinc-200 transition-colors truncate">
+                      {article.title}
+                    </h3>
+                    
                     {/* Status Badge */}
                     <span
-                      className={`inline-flex items-center gap-1.5 px-2.5 py-0.5 rounded-full text-[11px] font-semibold border ${
-                        article.isPublished
-                          ? 'bg-white/10 text-white border-white/20'
-                          : 'bg-zinc-900 text-zinc-400 border-zinc-800'
+                      className={`px-2 py-0.5 rounded-full text-[10px] font-semibold border ${
+                        rawArticle.isPublished
+                          ? 'bg-emerald-950/60 text-emerald-300 border-emerald-800/60'
+                          : 'bg-zinc-800 text-zinc-400 border-zinc-700'
                       }`}
                     >
-                      <span
-                        className={`w-1.5 h-1.5 rounded-full ${
-                          article.isPublished ? 'bg-emerald-400 shadow-[0_0_6px_#34d399]' : 'bg-zinc-500'
-                        }`}
-                      />
-                      {article.isPublished ? 'Published' : 'Draft'}
+                      {rawArticle.isPublished ? 'Publik' : 'Draf'}
                     </span>
 
-                    <span className="text-xs text-zinc-500 font-mono">
-                      /articles/{article.slug}
-                    </span>
+                    {/* Language Badges */}
+                    <div className="inline-flex items-center gap-1.5 ml-1">
+                      <span className={`px-2 py-0.5 rounded text-[10px] font-mono font-medium ${hasId ? 'bg-emerald-950/60 text-emerald-300 border border-emerald-800/60' : 'bg-zinc-800 text-zinc-500'}`}>
+                        ID
+                      </span>
+                      <span className={`px-2 py-0.5 rounded text-[10px] font-mono font-medium ${hasEn ? 'bg-emerald-950/60 text-emerald-300 border border-emerald-800/60' : 'bg-amber-950/60 text-amber-300 border border-amber-800/60'}`}>
+                        EN {hasEn ? '' : '(Belum Diterjemahkan)'}
+                      </span>
+                    </div>
                   </div>
 
-                  <h3 className="text-base sm:text-lg font-semibold text-white truncate">
-                    {article.title}
-                  </h3>
+                  <p className="text-xs text-zinc-400 mt-1 line-clamp-1">
+                    {article.excerpt || 'Tidak ada ringkasan tertulis.'}
+                  </p>
 
-                  {article.excerpt && (
-                    <p className="text-sm text-zinc-400 line-clamp-1">{article.excerpt}</p>
-                  )}
-
-                  <div className="flex items-center gap-4 text-xs text-zinc-500 pt-1">
+                  <div className="flex items-center gap-4 mt-2 text-[11px] text-zinc-500 font-mono">
                     <span className="flex items-center gap-1">
-                      <Calendar className="w-3.5 h-3.5" />
-                      {article.isPublished ? `Published ${formatDate(article.publishedAt)}` : `Created ${formatDate(article.createdAt)}`}
+                      <Calendar className="w-3 h-3" />
+                      {formatDate(rawArticle.publishedAt)}
                     </span>
+                    <span>•</span>
+                    <span>/{rawArticle.slug}</span>
                   </div>
                 </div>
               </div>
 
-              {/* Right: Actions */}
-              <div className="flex items-center gap-2 justify-end shrink-0 pt-2 md:pt-0 border-t md:border-t-0 border-zinc-800/60">
-                {/* View Public Button */}
-                {article.isPublished && (
-                  <Link
-                    href={`/articles/${article.slug}`}
-                    target="_blank"
-                    className="p-2 text-zinc-400 hover:text-white hover:bg-zinc-800 rounded-lg transition-colors"
-                    title="View live article"
-                  >
-                    <ExternalLink className="w-4 h-4" />
-                  </Link>
-                )}
-
-                {/* Toggle Publish */}
+              {/* Right Action Buttons */}
+              <div className="flex items-center gap-2 self-end md:self-center shrink-0">
                 <button
-                  onClick={() => handleTogglePublish(article)}
-                  disabled={isProcessingId === article.id}
-                  className={`flex items-center gap-1.5 px-3 py-1.5 rounded-lg text-xs font-medium border transition-colors ${
-                    article.isPublished
-                      ? 'bg-zinc-900 border-zinc-800 text-zinc-300 hover:text-white hover:bg-zinc-800'
-                      : 'bg-white/10 border-white/20 text-white hover:bg-white/20'
+                  type="button"
+                  onClick={() => handleTogglePublish(rawArticle)}
+                  disabled={isProcessingId === rawArticle.id}
+                  className={`p-2 rounded-xl text-xs font-medium border transition-colors ${
+                    rawArticle.isPublished
+                      ? 'bg-zinc-900 border-zinc-800 text-zinc-400 hover:text-amber-400 hover:border-amber-500/30'
+                      : 'bg-emerald-950/30 border-emerald-800/50 text-emerald-400 hover:bg-emerald-950/60'
                   }`}
-                  title={article.isPublished ? 'Unpublish to Draft' : 'Publish Article'}
+                  title={rawArticle.isPublished ? 'Alihkan ke Draf' : 'Publikasikan Sekarang'}
                 >
-                  {article.isPublished ? (
-                    <>
-                      <EyeOff className="w-3.5 h-3.5" />
-                      Unpublish
-                    </>
-                  ) : (
-                    <>
-                      <Eye className="w-3.5 h-3.5" />
-                      Publish
-                    </>
-                  )}
+                  {rawArticle.isPublished ? <EyeOff className="w-4 h-4" /> : <Eye className="w-4 h-4" />}
                 </button>
 
-                {/* Edit */}
                 <Link
-                  href={getAdminPath(`articles/${article.id}`)}
-                  className="p-2 text-zinc-400 hover:text-white hover:bg-zinc-800 rounded-lg transition-colors"
-                  title="Edit article"
+                  href={getAdminPath(`articles/${rawArticle.id}`)}
+                  className="p-2 bg-zinc-900 border border-zinc-800 text-zinc-300 hover:text-white hover:border-zinc-700 rounded-xl transition-colors"
+                  title="Edit Artikel"
                 >
                   <Edit2 className="w-4 h-4" />
                 </Link>
 
-                {/* Delete */}
                 <button
-                  onClick={() => handleDeleteClick(article)}
-                  disabled={isProcessingId === article.id}
-                  className="p-2 text-zinc-400 hover:text-red-400 hover:bg-red-400/10 rounded-lg transition-colors"
-                  title="Delete article"
+                  type="button"
+                  onClick={() => handleDeleteClick(rawArticle)}
+                  className="p-2 bg-zinc-900 border border-zinc-800 text-zinc-400 hover:text-red-400 hover:border-red-500/30 rounded-xl transition-colors"
+                  title="Hapus Artikel"
                 >
                   <Trash2 className="w-4 h-4" />
                 </button>
               </div>
             </div>
-          ))}
-        </div>
-      )}
+          );
+        })}
 
-      {/* Delete Confirmation Modal */}
+        {filteredArticles.length === 0 && (
+          <div className="text-center py-20 bg-zinc-900/20 border border-dashed border-zinc-800 rounded-2xl">
+            <p className="text-zinc-500 mb-4">Tidak ada artikel yang sesuai dengan filter pencarian.</p>
+            <Link
+              href={getAdminPath('articles/new')}
+              className="inline-flex items-center gap-2 px-4 py-2 bg-white text-black font-semibold rounded-lg hover:bg-zinc-200 transition-colors text-sm"
+            >
+              Tulis Artikel Baru
+            </Link>
+          </div>
+        )}
+      </div>
+
       <DeleteConfirmModal
         isOpen={isDeleteOpen}
         onClose={() => setIsDeleteOpen(false)}
         onConfirm={confirmDelete}
-        title="Delete Entry"
-        description={`Confirm deletion of "${deletingArticle?.title}". This action is irreversible.`}
+        title="Hapus Artikel"
+        description={`Konfirmasi penghapusan naskah "${deletingArticle?.translations?.[0]?.title || deletingArticle?.slug}". Artikel dan translasi terkait akan dihapus secara permanen.`}
       />
     </div>
   );

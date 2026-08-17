@@ -15,7 +15,7 @@ interface ArticlesPageProps {
 
 export async function generateMetadata({ params }: ArticlesPageProps): Promise<Metadata> {
   const { locale } = await params;
-  const { profile } = await getPortfolioData();
+  const { profile } = await getPortfolioData(locale);
   const name = profile?.name || 'Portfolio';
 
   return {
@@ -51,7 +51,7 @@ export default async function ArticlesPage({ params }: ArticlesPageProps) {
 
   const t = await getTranslations('articles');
   const tNav = await getTranslations('nav');
-  const { articles } = await getPublishedArticles();
+  const { articles } = await getPublishedArticles(undefined, locale);
 
   const formatDate = (date: Date | null): string => {
     if (!date) return '';

@@ -33,28 +33,47 @@ import { upsertArticle, ArticleActionState } from '@/app/actions/article';
 import { getAdminPath } from '@/lib/routes';
 import { uploadImage } from '@/app/actions/upload';
 import { renderMarkdownClient } from '@/lib/markdown/client';
+import LocaleTabSelector from '../layout/locale-tab-selector';
 
-type ArticleData = {
-  id?: string;
-  title: string;
-  slug: string;
-  excerpt: string;
-  contentMd: string;
-  coverImage: string;
-  isPublished: boolean;
-  publishedAt?: Date | string | null;
-};
-
-export default function ArticleForm({ initialData }: { initialData?: ArticleData | null }) {
+export default function ArticleForm({ initialData }: { initialData?: any }) {
   const router = useRouter();
   const [isPending, startTransition] = useTransition();
 
-  // Form Fields
-  const [title, setTitle] = useState(initialData?.title || '');
+  // Extract initial translations
+  const idTrans = initialData?.translations?.find((t: any) => t.locale === 'id');
+  const enTrans = initialData?.translations?.find((t: any) => t.locale === 'en');
+
+  // Translation states
+  const [activeLocale, setActiveLocale] = useState<'id' | 'en'>('id');
+  const [translations, setTranslations] = useState({
+    id: {
+      title: idTrans?.title || initialData?.title || '',
+      excerpt: idTrans?.excerpt || initialData?.excerpt || '',
+      contentMd: idTrans?.contentMd || initialData?.contentMd || '',
+    },
+    en: {
+      title: enTrans?.title || '',
+      excerpt: enTrans?.excerpt || '',
+      contentMd: enTrans?.contentMd || '',
+    },
+  });
+
+  const handleTransChange = (field: 'title' | 'excerpt' | 'contentMd', value: string) => {
+    setTranslations((prev) => ({
+      ...prev,
+      [activeLocale]: {
+        ...prev[activeLocale],
+        [field]: value,
+      },
+    }));
+  };
+
+  const isIdComplete = !!translations.id.title?.trim() && !!translations.id.contentMd?.trim();
+  const isEnComplete = !!translations.en.title?.trim() && !!translations.en.contentMd?.trim();
+
+  // Language invariant states
   const [slug, setSlug] = useState(initialData?.slug || '');
   const [isAutoSlug, setIsAutoSlug] = useState(!initialData?.id);
-  const [excerpt, setExcerpt] = useState(initialData?.excerpt || '');
-  const [contentMd, setContentMd] = useState(initialData?.contentMd || '');
   const [coverImage, setCoverImage] = useState(initialData?.coverImage || '');
   const [isPublished, setIsPublished] = useState(initialData?.isPublished || false);
 
@@ -67,10 +86,9 @@ export default function ArticleForm({ initialData }: { initialData?: ArticleData
   const fileInputRef = useRef<HTMLInputElement>(null);
   const textareaRef = useRef<HTMLTextAreaElement>(null);
 
-  // Auto-slug generation from title
-  const handleTitleChange = (e: React.ChangeEvent<HTMLInputElement>) => {
-    const val = e.target.value;
-    setTitle(val);
+  // Auto-slug generation from title_id
+  const handleTitleIdChange = (val: string) => {
+    handleTransChange('title', val);
     if (isAutoSlug) {
       const generated = val
         .toLowerCase()
@@ -105,252 +123,178 @@ export default function ArticleForm({ initialData }: { initialData?: ArticleData
     setIsUploading(false);
   };
 
-  // Toolbar Formatting helper
-  const insertFormatting = (prefix: string, suffix: string = '', placeholder: string = '') => {
+  // Markdown Toolbar actions
+  const insertMarkdown = (prefix: string, suffix: string = '', defaultText: string = '') => {
     const textarea = textareaRef.current;
     if (!textarea) return;
 
     const start = textarea.selectionStart;
     const end = textarea.selectionEnd;
-    const selectedText = contentMd.substring(start, end) || placeholder;
+    const currentText = translations[activeLocale].contentMd;
+    const selected = currentText.substring(start, end) || defaultText;
 
-    const newText =
-      contentMd.substring(0, start) +
-      prefix +
-      selectedText +
-      suffix +
-      contentMd.substring(end);
+    const replacement = `${prefix}${selected}${suffix}`;
+    const newText = currentText.substring(0, start) + replacement + currentText.substring(end);
 
-    setContentMd(newText);
+    handleTransChange('contentMd', newText);
 
-    // Restore selection focus
     setTimeout(() => {
       textarea.focus();
-      textarea.setSelectionRange(
-        start + prefix.length,
-        start + prefix.length + selectedText.length
-      );
-    }, 0);
+      textarea.setSelectionRange(start + prefix.length, start + prefix.length + selected.length);
+    }, 10);
   };
 
-  // Real-time markdown preview rendering
-  const renderedPreview = useMemo(() => {
-    return renderMarkdownClient(contentMd || '*No content yet. Write some markdown on the left.*');
-  }, [contentMd]);
-
-  // Read time & Word count calculation
-  const stats = useMemo(() => {
-    const words = contentMd.trim().split(/\s+/).filter(Boolean).length;
-    const minutes = Math.max(1, Math.ceil(words / 200));
-    return { words, minutes };
-  }, [contentMd]);
+  // Live client-side preview rendering for current tab
+  const previewHtml = useMemo(() => {
+    return renderMarkdownClient(translations[activeLocale].contentMd || '');
+  }, [translations, activeLocale]);
 
   // Submit Handler
-  const handleSubmit = (e: React.FormEvent<HTMLFormElement>) => {
+  const handleSubmit = async (e: React.FormEvent<HTMLFormElement>) => {
     e.preventDefault();
     setFormState({});
 
     const formData = new FormData();
-    formData.append('title', title);
+    formData.append('title_id', translations.id.title);
+    formData.append('excerpt_id', translations.id.excerpt);
+    formData.append('contentMd_id', translations.id.contentMd);
+
+    formData.append('title_en', translations.en.title);
+    formData.append('excerpt_en', translations.en.excerpt);
+    formData.append('contentMd_en', translations.en.contentMd);
+
     formData.append('slug', slug);
-    formData.append('excerpt', excerpt);
-    formData.append('contentMd', contentMd);
     formData.append('coverImage', coverImage);
     formData.append('isPublished', isPublished ? 'true' : 'false');
 
     startTransition(async () => {
-      const res = await upsertArticle(initialData?.id || null, {}, formData);
-      setFormState(res);
+      const result = await upsertArticle(initialData?.id || null, null, formData);
+      setFormState(result);
 
-      if (res.success) {
-        // Redirect back to list
+      if (result.success) {
         setTimeout(() => {
           router.push(getAdminPath('articles'));
-        }, 600);
+        }, 1200);
       }
     });
   };
 
+  const currentTrans = translations[activeLocale];
+
   return (
-    <form onSubmit={handleSubmit} className="space-y-8 max-w-6xl pb-24">
-      {/* Header with Navigation & Action Buttons */}
-      <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4 border-b border-zinc-800 pb-6 sticky top-0 bg-[#050505]/90 backdrop-blur-md z-30 pt-2">
-        <div className="flex items-center gap-3">
+    <div className="w-full max-w-6xl mx-auto space-y-8 pb-32">
+      {/* Top Header */}
+      <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4 border-b border-[var(--border-subtle)] pb-6">
+        <div>
           <Link
             href={getAdminPath('articles')}
-            className="p-2 text-zinc-400 hover:text-white hover:bg-zinc-800/80 rounded-lg transition-colors"
-            title="Back to Articles"
+            className="inline-flex items-center gap-1.5 text-xs text-[var(--text-tertiary)] hover:text-[var(--text-primary)] transition-colors mb-2"
           >
-            <ArrowLeft className="w-5 h-5" />
+            <ArrowLeft className="w-3.5 h-3.5" />
+            Kembali ke Daftar Artikel
           </Link>
-          <div>
-            <h1 className="text-2xl font-bold text-white">
-              {initialData?.id ? 'Edit Article' : 'New Article'}
-            </h1>
-            <p className="text-xs text-zinc-400">
-              {initialData?.id ? `Editing article /articles/${slug}` : 'Draft technical publication.'}
-            </p>
-          </div>
+          <h1 className="text-2xl sm:text-3xl font-bold tracking-tight text-[var(--text-primary)]">
+            {initialData ? 'Edit Artikel' : 'Tulis Artikel Baru'}
+          </h1>
+          <p className="text-xs sm:text-sm text-[var(--text-secondary)] mt-1">
+            Publikasikan wawasan teknis, tutorial, atau catatan arsitektur sistem dalam multi-bahasa.
+          </p>
         </div>
 
         <div className="flex items-center gap-3">
-          {/* Publish Toggle Button in Header */}
           <button
             type="button"
             onClick={() => setIsPublished(!isPublished)}
-            className={`flex items-center gap-2 px-3.5 py-2 rounded-lg text-xs font-semibold border transition-all ${
+            className={`px-3 py-1.5 rounded-full text-xs font-semibold border transition-all ${
               isPublished
-                ? 'bg-emerald-500/10 border-emerald-500/30 text-emerald-400 hover:bg-emerald-500/20'
-                : 'bg-zinc-900 border-zinc-800 text-zinc-400 hover:text-zinc-200 hover:border-zinc-700'
+                ? 'bg-emerald-500/10 text-emerald-400 border-emerald-500/30'
+                : 'bg-zinc-800 text-zinc-400 border-zinc-700'
             }`}
           >
-            <span
-              className={`w-2 h-2 rounded-full ${
-                isPublished ? 'bg-emerald-400 shadow-[0_0_8px_#34d399]' : 'bg-zinc-600'
-              }`}
-            />
-            {isPublished ? 'Published' : 'Draft'}
+            {isPublished ? '● Publik (Published)' : '○ Draf (Draft)'}
           </button>
 
-          {/* Save Button */}
           <button
-            type="submit"
+            type="button"
+            onClick={(e) => {
+              const form = (e.currentTarget.closest('div') as HTMLElement)?.parentElement?.nextElementSibling as HTMLFormElement;
+              if (form) form.requestSubmit();
+            }}
             disabled={isPending || isUploading}
-            className="flex items-center gap-2 px-5 py-2 bg-white text-black font-semibold text-sm rounded-lg hover:bg-zinc-200 disabled:opacity-50 disabled:cursor-not-allowed transition-all shadow-sm active:scale-95"
+            className="flex items-center gap-2 px-6 py-2.5 bg-[var(--accent-btn-bg)] text-[var(--accent-btn-fg)] hover:brightness-110 font-semibold rounded-xl text-sm transition-all shadow-md active:scale-95 disabled:opacity-50"
           >
-            {isPending ? <Loader2 className="w-4 h-4 animate-spin" /> : <Save className="w-4 h-4" />}
-            {initialData?.id ? 'Update Entry' : 'Create Entry'}
+            {isPending ? (
+              <>
+                <Loader2 className="w-4 h-4 animate-spin" />
+                Menyimpan...
+              </>
+            ) : (
+              <>
+                <Save className="w-4 h-4" />
+                Simpan Artikel
+              </>
+            )}
           </button>
         </div>
       </div>
 
-      {/* Global Feedback Banner */}
-      {formState.error && (
-        <div className="flex items-center gap-3 p-4 bg-red-500/10 border border-red-500/20 rounded-xl text-red-400 text-sm">
-          <AlertCircle className="w-5 h-5 shrink-0" />
+      {/* Global Feedback */}
+      {formState?.error && (
+        <div className="p-4 rounded-2xl bg-red-500/10 border border-red-500/20 text-red-400 text-sm flex items-start gap-3">
+          <AlertCircle className="w-5 h-5 shrink-0 mt-0.5" />
           <p>{formState.error}</p>
         </div>
       )}
-      {formState.success && (
-        <div className="flex items-center gap-3 p-4 bg-emerald-500/10 border border-emerald-500/20 rounded-xl text-emerald-400 text-sm">
-          <CheckCircle className="w-5 h-5 shrink-0" />
+      {formState?.success && (
+        <div className="p-4 rounded-2xl bg-emerald-500/10 border border-emerald-500/20 text-emerald-400 text-sm flex items-start gap-3">
+          <CheckCircle className="w-5 h-5 shrink-0 mt-0.5" />
           <p>{formState.success}</p>
         </div>
       )}
 
-      {/* Article Metadata Fields */}
-      <div className="grid grid-cols-1 md:grid-cols-3 gap-6 p-6 rounded-2xl bg-zinc-900/40 border border-zinc-800/80 backdrop-blur-sm">
-        {/* Left 2 Cols: Title, Slug, Excerpt */}
-        <div className="md:col-span-2 space-y-4">
-          {/* Title */}
-          <div className="space-y-1.5">
-            <label htmlFor="title" className="block text-xs font-semibold uppercase tracking-wider text-zinc-300">
-              Title *
-            </label>
-            <input
-              id="title"
-              type="text"
-              value={title}
-              onChange={handleTitleChange}
-              required
-              placeholder="System Architecture Overview"
-              className="w-full px-4 py-3 bg-zinc-950/70 border border-zinc-800 rounded-xl text-white text-base placeholder:text-zinc-600 focus:outline-none focus:ring-1 focus:ring-white/40 transition-colors"
-            />
-            {formState.fieldErrors?.title && (
-              <p className="text-xs text-red-400">{formState.fieldErrors.title[0]}</p>
-            )}
-          </div>
-
-          {/* Slug */}
-          <div className="space-y-1.5">
-            <div className="flex items-center justify-between">
-              <label htmlFor="slug" className="block text-xs font-semibold uppercase tracking-wider text-zinc-300">
-                Slug (URL Identifier)
-              </label>
+      <form onSubmit={handleSubmit} className="space-y-8">
+        {/* Cover Image Uploader (Shared) */}
+        <div className="p-6 bg-[var(--bg-surface)] border border-[var(--border-subtle)] rounded-3xl space-y-4">
+          <div className="flex items-center justify-between">
+            <div>
+              <h3 className="text-sm font-semibold text-[var(--text-primary)]">Gambar Sampul (Cover Image)</h3>
+              <p className="text-xs text-[var(--text-tertiary)]">Rasio ideal 16:9 atau 2:1 (Maks. 5MB)</p>
+            </div>
+            {coverImage && (
               <button
                 type="button"
-                onClick={() => setIsAutoSlug(!isAutoSlug)}
-                className="text-[11px] text-zinc-400 hover:text-white transition-colors"
+                onClick={() => setCoverImage('')}
+                className="text-xs text-red-400 hover:underline flex items-center gap-1"
               >
-                {isAutoSlug ? 'Custom Slug' : 'Auto-Generate'}
+                <X className="w-3.5 h-3.5" /> Hapus Gambar
               </button>
-            </div>
-            <div className="flex items-center bg-zinc-950/70 border border-zinc-800 rounded-xl overflow-hidden px-3">
-              <span className="text-xs text-zinc-500 font-mono select-none">/articles/</span>
-              <input
-                id="slug"
-                type="text"
-                value={slug}
-                onChange={(e) => {
-                  setIsAutoSlug(false);
-                  setSlug(e.target.value);
-                }}
-                placeholder="building-scalable-web-apps"
-                className="w-full py-2.5 px-1 bg-transparent text-xs sm:text-sm text-zinc-200 font-mono placeholder:text-zinc-600 focus:outline-none"
-              />
-            </div>
-            {formState.fieldErrors?.slug && (
-              <p className="text-xs text-red-400">{formState.fieldErrors.slug[0]}</p>
             )}
           </div>
 
-          {/* Excerpt */}
-          <div className="space-y-1.5">
-            <label htmlFor="excerpt" className="block text-xs font-semibold uppercase tracking-wider text-zinc-300">
-              Excerpt / Summary
-            </label>
-            <textarea
-              id="excerpt"
-              rows={2}
-              value={excerpt}
-              onChange={(e) => setExcerpt(e.target.value)}
-              placeholder="Enter concise excerpt..."
-              className="w-full px-4 py-2.5 bg-zinc-950/70 border border-zinc-800 rounded-xl text-sm text-white placeholder:text-zinc-600 focus:outline-none focus:ring-1 focus:ring-white/40 transition-colors resize-none"
-            />
-          </div>
-        </div>
-
-        {/* Right Col: Cover Image Upload */}
-        <div className="space-y-3">
-          <label className="block text-xs font-semibold uppercase tracking-wider text-zinc-300">
-            Cover Image
-          </label>
-          <div
-            onClick={() => fileInputRef.current?.click()}
-            className="w-full aspect-[16/10] rounded-xl border border-zinc-800 border-dashed bg-zinc-950/60 hover:bg-zinc-900/60 transition-colors flex flex-col items-center justify-center cursor-pointer relative overflow-hidden group/cover"
-          >
-            {isUploading ? (
-              <div className="flex flex-col items-center gap-2 text-zinc-400">
-                <Loader2 className="w-6 h-6 animate-spin" />
-                <span className="text-xs">Uploading...</span>
-              </div>
-            ) : coverImage ? (
-              <>
-                <Image src={coverImage} alt="Cover Preview" fill className="object-cover" />
-                <div className="absolute inset-0 bg-black/60 opacity-0 group-hover/cover:opacity-100 transition-opacity flex items-center justify-center gap-2">
-                  <span className="text-xs text-white font-medium bg-black/50 px-3 py-1.5 rounded-lg">
-                    Change Image
-                  </span>
-                  <button
-                    type="button"
-                    onClick={(e) => {
-                      e.stopPropagation();
-                      setCoverImage('');
-                    }}
-                    className="p-1.5 bg-red-500/80 hover:bg-red-500 text-white rounded-lg transition-colors"
-                  >
-                    <X className="w-4 h-4" />
-                  </button>
+          {coverImage ? (
+            <div className="relative w-full aspect-[21/9] rounded-2xl overflow-hidden bg-black/50 border border-[var(--border-subtle)]">
+              <Image src={coverImage} alt="Cover Preview" fill className="object-cover" />
+            </div>
+          ) : (
+            <div
+              onClick={() => fileInputRef.current?.click()}
+              className="w-full aspect-[21/9] sm:aspect-[4/1] rounded-2xl border-2 border-dashed border-[var(--border-subtle)] hover:border-[var(--border-strong)] bg-[var(--bg-card)]/50 flex flex-col items-center justify-center cursor-pointer transition-colors p-6 text-center group"
+            >
+              {isUploading ? (
+                <div className="flex items-center gap-2 text-sm text-[var(--text-secondary)]">
+                  <Loader2 className="w-5 h-5 animate-spin text-[var(--accent-text)]" />
+                  Mengunggah gambar...
                 </div>
-              </>
-            ) : (
-              <div className="flex flex-col items-center gap-2 text-zinc-500 text-center p-4">
-                <UploadCloud className="w-7 h-7 text-zinc-400" />
-                <span className="text-xs font-medium text-zinc-300">Upload media</span>
-                <span className="text-[10px] text-zinc-600">PNG, JPG, WebP up to 5MB</span>
-              </div>
-            )}
-          </div>
+              ) : (
+                <>
+                  <UploadCloud className="w-8 h-8 text-[var(--text-tertiary)] group-hover:text-[var(--accent-text)] transition-colors mb-2" />
+                  <p className="text-sm font-medium text-[var(--text-primary)]">Klik untuk upload cover image</p>
+                  <p className="text-xs text-[var(--text-tertiary)] mt-1">PNG, JPG, WebP hingga 5MB</p>
+                </>
+              )}
+            </div>
+          )}
+
           <input
             ref={fileInputRef}
             type="file"
@@ -358,208 +302,287 @@ export default function ArticleForm({ initialData }: { initialData?: ArticleData
             className="hidden"
             onChange={handleImageChange}
           />
-          {uploadError && <p className="text-xs text-red-400">{uploadError}</p>}
         </div>
-      </div>
 
-      {/* Split-View Markdown Editor Section */}
-      <div className="space-y-4">
-        {/* Editor Toolbar & Controls */}
-        <div className="flex flex-wrap items-center justify-between gap-3 p-3 bg-zinc-900/80 border border-zinc-800 rounded-xl sticky top-20 z-20 backdrop-blur-md">
-          {/* Markdown Formatting Tools */}
-          <div className="flex flex-wrap items-center gap-1">
-            <button
-              type="button"
-              onClick={() => insertFormatting('**', '**', 'bold text')}
-              className="p-1.5 text-zinc-400 hover:text-white hover:bg-zinc-800 rounded-md transition-colors"
-              title="Bold"
-            >
-              <Bold className="w-4 h-4" />
-            </button>
-            <button
-              type="button"
-              onClick={() => insertFormatting('*', '*', 'italic text')}
-              className="p-1.5 text-zinc-400 hover:text-white hover:bg-zinc-800 rounded-md transition-colors"
-              title="Italic"
-            >
-              <Italic className="w-4 h-4" />
-            </button>
-            <div className="w-px h-5 bg-zinc-800 mx-1" />
-            <button
-              type="button"
-              onClick={() => insertFormatting('## ', '', 'Heading 2')}
-              className="p-1.5 text-zinc-400 hover:text-white hover:bg-zinc-800 rounded-md transition-colors"
-              title="Heading 2"
-            >
-              <Heading2 className="w-4 h-4" />
-            </button>
-            <button
-              type="button"
-              onClick={() => insertFormatting('### ', '', 'Heading 3')}
-              className="p-1.5 text-zinc-400 hover:text-white hover:bg-zinc-800 rounded-md transition-colors"
-              title="Heading 3"
-            >
-              <Heading3 className="w-4 h-4" />
-            </button>
-            <div className="w-px h-5 bg-zinc-800 mx-1" />
-            <button
-              type="button"
-              onClick={() => insertFormatting('`', '`', 'code')}
-              className="p-1.5 text-zinc-400 hover:text-white hover:bg-zinc-800 rounded-md transition-colors"
-              title="Inline Code"
-            >
-              <Code className="w-4 h-4" />
-            </button>
-            <button
-              type="button"
-              onClick={() => insertFormatting('```ts\n', '\n```', '// Your code here')}
-              className="p-1.5 text-zinc-400 hover:text-white hover:bg-zinc-800 rounded-md transition-colors"
-              title="Code Block"
-            >
-              <FileCode className="w-4 h-4" />
-            </button>
-            <button
-              type="button"
-              onClick={() => insertFormatting('> ', '', 'Quote text')}
-              className="p-1.5 text-zinc-400 hover:text-white hover:bg-zinc-800 rounded-md transition-colors"
-              title="Blockquote"
-            >
-              <Quote className="w-4 h-4" />
-            </button>
-            <div className="w-px h-5 bg-zinc-800 mx-1" />
-            <button
-              type="button"
-              onClick={() => insertFormatting('- ', '', 'List item')}
-              className="p-1.5 text-zinc-400 hover:text-white hover:bg-zinc-800 rounded-md transition-colors"
-              title="Bullet List"
-            >
-              <List className="w-4 h-4" />
-            </button>
-            <button
-              type="button"
-              onClick={() => insertFormatting('1. ', '', 'Numbered item')}
-              className="p-1.5 text-zinc-400 hover:text-white hover:bg-zinc-800 rounded-md transition-colors"
-              title="Numbered List"
-            >
-              <ListOrdered className="w-4 h-4" />
-            </button>
-            <button
-              type="button"
-              onClick={() => insertFormatting('[', '](https://example.com)', 'link text')}
-              className="p-1.5 text-zinc-400 hover:text-white hover:bg-zinc-800 rounded-md transition-colors"
-              title="Link"
-            >
-              <Link2 className="w-4 h-4" />
-            </button>
-            <button
-              type="button"
-              onClick={() => insertFormatting('\n---\n', '', '')}
-              className="p-1.5 text-zinc-400 hover:text-white hover:bg-zinc-800 rounded-md transition-colors"
-              title="Horizontal Divider"
-            >
-              <Minus className="w-4 h-4" />
-            </button>
+        {/* BILINGUAL CONTENT TRANSLATION SECTION */}
+        <div className="p-6 sm:p-8 bg-[var(--bg-surface)] border border-[var(--border-subtle)] rounded-3xl space-y-6 shadow-sm">
+          <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4 border-b border-[var(--border-subtle)] pb-5">
+            <div>
+              <h2 className="text-lg font-bold text-[var(--text-primary)]">
+                Konten & Naskah Artikel (Multi-Bahasa)
+              </h2>
+              <p className="text-xs text-[var(--text-secondary)] mt-0.5">
+                Kelola judul, kutipan ringkasan, dan teks lengkap Markdown untuk masing-masing bahasa.
+              </p>
+            </div>
+
+            <LocaleTabSelector
+              activeLocale={activeLocale}
+              onLocaleChange={setActiveLocale}
+              status={{
+                id: { isComplete: isIdComplete },
+                en: { isComplete: isEnComplete },
+              }}
+            />
           </div>
 
-          {/* Right: View Mode Toggle & Stats */}
-          <div className="flex items-center gap-3">
-            <div className="hidden sm:flex items-center gap-3 text-xs text-zinc-500 font-mono pr-2 border-r border-zinc-800">
-              <span>{stats.words} words</span>
-              <span className="flex items-center gap-1">
-                <Clock className="w-3.5 h-3.5" />
-                {stats.minutes} min read
+          {/* Title */}
+          <div className="space-y-2">
+            <div className="flex items-center justify-between">
+              <label className="block text-sm font-semibold text-[var(--text-primary)]">
+                Judul Artikel ({activeLocale.toUpperCase()}) *
+              </label>
+              <span className="text-xs text-[var(--text-tertiary)] font-mono">
+                {activeLocale === 'id' ? 'Bahasa Indonesia' : 'English'}
               </span>
             </div>
+            <input
+              type="text"
+              value={currentTrans.title}
+              onChange={(e) => {
+                if (activeLocale === 'id') {
+                  handleTitleIdChange(e.target.value);
+                } else {
+                  handleTransChange('title', e.target.value);
+                }
+              }}
+              placeholder={activeLocale === 'id' ? 'Judul artikel teknis yang menarik...' : 'Engaging technical article headline...'}
+              className="w-full px-4 py-3 bg-[var(--bg-card)] border border-[var(--border-strong)] rounded-2xl text-[var(--text-primary)] placeholder:text-[var(--text-tertiary)] focus:outline-none focus:ring-2 focus:ring-[var(--accent-color)] text-lg font-bold transition-all"
+              required={activeLocale === 'id'}
+            />
+            {activeLocale === 'id' && formState?.fieldErrors?.title_id && (
+              <p className="text-red-400 text-xs">{formState.fieldErrors.title_id[0]}</p>
+            )}
+          </div>
 
-            {/* View Mode Toggle Buttons */}
-            <div className="flex items-center gap-0.5 bg-zinc-950 p-1 rounded-lg border border-zinc-800">
+          {/* Excerpt */}
+          <div className="space-y-2">
+            <label className="block text-sm font-semibold text-[var(--text-primary)]">
+              Ringkasan / Excerpt ({activeLocale.toUpperCase()})
+            </label>
+            <textarea
+              rows={2}
+              value={currentTrans.excerpt}
+              onChange={(e) => handleTransChange('excerpt', e.target.value)}
+              placeholder={activeLocale === 'id' ? 'Ringkasan 1-2 kalimat untuk preview artikel...' : '1-2 sentence preview for search & index cards...'}
+              className="w-full px-4 py-2.5 bg-[var(--bg-card)] border border-[var(--border-subtle)] rounded-xl text-[var(--text-primary)] placeholder:text-[var(--text-tertiary)] text-sm resize-y"
+            />
+          </div>
+
+          {/* Markdown Editor & Preview Workspace */}
+          <div className="space-y-3 pt-2">
+            <div className="flex items-center justify-between flex-wrap gap-2">
+              <label className="block text-sm font-semibold text-[var(--text-primary)]">
+                Isi Artikel Markdown ({activeLocale.toUpperCase()}) *
+              </label>
+
+              {/* View Mode Toggle */}
+              <div className="inline-flex items-center p-1 bg-[var(--bg-card)] border border-[var(--border-subtle)] rounded-xl gap-1">
+                <button
+                  type="button"
+                  onClick={() => setViewMode('edit')}
+                  className={`px-3 py-1 text-xs font-medium rounded-lg transition-colors ${
+                    viewMode === 'edit'
+                      ? 'bg-[var(--accent-color)] text-[var(--accent-btn-fg)] font-bold'
+                      : 'text-[var(--text-secondary)] hover:text-[var(--text-primary)]'
+                  }`}
+                >
+                  <Edit3 className="w-3.5 h-3.5 inline mr-1" />
+                  Editor
+                </button>
+                <button
+                  type="button"
+                  onClick={() => setViewMode('split')}
+                  className={`hidden sm:inline-flex items-center px-3 py-1 text-xs font-medium rounded-lg transition-colors ${
+                    viewMode === 'split'
+                      ? 'bg-[var(--accent-color)] text-[var(--accent-btn-fg)] font-bold'
+                      : 'text-[var(--text-secondary)] hover:text-[var(--text-primary)]'
+                  }`}
+                >
+                  <Columns2 className="w-3.5 h-3.5 mr-1" />
+                  Split
+                </button>
+                <button
+                  type="button"
+                  onClick={() => setViewMode('preview')}
+                  className={`px-3 py-1 text-xs font-medium rounded-lg transition-colors ${
+                    viewMode === 'preview'
+                      ? 'bg-[var(--accent-color)] text-[var(--accent-btn-fg)] font-bold'
+                      : 'text-[var(--text-secondary)] hover:text-[var(--text-primary)]'
+                  }`}
+                >
+                  <Eye className="w-3.5 h-3.5 inline mr-1" />
+                  Preview
+                </button>
+              </div>
+            </div>
+
+            {/* Formatting Toolbar */}
+            <div className="flex items-center gap-1 p-2 bg-[var(--bg-card)] border border-[var(--border-subtle)] rounded-2xl overflow-x-auto no-scrollbar">
               <button
                 type="button"
-                onClick={() => setViewMode('edit')}
-                className={`p-1.5 rounded-md text-xs transition-colors ${
-                  viewMode === 'edit'
-                    ? 'bg-zinc-800 text-white'
-                    : 'text-zinc-400 hover:text-zinc-200'
-                }`}
-                title="Editor Only"
+                onClick={() => insertMarkdown('**', '**', 'bold text')}
+                className="p-2 rounded-lg text-[var(--text-secondary)] hover:text-[var(--text-primary)] hover:bg-[var(--bg-surface)] transition-colors"
+                title="Bold"
               >
-                <Edit3 className="w-3.5 h-3.5" />
+                <Bold className="w-4 h-4" />
               </button>
               <button
                 type="button"
-                onClick={() => setViewMode('split')}
-                className={`p-1.5 rounded-md text-xs transition-colors hidden md:block ${
-                  viewMode === 'split'
-                    ? 'bg-zinc-800 text-white'
-                    : 'text-zinc-400 hover:text-zinc-200'
-                }`}
-                title="Split View"
+                onClick={() => insertMarkdown('*', '*', 'italic text')}
+                className="p-2 rounded-lg text-[var(--text-secondary)] hover:text-[var(--text-primary)] hover:bg-[var(--bg-surface)] transition-colors"
+                title="Italic"
               >
-                <Columns2 className="w-3.5 h-3.5" />
+                <Italic className="w-4 h-4" />
+              </button>
+              <div className="w-px h-5 bg-[var(--border-subtle)] mx-1" />
+              <button
+                type="button"
+                onClick={() => insertMarkdown('## ', '', 'Heading 2')}
+                className="p-2 rounded-lg text-[var(--text-secondary)] hover:text-[var(--text-primary)] hover:bg-[var(--bg-surface)] transition-colors"
+                title="Heading 2"
+              >
+                <Heading2 className="w-4 h-4" />
               </button>
               <button
                 type="button"
-                onClick={() => setViewMode('preview')}
-                className={`p-1.5 rounded-md text-xs transition-colors ${
-                  viewMode === 'preview'
-                    ? 'bg-zinc-800 text-white'
-                    : 'text-zinc-400 hover:text-zinc-200'
-                }`}
-                title="Live Preview"
+                onClick={() => insertMarkdown('### ', '', 'Heading 3')}
+                className="p-2 rounded-lg text-[var(--text-secondary)] hover:text-[var(--text-primary)] hover:bg-[var(--bg-surface)] transition-colors"
+                title="Heading 3"
               >
-                <Eye className="w-3.5 h-3.5" />
+                <Heading3 className="w-4 h-4" />
               </button>
+              <div className="w-px h-5 bg-[var(--border-subtle)] mx-1" />
+              <button
+                type="button"
+                onClick={() => insertMarkdown('> ', '', 'Quote block')}
+                className="p-2 rounded-lg text-[var(--text-secondary)] hover:text-[var(--text-primary)] hover:bg-[var(--bg-surface)] transition-colors"
+                title="Quote"
+              >
+                <Quote className="w-4 h-4" />
+              </button>
+              <button
+                type="button"
+                onClick={() => insertMarkdown('`', '`', 'code')}
+                className="p-2 rounded-lg text-[var(--text-secondary)] hover:text-[var(--text-primary)] hover:bg-[var(--bg-surface)] transition-colors"
+                title="Inline Code"
+              >
+                <Code className="w-4 h-4" />
+              </button>
+              <button
+                type="button"
+                onClick={() => insertMarkdown('```ts\n', '\n```', '// Code snippet')}
+                className="p-2 rounded-lg text-[var(--text-secondary)] hover:text-[var(--text-primary)] hover:bg-[var(--bg-surface)] transition-colors"
+                title="Code Block"
+              >
+                <FileCode className="w-4 h-4" />
+              </button>
+              <div className="w-px h-5 bg-[var(--border-subtle)] mx-1" />
+              <button
+                type="button"
+                onClick={() => insertMarkdown('- ', '', 'List item')}
+                className="p-2 rounded-lg text-[var(--text-secondary)] hover:text-[var(--text-primary)] hover:bg-[var(--bg-surface)] transition-colors"
+                title="Bullet List"
+              >
+                <List className="w-4 h-4" />
+              </button>
+              <button
+                type="button"
+                onClick={() => insertMarkdown('1. ', '', 'Numbered item')}
+                className="p-2 rounded-lg text-[var(--text-secondary)] hover:text-[var(--text-primary)] hover:bg-[var(--bg-surface)] transition-colors"
+                title="Numbered List"
+              >
+                <ListOrdered className="w-4 h-4" />
+              </button>
+              <button
+                type="button"
+                onClick={() => insertMarkdown('[', '](https://...)', 'Link text')}
+                className="p-2 rounded-lg text-[var(--text-secondary)] hover:text-[var(--text-primary)] hover:bg-[var(--bg-surface)] transition-colors"
+                title="Link"
+              >
+                <Link2 className="w-4 h-4" />
+              </button>
+            </div>
+
+            {/* Split / Edit / Preview Workspace */}
+            <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+              {/* Textarea Editor */}
+              {(viewMode === 'split' || viewMode === 'edit') && (
+                <div className={`${viewMode === 'edit' ? 'col-span-2' : 'col-span-1'}`}>
+                  <textarea
+                    ref={textareaRef}
+                    rows={20}
+                    value={currentTrans.contentMd}
+                    onChange={(e) => handleTransChange('contentMd', e.target.value)}
+                    placeholder={activeLocale === 'id' ? 'Tuliskan naskah artikel Anda dalam format Markdown...' : 'Write your technical article body in Markdown...'}
+                    className="w-full p-4 bg-[var(--bg-card)] border border-[var(--border-strong)] rounded-2xl text-[var(--text-primary)] font-mono text-sm leading-relaxed focus:outline-none focus:ring-2 focus:ring-[var(--accent-color)] resize-y min-h-[450px]"
+                    required={activeLocale === 'id'}
+                  />
+                  {activeLocale === 'id' && formState?.fieldErrors?.contentMd_id && (
+                    <p className="text-red-400 text-xs mt-1">{formState.fieldErrors.contentMd_id[0]}</p>
+                  )}
+                </div>
+              )}
+
+              {/* Preview Window */}
+              {(viewMode === 'split' || viewMode === 'preview') && (
+                <div
+                  className={`p-6 bg-[var(--bg-card)] border border-[var(--border-subtle)] rounded-2xl overflow-y-auto max-h-[550px] ${
+                    viewMode === 'preview' ? 'col-span-2' : 'col-span-1'
+                  }`}
+                >
+                  <div className="flex items-center gap-2 mb-4 pb-2 border-b border-[var(--border-subtle)] text-xs font-mono text-[var(--text-tertiary)]">
+                    <Sparkles className="w-3.5 h-3.5 text-[var(--accent-text)]" />
+                    <span>Live Preview ({activeLocale.toUpperCase()})</span>
+                  </div>
+
+                  <div
+                    className="prose dark:prose-invert prose-zinc max-w-none prose-headings:font-bold prose-a:text-[var(--accent-text)] leading-relaxed text-sm"
+                    dangerouslySetInnerHTML={{ __html: previewHtml || '<p class="text-zinc-500 italic">Belum ada konten yang ditulis...</p>' }}
+                  />
+                </div>
+              )}
             </div>
           </div>
         </div>
 
-        {/* Split View Container */}
-        <div className="grid grid-cols-1 md:grid-cols-2 gap-6 min-h-[600px]">
-          {/* Left Column: Markdown Input */}
-          {(viewMode === 'split' || viewMode === 'edit') && (
-            <div
-              className={`flex flex-col rounded-2xl bg-zinc-950/80 border border-zinc-800/80 overflow-hidden shadow-inner ${
-                viewMode === 'edit' ? 'md:col-span-2' : ''
-              }`}
-            >
-              <div className="px-4 py-2 bg-zinc-900/50 border-b border-zinc-800/60 text-[11px] font-mono text-zinc-500 flex items-center justify-between">
-                <span>MARKDOWN SOURCE</span>
-                <span>GitHub Flavored Markdown</span>
-              </div>
-              <textarea
-                ref={textareaRef}
-                value={contentMd}
-                onChange={(e) => setContentMd(e.target.value)}
-                required
-                placeholder="Enter markdown content..."
-                className="flex-1 w-full p-6 bg-transparent text-zinc-100 font-mono text-sm leading-relaxed placeholder:text-zinc-700 focus:outline-none resize-none min-h-[550px] custom-scrollbar"
+        {/* SHARED SETTINGS (Slug & Publishing) */}
+        <div className="p-6 bg-[var(--bg-surface)] border border-[var(--border-subtle)] rounded-3xl space-y-4">
+          <h3 className="text-sm font-semibold text-[var(--text-primary)] border-b border-[var(--border-subtle)] pb-3">
+            Pengaturan URL & Publikasi (Berlaku untuk Semua Bahasa)
+          </h3>
+
+          <div className="space-y-2">
+            <div className="flex items-center justify-between">
+              <label className="block text-sm font-semibold text-[var(--text-primary)]">
+                Slug URL Artikel
+              </label>
+              <button
+                type="button"
+                onClick={() => setIsAutoSlug(!isAutoSlug)}
+                className="text-xs text-[var(--accent-text)] hover:underline"
+              >
+                {isAutoSlug ? 'Mode Manual' : 'Mode Otomatis'}
+              </button>
+            </div>
+            <div className="flex items-center gap-2">
+              <span className="text-xs font-mono text-[var(--text-tertiary)] bg-[var(--bg-card)] px-3 py-2.5 border border-[var(--border-subtle)] rounded-xl">
+                /articles/
+              </span>
+              <input
+                type="text"
+                value={slug}
+                onChange={(e) => {
+                  setSlug(e.target.value);
+                  setIsAutoSlug(false);
+                }}
+                placeholder="microservices-architecture-notes"
+                className="flex-1 px-4 py-2.5 bg-[var(--bg-card)] border border-[var(--border-subtle)] rounded-xl text-[var(--text-primary)] text-sm font-mono"
               />
             </div>
-          )}
-
-          {/* Right Column: Live Rendered Preview */}
-          {(viewMode === 'split' || viewMode === 'preview') && (
-            <div
-              className={`flex flex-col rounded-2xl bg-zinc-950/60 border border-zinc-800/80 overflow-hidden ${
-                viewMode === 'preview' ? 'md:col-span-2' : ''
-              }`}
-            >
-              <div className="px-4 py-2 bg-zinc-900/50 border-b border-zinc-800/60 text-[11px] font-mono text-zinc-500 flex items-center justify-between">
-                <span>LIVE PREVIEW</span>
-                <span className="flex items-center gap-1 text-emerald-400">
-                  <Sparkles className="w-3 h-3" /> Real-time
-                </span>
-              </div>
-              <div className="flex-1 p-6 sm:p-8 overflow-y-auto max-h-[700px] custom-scrollbar">
-                <article
-                  className="prose prose-invert prose-zinc max-w-none prose-headings:font-bold prose-h1:text-2xl prose-h2:text-xl prose-h3:text-lg prose-p:text-zinc-300 prose-p:leading-relaxed prose-a:text-white prose-a:underline hover:prose-a:text-zinc-300 prose-pre:bg-zinc-900 prose-pre:border prose-pre:border-zinc-800 prose-pre:p-4 prose-code:font-mono prose-code:text-xs prose-code:bg-zinc-800/60 prose-code:px-1.5 prose-code:py-0.5 prose-code:rounded prose-blockquote:border-l-zinc-700 prose-blockquote:text-zinc-400 prose-li:text-zinc-300"
-                  dangerouslySetInnerHTML={{ __html: renderedPreview }}
-                />
-              </div>
-            </div>
-          )}
+          </div>
         </div>
-      </div>
-    </form>
+      </form>
+    </div>
   );
 }

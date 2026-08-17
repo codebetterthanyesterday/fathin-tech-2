@@ -1,8 +1,6 @@
 // This is your Prisma schema file,
 // learn more about it in the docs: https://pris.ly/d/prisma-schema
 
-// Get a free hosted Postgres database in seconds: `npx create-db`
-
 generator client {
   provider = "prisma-client"
   output   = "../app/generated/prisma"
@@ -43,8 +41,6 @@ model PasswordResetToken {
 model Profile {
   id          String  @id @default(cuid())
   name        String
-  tagline     String?
-  bio         String? @db.Text
   photoUrl    String?
   email       String?
   phone       String?
@@ -57,7 +53,19 @@ model Profile {
   themeFont        String? @default("Inter")
   themeTemplate    String? @default("minimal") // slug template layout
 
-  updatedAt DateTime @updatedAt
+  updatedAt    DateTime             @updatedAt
+  translations ProfileTranslation[]
+}
+
+model ProfileTranslation {
+  id        String  @id @default(cuid())
+  profileId String
+  profile   Profile @relation(fields: [profileId], references: [id], onDelete: Cascade)
+  locale    String // 'id' | 'en'
+  tagline   String?
+  bio       String? @db.Text
+
+  @@unique([profileId, locale])
 }
 
 // ------------------------------------------------------------
@@ -120,33 +128,41 @@ model Skill {
 // ------------------------------------------------------------
 
 model Project {
-  id          String   @id @default(cuid())
-  slug        String   @unique
-  title       String
-  summary     String
-  description String?  @db.Text
-  techStack   String[] // ["Next.js", "Prisma", "PostgreSQL"]
-  demoUrl     String?
-  repoUrl     String?
-  isFeatured  Boolean  @default(false)
-  order       Int      @default(0)
+  id         String   @id @default(cuid())
+  slug       String   @unique
+  techStack  String[] // ["Next.js", "Prisma", "PostgreSQL"]
+  demoUrl    String?
+  repoUrl    String?
+  isFeatured Boolean  @default(false)
+  order      Int      @default(0)
+  teamSize   Int?
+  videoUrl   String?
+  categories String[] @default([])
 
-  // Enriched schema fields
-  role        String?
-  duration    String?
-  teamSize    Int?
-  keyMetrics  String[] @default([])
-  challenges  String?  @db.Text
-  solutions   String?  @db.Text
-  videoUrl    String?
-  categories  String[] @default([])
-
-  images ProjectImage[]
+  images       ProjectImage[]
+  translations ProjectTranslation[]
 
   createdAt DateTime @default(now())
   updatedAt DateTime @updatedAt
 
   @@index([isFeatured])
+}
+
+model ProjectTranslation {
+  id          String   @id @default(cuid())
+  projectId   String
+  project     Project  @relation(fields: [projectId], references: [id], onDelete: Cascade)
+  locale      String // 'id' | 'en'
+  title       String
+  summary     String
+  description String?  @db.Text
+  role        String?
+  duration    String?
+  challenges  String?  @db.Text
+  solutions   String?  @db.Text
+  keyMetrics  String[] @default([])
+
+  @@unique([projectId, locale])
 }
 
 model ProjectImage {
@@ -170,12 +186,12 @@ enum ExperienceType {
 model Experience {
   id          String         @id @default(cuid())
   type        ExperienceType
-  title       String // posisi atau gelar
   institution String // perusahaan atau sekolah
-  description String?        @db.Text
   startDate   DateTime
   endDate     DateTime? // null = "sekarang"
   order       Int            @default(0)
+
+  translations ExperienceTranslation[]
 
   createdAt DateTime @default(now())
   updatedAt DateTime @updatedAt
@@ -183,40 +199,73 @@ model Experience {
   @@index([type])
 }
 
+model ExperienceTranslation {
+  id           String     @id @default(cuid())
+  experienceId String
+  experience   Experience @relation(fields: [experienceId], references: [id], onDelete: Cascade)
+  locale       String // 'id' | 'en'
+  title        String // posisi atau gelar
+  description  String?    @db.Text
+
+  @@unique([experienceId, locale])
+}
+
 // ------------------------------------------------------------
-// TESTIMONI (opsional block — Epic 2)
+// TESTIMONI
 // ------------------------------------------------------------
 
 model Testimonial {
   id        String  @id @default(cuid())
   name      String
-  role      String?
-  quote     String  @db.Text
   photoUrl  String?
   isVisible Boolean @default(true)
   order     Int     @default(0)
 
+  translations TestimonialTranslation[]
+
   createdAt DateTime @default(now())
 }
 
+model TestimonialTranslation {
+  id            String      @id @default(cuid())
+  testimonialId String
+  testimonial   Testimonial @relation(fields: [testimonialId], references: [id], onDelete: Cascade)
+  locale        String // 'id' | 'en'
+  role          String?
+  quote         String      @db.Text
+
+  @@unique([testimonialId, locale])
+}
+
 // ------------------------------------------------------------
-// ARTIKEL/BLOG (opsional block — Epic 2)
+// ARTIKEL/BLOG
 // ------------------------------------------------------------
 
 model Article {
   id          String    @id @default(cuid())
   slug        String    @unique
-  title       String
-  excerpt     String?
-  contentMd   String    @db.Text // markdown
   coverImage  String?
   isPublished Boolean   @default(false)
   publishedAt DateTime?
+
+  translations ArticleTranslation[]
 
   createdAt DateTime @default(now())
   updatedAt DateTime @updatedAt
 
   @@index([isPublished])
+}
+
+model ArticleTranslation {
+  id        String  @id @default(cuid())
+  articleId String
+  article   Article @relation(fields: [articleId], references: [id], onDelete: Cascade)
+  locale    String // 'id' | 'en'
+  title     String
+  excerpt   String?
+  contentMd String  @db.Text // markdown
+
+  @@unique([articleId, locale])
 }
 
 // ------------------------------------------------------------

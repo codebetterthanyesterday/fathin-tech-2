@@ -17,8 +17,10 @@ const socialLinksSchema = z.array(
 
 const profileSchema = z.object({
   name: z.string().min(1, 'Nama wajib diisi'),
-  tagline: z.string().optional(),
-  bio: z.string().optional(),
+  tagline_id: z.string().optional(),
+  bio_id: z.string().optional(),
+  tagline_en: z.string().optional(),
+  bio_en: z.string().optional(),
   photoUrl: z.string().url().optional().or(z.literal('')),
   email: z.string().email('Format email tidak valid').optional().or(z.literal('')),
   phone: z.string().optional(),
@@ -29,7 +31,11 @@ const profileSchema = z.object({
 
 export async function getProfile() {
   try {
-    const profile = await prisma.profile.findFirst();
+    const profile = await prisma.profile.findFirst({
+      include: {
+        translations: true,
+      },
+    });
     return { profile };
   } catch (error) {
     console.error('Failed to get profile:', error);
@@ -53,8 +59,10 @@ export async function upsertProfile(prevState: any, formData: FormData): Promise
   // Extract raw data from formData
   const rawData = {
     name: formData.get('name') as string,
-    tagline: formData.get('tagline') as string,
-    bio: formData.get('bio') as string,
+    tagline_id: (formData.get('tagline_id') as string) || (formData.get('tagline') as string) || '',
+    bio_id: (formData.get('bio_id') as string) || (formData.get('bio') as string) || '',
+    tagline_en: (formData.get('tagline_en') as string) || '',
+    bio_en: (formData.get('bio_en') as string) || '',
     photoUrl: formData.get('photoUrl') as string,
     email: formData.get('email') as string,
     phone: formData.get('phone') as string,
@@ -93,41 +101,85 @@ export async function upsertProfile(prevState: any, formData: FormData): Promise
   }
 
   try {
-    // There is only one profile in the system. We fetch the first one.
-    const existingProfile = await prisma.profile.findFirst();
+    // Fetch existing profile or create one
+    let existingProfile = await prisma.profile.findFirst();
 
-    const updatePayload = {
+    const basePayload = {
       name: data.name,
-      tagline: data.tagline || null,
-      bio: data.bio || null,
       photoUrl: data.photoUrl || null,
       email: data.email || null,
       phone: data.phone || null,
       location: data.location || null,
       socialLinks: socialLinksJson,
       resumeUrl: data.resumeUrl || null,
-      // Preserve existing theme settings without overwriting them
       themeAccentColor: existingProfile?.themeAccentColor || '#ffffff',
       themeFont: existingProfile?.themeFont || 'Geist',
       themeTemplate: existingProfile?.themeTemplate || 'minimal',
     };
 
+    let profileId: string;
+
     if (existingProfile) {
-      await prisma.profile.update({
+      const updated = await prisma.profile.update({
         where: { id: existingProfile.id },
-        data: updatePayload as any,
+        data: basePayload,
       });
+      profileId = updated.id;
     } else {
-      await prisma.profile.create({
-        data: updatePayload as any,
+      const created = await prisma.profile.create({
+        data: basePayload,
+      });
+      profileId = created.id;
+    }
+
+    // Upsert Indonesian translation (Default)
+    await prisma.profileTranslation.upsert({
+      where: {
+        profileId_locale: {
+          profileId,
+          locale: 'id',
+        },
+      },
+      create: {
+        profileId,
+        locale: 'id',
+        tagline: data.tagline_id || null,
+        bio: data.bio_id || null,
+      },
+      update: {
+        tagline: data.tagline_id || null,
+        bio: data.bio_id || null,
+      },
+    });
+
+    // Upsert English translation
+    if (data.tagline_en || data.bio_en) {
+      await prisma.profileTranslation.upsert({
+        where: {
+          profileId_locale: {
+            profileId,
+            locale: 'en',
+          },
+        },
+        create: {
+          profileId,
+          locale: 'en',
+          tagline: data.tagline_en || null,
+          bio: data.bio_en || null,
+        },
+        update: {
+          tagline: data.tagline_en || null,
+          bio: data.bio_en || null,
+        },
       });
     }
 
-    revalidatePath('/');
+    revalidatePath('/', 'layout');
+    revalidatePath('/[locale]', 'layout');
     revalidatePath(getAdminPath('profile'));
     revalidatePath(getAdminPath('settings'));
 
-    return { success: 'Profile saved.' };
+    return { success: 'Profil berhasil disimpan.' };
   } catch (error) {
     console.error('Failed to upsert profile:', error);
     return { error: 'Save failed: Unable to write profile to database.' };

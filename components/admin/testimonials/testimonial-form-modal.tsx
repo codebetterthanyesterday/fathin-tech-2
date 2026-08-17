@@ -5,6 +5,7 @@ import { X, UploadCloud, Loader2, Save } from 'lucide-react';
 import { createTestimonial, updateTestimonial, TestimonialActionState } from '@/app/actions/testimonial';
 import { uploadImage } from '@/app/actions/upload';
 import Image from 'next/image';
+import LocaleTabSelector from '../layout/locale-tab-selector';
 
 export default function TestimonialFormModal({
   isOpen,
@@ -18,16 +19,52 @@ export default function TestimonialFormModal({
   const [isPending, setIsPending] = useState(false);
   const [error, setError] = useState('');
   const [photoUrl, setPhotoUrl] = useState('');
+  const [name, setName] = useState('');
   const [isUploading, setIsUploading] = useState(false);
   const fileInputRef = useRef<HTMLInputElement>(null);
   const modalRef = useRef<HTMLDivElement>(null);
 
+  // Translation states
+  const [activeLocale, setActiveLocale] = useState<'id' | 'en'>('id');
+  const [translations, setTranslations] = useState({
+    id: { role: '', quote: '' },
+    en: { role: '', quote: '' },
+  });
+
   useEffect(() => {
     if (isOpen) {
       setPhotoUrl(testimonial?.photoUrl || '');
+      setName(testimonial?.name || '');
       setError('');
+
+      const currId = testimonial?.translations?.find((t: any) => t.locale === 'id');
+      const currEn = testimonial?.translations?.find((t: any) => t.locale === 'en');
+
+      setTranslations({
+        id: {
+          role: currId?.role || testimonial?.role || '',
+          quote: currId?.quote || testimonial?.quote || '',
+        },
+        en: {
+          role: currEn?.role || '',
+          quote: currEn?.quote || '',
+        },
+      });
     }
   }, [isOpen, testimonial]);
+
+  const handleTransChange = (field: 'role' | 'quote', value: string) => {
+    setTranslations((prev) => ({
+      ...prev,
+      [activeLocale]: {
+        ...prev[activeLocale],
+        [field]: value,
+      },
+    }));
+  };
+
+  const isIdComplete = !!translations.id.quote?.trim();
+  const isEnComplete = !!translations.en.quote?.trim();
 
   useEffect(() => {
     const handleEscape = (e: KeyboardEvent) => {
@@ -46,11 +83,9 @@ export default function TestimonialFormModal({
     setError('');
     setIsUploading(true);
     
-    // Create local preview immediately
     const localUrl = URL.createObjectURL(file);
     setPhotoUrl(localUrl);
 
-    // Upload to Supabase
     const formData = new FormData();
     formData.append('file', file);
     
@@ -58,9 +93,9 @@ export default function TestimonialFormModal({
     
     if (result.error) {
       setError(result.error);
-      setPhotoUrl(testimonial?.photoUrl || ''); // Revert on failure
+      setPhotoUrl(testimonial?.photoUrl || '');
     } else if (result.url) {
-      setPhotoUrl(result.url); // Set to actual public URL
+      setPhotoUrl(result.url);
     }
     
     setIsUploading(false);
@@ -71,8 +106,14 @@ export default function TestimonialFormModal({
     setIsPending(true);
     setError('');
 
-    const formData = new FormData(e.currentTarget);
+    const formData = new FormData();
+    formData.append('name', name);
     formData.append('photoUrl', photoUrl);
+
+    formData.append('role_id', translations.id.role);
+    formData.append('quote_id', translations.id.quote);
+    formData.append('role_en', translations.en.role);
+    formData.append('quote_en', translations.en.quote);
 
     let res: TestimonialActionState;
     if (testimonial) {
@@ -89,6 +130,8 @@ export default function TestimonialFormModal({
       onClose();
     }
   };
+
+  const currentTrans = translations[activeLocale];
 
   return (
     <div className="fixed inset-0 z-50 flex items-center justify-center p-4">
@@ -108,7 +151,7 @@ export default function TestimonialFormModal({
         </button>
 
         <h2 className="text-2xl font-bold text-white mb-6">
-          {testimonial ? 'Edit Entry' : 'Create Entry'}
+          {testimonial ? 'Edit Testimoni' : 'Tambah Testimoni'}
         </h2>
 
         {error && (
@@ -147,15 +190,15 @@ export default function TestimonialFormModal({
               )}
             </div>
             <div>
-              <h3 className="text-sm font-medium text-zinc-200">Endorser Profile Media</h3>
-              <p className="text-xs text-zinc-500 mb-2 mt-1">Optimal constraint: Square aspect ratio, &lt;5MB.</p>
+              <h3 className="text-sm font-medium text-zinc-200">Foto Profil Pemberi Testimoni</h3>
+              <p className="text-xs text-zinc-500 mb-2 mt-1">Rasio persegi (1:1), &lt;5MB.</p>
               <button 
                 type="button"
                 onClick={() => fileInputRef.current?.click()}
                 className="px-3 py-1.5 bg-zinc-900 hover:bg-zinc-800 border border-zinc-700 rounded-md text-xs font-medium transition-colors disabled:opacity-50"
                 disabled={isUploading}
               >
-                Upload Media
+                Upload Foto
               </button>
               <input 
                 ref={fileInputRef}
@@ -169,40 +212,58 @@ export default function TestimonialFormModal({
 
           <div className="space-y-4">
             <div className="space-y-2">
-              <label htmlFor="name" className="block text-sm font-medium text-zinc-300">Name *</label>
+              <label htmlFor="name" className="block text-sm font-medium text-zinc-300">
+                Nama Lengkap * <span className="text-xs text-zinc-500 font-normal">(Shared)</span>
+              </label>
               <input
                 id="name"
-                name="name"
                 type="text"
-                defaultValue={testimonial?.name || ''}
+                value={name}
+                onChange={(e) => setName(e.target.value)}
                 required
                 className="w-full px-4 py-2.5 bg-zinc-900 border border-zinc-800 rounded-lg text-white placeholder:text-zinc-600 focus:outline-none focus:ring-1 focus:ring-white/30"
-                placeholder="Enter full name..."
+                placeholder="Nama pemberi testimoni..."
+              />
+            </div>
+
+            {/* Bilingual Tab Selector */}
+            <div className="pt-2">
+              <LocaleTabSelector
+                activeLocale={activeLocale}
+                onLocaleChange={setActiveLocale}
+                status={{
+                  id: { isComplete: isIdComplete },
+                  en: { isComplete: isEnComplete },
+                }}
               />
             </div>
 
             <div className="space-y-2">
-              <label htmlFor="role" className="block text-sm font-medium text-zinc-300">Role / Company</label>
+              <label htmlFor="role" className="block text-sm font-medium text-zinc-300">
+                Jabatan / Perusahaan ({activeLocale.toUpperCase()})
+              </label>
               <input
                 id="role"
-                name="role"
                 type="text"
-                defaultValue={testimonial?.role || ''}
+                value={currentTrans.role}
+                onChange={(e) => handleTransChange('role', e.target.value)}
                 className="w-full px-4 py-2.5 bg-zinc-900 border border-zinc-800 rounded-lg text-white placeholder:text-zinc-600 focus:outline-none focus:ring-1 focus:ring-white/30"
-                placeholder="Enter designation..."
+                placeholder={activeLocale === 'id' ? 'cth. VP of Engineering di TechCorp' : 'e.g. VP of Engineering at TechCorp'}
               />
             </div>
 
             <div className="space-y-2">
-              <label htmlFor="quote" className="block text-sm font-medium text-zinc-300">Quote *</label>
+              <label htmlFor="quote" className="block text-sm font-medium text-zinc-300">
+                Isi Testimoni ({activeLocale.toUpperCase()}) *
+              </label>
               <textarea
                 id="quote"
-                name="quote"
-                required
+                required={activeLocale === 'id'}
                 rows={5}
-                defaultValue={testimonial?.quote || ''}
+                value={currentTrans.quote}
+                onChange={(e) => handleTransChange('quote', e.target.value)}
                 className="w-full px-4 py-2.5 bg-zinc-900 border border-zinc-800 rounded-lg text-white placeholder:text-zinc-600 focus:outline-none focus:ring-1 focus:ring-white/30 resize-y"
-                placeholder="Enter endorsement copy..."
+                placeholder={activeLocale === 'id' ? 'Tuliskan kutipan testimoni atau ulasan...' : 'Write testimonial quote or endorsement...'}
               />
             </div>
           </div>
@@ -214,7 +275,7 @@ export default function TestimonialFormModal({
               disabled={isPending || isUploading}
               className="px-5 py-2.5 bg-transparent hover:bg-zinc-900 text-zinc-400 hover:text-white text-sm font-medium rounded-lg transition-colors disabled:opacity-50"
             >
-              Cancel
+              Batal
             </button>
             <button
               type="submit"
@@ -222,7 +283,7 @@ export default function TestimonialFormModal({
               className="flex items-center gap-2 px-5 py-2.5 bg-white text-black text-sm font-semibold rounded-lg hover:bg-zinc-200 transition-colors disabled:opacity-50"
             >
               {isPending ? <Loader2 className="w-4 h-4 animate-spin" /> : <Save className="w-4 h-4" />}
-              {testimonial ? 'Update Entry' : 'Create Entry'}
+              {testimonial ? 'Perbarui Testimoni' : 'Simpan Testimoni'}
             </button>
           </div>
         </form>

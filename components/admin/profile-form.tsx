@@ -13,7 +13,7 @@ import {
   Trash2,
   GripVertical,
 } from 'lucide-react';
-import Image from 'next/image';
+import LocaleTabSelector from './layout/locale-tab-selector';
 
 const initialState: ProfileActionState = {
   success: '',
@@ -28,6 +28,35 @@ export default function ProfileForm({ initialData }: { initialData: any }) {
   const [uploadError, setUploadError] = useState('');
   const fileInputRef = useRef<HTMLInputElement>(null);
 
+  // Translation states
+  const idTrans = initialData?.translations?.find((t: any) => t.locale === 'id');
+  const enTrans = initialData?.translations?.find((t: any) => t.locale === 'en');
+
+  const [activeLocale, setActiveLocale] = useState<'id' | 'en'>('id');
+  const [translations, setTranslations] = useState({
+    id: {
+      tagline: idTrans?.tagline || initialData?.tagline || '',
+      bio: idTrans?.bio || initialData?.bio || '',
+    },
+    en: {
+      tagline: enTrans?.tagline || '',
+      bio: enTrans?.bio || '',
+    },
+  });
+
+  const handleTranslationChange = (field: 'tagline' | 'bio', value: string) => {
+    setTranslations((prev) => ({
+      ...prev,
+      [activeLocale]: {
+        ...prev[activeLocale],
+        [field]: value,
+      },
+    }));
+  };
+
+  const isIdComplete = !!translations.id.tagline?.trim() || !!translations.id.bio?.trim();
+  const isEnComplete = !!translations.en.tagline?.trim() && !!translations.en.bio?.trim();
+
   const handleImageChange = async (e: React.ChangeEvent<HTMLInputElement>) => {
     const file = e.target.files?.[0];
     if (!file) return;
@@ -35,11 +64,9 @@ export default function ProfileForm({ initialData }: { initialData: any }) {
     setUploadError('');
     setIsUploading(true);
 
-    // Create local preview immediately
     const localUrl = URL.createObjectURL(file);
     setPhotoUrl(localUrl);
 
-    // Upload to Supabase
     const formData = new FormData();
     formData.append('file', file);
 
@@ -47,9 +74,9 @@ export default function ProfileForm({ initialData }: { initialData: any }) {
 
     if (result.error) {
       setUploadError(result.error);
-      setPhotoUrl(initialData?.photoUrl || ''); // Revert on failure
+      setPhotoUrl(initialData?.photoUrl || '');
     } else if (result.url) {
-      setPhotoUrl(result.url); // Set to actual public URL
+      setPhotoUrl(result.url);
     }
 
     setIsUploading(false);
@@ -115,9 +142,11 @@ export default function ProfileForm({ initialData }: { initialData: any }) {
       <div className="absolute inset-0 bg-gradient-to-br from-white/5 to-transparent opacity-0 group-hover:opacity-100 transition-opacity duration-1000 pointer-events-none" />
 
       <div className="relative z-10">
-        <div className="mb-8">
-          <h2 className="text-2xl font-bold tracking-tight text-white">System Profile Data</h2>
-          <p className="text-zinc-400 text-sm mt-1">Configure identity credentials and public metadata.</p>
+        <div className="mb-8 flex flex-col sm:flex-row sm:items-center justify-between gap-4">
+          <div>
+            <h2 className="text-2xl font-bold tracking-tight text-white">System Profile Data</h2>
+            <p className="text-zinc-400 text-sm mt-1">Configure identity credentials, language translations, and public metadata.</p>
+          </div>
         </div>
 
         {/* Global Feedback Messages */}
@@ -142,9 +171,15 @@ export default function ProfileForm({ initialData }: { initialData: any }) {
           )}
         </div>
 
-        <form action={formAction} className="space-y-6">
+        <form action={formAction} className="space-y-8">
           <input type="hidden" name="photoUrl" value={photoUrl} />
           <input type="hidden" name="socialLinks" value={JSON.stringify(socialLinks)} />
+
+          {/* Hidden inputs to submit all locales */}
+          <input type="hidden" name="tagline_id" value={translations.id.tagline} />
+          <input type="hidden" name="bio_id" value={translations.id.bio} />
+          <input type="hidden" name="tagline_en" value={translations.en.tagline} />
+          <input type="hidden" name="bio_en" value={translations.en.bio} />
 
           {/* Photo Upload Area */}
           <div className="flex flex-col sm:flex-row items-start sm:items-center gap-6 pb-6 border-b border-zinc-800">
@@ -193,41 +228,90 @@ export default function ProfileForm({ initialData }: { initialData: any }) {
             </div>
           </div>
 
-          <div className="grid grid-cols-1 sm:grid-cols-2 gap-6">
-            {/* Name */}
-            <div className="space-y-2">
-              <label htmlFor="name" className="block text-sm font-medium text-zinc-300">
-                Name *
-              </label>
-              <input
-                id="name"
-                name="name"
-                type="text"
-                defaultValue={initialData?.name || ''}
-                required
-                className="w-full px-4 py-3 bg-zinc-900/50 border border-zinc-800 rounded-lg text-white placeholder:text-zinc-600 focus:outline-none focus:ring-2 focus:ring-white/20 focus:border-white/30 transition-all duration-300"
-                placeholder="Enter full name..."
+          {/* Non-Translatable Core Identity: Name */}
+          <div className="space-y-2">
+            <label htmlFor="name" className="block text-sm font-medium text-zinc-300">
+              Full Name * <span className="text-xs text-zinc-500 font-normal">(Shared across all languages)</span>
+            </label>
+            <input
+              id="name"
+              name="name"
+              type="text"
+              defaultValue={initialData?.name || ''}
+              required
+              className="w-full px-4 py-3 bg-zinc-900/50 border border-zinc-800 rounded-lg text-white placeholder:text-zinc-600 focus:outline-none focus:ring-2 focus:ring-white/20 focus:border-white/30 transition-all duration-300"
+              placeholder="Enter full name..."
+            />
+            {state?.fieldErrors?.name && (
+              <p className="text-red-400 text-xs mt-1">{state.fieldErrors.name[0]}</p>
+            )}
+          </div>
+
+          {/* TRANSLATABLE FIELDS (Tagline & Bio) WITH LOCALE TABS */}
+          <div className="p-6 bg-zinc-900/40 border border-zinc-800/80 rounded-2xl space-y-5">
+            <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3 border-b border-zinc-800/80 pb-4">
+              <div>
+                <h3 className="text-sm font-bold tracking-wide uppercase text-zinc-300">
+                  Translatable Content
+                </h3>
+                <p className="text-xs text-zinc-500">
+                  Tagline dan Bio dalam Bahasa Indonesia dan English.
+                </p>
+              </div>
+
+              <LocaleTabSelector
+                activeLocale={activeLocale}
+                onLocaleChange={setActiveLocale}
+                status={{
+                  id: { isComplete: isIdComplete },
+                  en: { isComplete: isEnComplete },
+                }}
               />
-              {state?.fieldErrors?.name && (
-                <p className="text-red-400 text-xs mt-1">{state.fieldErrors.name[0]}</p>
-              )}
             </div>
 
             {/* Tagline */}
             <div className="space-y-2">
-              <label htmlFor="tagline" className="block text-sm font-medium text-zinc-300">
-                Tagline
-              </label>
+              <div className="flex items-center justify-between">
+                <label htmlFor={`tagline_${activeLocale}`} className="block text-sm font-medium text-zinc-300">
+                  Tagline ({activeLocale.toUpperCase()})
+                </label>
+                <span className="text-xs text-zinc-500 font-mono">
+                  {activeLocale === 'id' ? 'Bahasa Indonesia' : 'English'}
+                </span>
+              </div>
               <input
-                id="tagline"
-                name="tagline"
+                id={`tagline_${activeLocale}`}
                 type="text"
-                defaultValue={initialData?.tagline || ''}
+                value={translations[activeLocale].tagline}
+                onChange={(e) => handleTranslationChange('tagline', e.target.value)}
                 className="w-full px-4 py-3 bg-zinc-900/50 border border-zinc-800 rounded-lg text-white placeholder:text-zinc-600 focus:outline-none focus:ring-2 focus:ring-white/20 focus:border-white/30 transition-all duration-300"
-                placeholder="Enter designation..."
+                placeholder={activeLocale === 'id' ? 'cth. Full-Stack Engineer & System Architect' : 'e.g. Full-Stack Engineer & System Architect'}
               />
             </div>
 
+            {/* Bio */}
+            <div className="space-y-2">
+              <div className="flex items-center justify-between">
+                <label htmlFor={`bio_${activeLocale}`} className="block text-sm font-medium text-zinc-300">
+                  Bio / Summary ({activeLocale.toUpperCase()})
+                </label>
+                <span className="text-xs text-zinc-500 font-mono">
+                  {activeLocale === 'id' ? 'Bahasa Indonesia' : 'English'}
+                </span>
+              </div>
+              <textarea
+                id={`bio_${activeLocale}`}
+                rows={5}
+                value={translations[activeLocale].bio}
+                onChange={(e) => handleTranslationChange('bio', e.target.value)}
+                className="w-full px-4 py-3 bg-zinc-900/50 border border-zinc-800 rounded-lg text-white placeholder:text-zinc-600 focus:outline-none focus:ring-2 focus:ring-white/20 focus:border-white/30 transition-all duration-300 resize-y"
+                placeholder={activeLocale === 'id' ? 'Tuliskan ringkasan bio profil Anda...' : 'Write your profile bio summary in English...'}
+              />
+            </div>
+          </div>
+
+          {/* Contact Details (Language Invariant) */}
+          <div className="grid grid-cols-1 sm:grid-cols-2 gap-6">
             {/* Email */}
             <div className="space-y-2">
               <label htmlFor="email" className="block text-sm font-medium text-zinc-300">
@@ -262,7 +346,7 @@ export default function ProfileForm({ initialData }: { initialData: any }) {
             </div>
 
             {/* Location */}
-            <div className="space-y-2 sm:col-span-2">
+            <div className="space-y-2">
               <label htmlFor="location" className="block text-sm font-medium text-zinc-300">
                 Location
               </label>
@@ -272,124 +356,14 @@ export default function ProfileForm({ initialData }: { initialData: any }) {
                 type="text"
                 defaultValue={initialData?.location || ''}
                 className="w-full px-4 py-3 bg-zinc-900/50 border border-zinc-800 rounded-lg text-white placeholder:text-zinc-600 focus:outline-none focus:ring-2 focus:ring-white/20 focus:border-white/30 transition-all duration-300"
-                placeholder="Enter primary location..."
+                placeholder="City, Country..."
               />
-            </div>
-
-            {/* Bio */}
-            <div className="space-y-2 sm:col-span-2">
-              <label htmlFor="bio" className="block text-sm font-medium text-zinc-300">
-                Bio
-              </label>
-              <textarea
-                id="bio"
-                name="bio"
-                rows={4}
-                defaultValue={initialData?.bio || ''}
-                className="w-full px-4 py-3 bg-zinc-900/50 border border-zinc-800 rounded-lg text-white placeholder:text-zinc-600 focus:outline-none focus:ring-2 focus:ring-white/20 focus:border-white/30 transition-all duration-300 resize-none"
-                placeholder="Enter profile biography..."
-              />
-            </div>
-
-            {/* Social Links GUI */}
-            <div className="space-y-4 sm:col-span-2">
-              <div className="flex items-center justify-between">
-                <label className="block text-sm font-medium text-zinc-300">Social Links</label>
-                <button
-                  type="button"
-                  onClick={addSocialLink}
-                  className="flex items-center gap-1.5 px-3 py-1.5 bg-zinc-800 hover:bg-zinc-700 text-white rounded-md text-xs font-medium transition-colors"
-                >
-                  <Plus className="w-3.5 h-3.5" />
-                  Create Entry
-                </button>
-              </div>
-
-              {socialLinks.length === 0 ? (
-                <div className="text-center py-6 bg-zinc-900/30 border border-zinc-800/50 rounded-lg border-dashed">
-                  <p className="text-sm text-zinc-500">No entries found. Action required: Create an entry.</p>
-                </div>
-              ) : (
-                <div className="space-y-3">
-                  {socialLinks.map((link, idx) => (
-                    <div
-                      key={idx}
-                      className="flex flex-col sm:flex-row gap-3 p-4 pl-10 bg-zinc-900/40 border border-zinc-800 rounded-lg relative group/item transition-all hover:border-zinc-700 cursor-move"
-                      draggable
-                      onDragStart={() => (dragItem.current = idx)}
-                      onDragEnter={() => (dragOverItem.current = idx)}
-                      onDragEnd={handleSort}
-                      onDragOver={(e) => e.preventDefault()}
-                    >
-                      <div className="absolute left-3 top-1/2 -translate-y-1/2 text-zinc-600 group-hover/item:text-zinc-400">
-                        <GripVertical className="w-4 h-4" />
-                      </div>
-
-                      {/* Platform */}
-                      <div className="flex-1 space-y-1">
-                        <label className="text-[11px] uppercase tracking-wider text-zinc-500 font-semibold">
-                          Platform
-                        </label>
-                        <input
-                          type="text"
-                          value={link.platform}
-                          onChange={(e) => updateSocialLink(idx, 'platform', e.target.value)}
-                          placeholder="Enter platform identifier..."
-                          className="w-full px-3 py-2 bg-zinc-900 border border-zinc-800 rounded-md text-sm text-white focus:outline-none focus:ring-1 focus:ring-white/30"
-                        />
-                      </div>
-
-                      {/* URL */}
-                      <div className="flex-[2] space-y-1">
-                        <label className="text-[11px] uppercase tracking-wider text-zinc-500 font-semibold">
-                          URL
-                        </label>
-                        <input
-                          type="url"
-                          value={link.url}
-                          onChange={(e) => updateSocialLink(idx, 'url', e.target.value)}
-                          placeholder="Enter target URI..."
-                          className="w-full px-3 py-2 bg-zinc-900 border border-zinc-800 rounded-md text-sm text-white focus:outline-none focus:ring-1 focus:ring-white/30"
-                        />
-                      </div>
-
-                      {/* Font Awesome Icon */}
-                      <div className="flex-1 space-y-1">
-                        <label className="text-[11px] uppercase tracking-wider text-zinc-500 font-semibold">
-                          FontAwesome Class
-                        </label>
-                        <div className="flex items-center gap-2">
-                          <input
-                            type="text"
-                            value={link.iconClass}
-                            onChange={(e) => updateSocialLink(idx, 'iconClass', e.target.value)}
-                            placeholder="fa-brands fa-github"
-                            className="w-full px-3 py-2 bg-zinc-900 border border-zinc-800 rounded-md text-sm text-white focus:outline-none focus:ring-1 focus:ring-white/30"
-                          />
-                          <div className="w-9 h-9 flex-shrink-0 flex items-center justify-center bg-zinc-800 rounded-md border border-zinc-700">
-                            <i className={`${link.iconClass} text-white`}></i>
-                          </div>
-                        </div>
-                      </div>
-
-                      {/* Remove Button */}
-                      <button
-                        type="button"
-                        onClick={() => removeSocialLink(idx)}
-                        className="absolute -top-2 -right-2 w-6 h-6 bg-red-500/10 text-red-400 hover:bg-red-500 hover:text-white rounded-full flex items-center justify-center opacity-0 group-hover/item:opacity-100 transition-all border border-red-500/20"
-                      >
-                        <Trash2 className="w-3 h-3" />
-                      </button>
-                    </div>
-                  ))}
-                </div>
-              )}
             </div>
 
             {/* Resume URL */}
-            <div className="space-y-2 sm:col-span-2">
+            <div className="space-y-2">
               <label htmlFor="resumeUrl" className="block text-sm font-medium text-zinc-300">
-                Resume URL
+                Resume/CV URL
               </label>
               <input
                 id="resumeUrl"
@@ -397,7 +371,7 @@ export default function ProfileForm({ initialData }: { initialData: any }) {
                 type="url"
                 defaultValue={initialData?.resumeUrl || ''}
                 className="w-full px-4 py-3 bg-zinc-900/50 border border-zinc-800 rounded-lg text-white placeholder:text-zinc-600 focus:outline-none focus:ring-2 focus:ring-white/20 focus:border-white/30 transition-all duration-300"
-                placeholder="Enter document URI..."
+                placeholder="https://example.com/resume.pdf"
               />
               {state?.fieldErrors?.resumeUrl && (
                 <p className="text-red-400 text-xs mt-1">{state.fieldErrors.resumeUrl[0]}</p>
@@ -405,21 +379,100 @@ export default function ProfileForm({ initialData }: { initialData: any }) {
             </div>
           </div>
 
-          <div className="pt-4 border-t border-zinc-800">
+          {/* Social Links Manager */}
+          <div className="pt-6 border-t border-zinc-800">
+            <div className="flex items-center justify-between mb-4">
+              <div>
+                <h3 className="text-sm font-medium text-zinc-200">Social Media Connections</h3>
+                <p className="text-xs text-zinc-500">Configure external profiles and platform references.</p>
+              </div>
+              <button
+                type="button"
+                onClick={addSocialLink}
+                className="flex items-center gap-1.5 px-3 py-1.5 bg-zinc-900 hover:bg-zinc-800 border border-zinc-700 rounded-md text-xs font-medium text-zinc-200 transition-colors"
+              >
+                <Plus className="w-3.5 h-3.5" />
+                Add Link
+              </button>
+            </div>
+
+            <div className="space-y-3">
+              {socialLinks.map((link, index) => (
+                <div
+                  key={index}
+                  draggable
+                  onDragStart={() => (dragItem.current = index)}
+                  onDragEnter={() => (dragOverItem.current = index)}
+                  onDragEnd={handleSort}
+                  onDragOver={(e) => e.preventDefault()}
+                  className="flex items-center gap-3 p-3 bg-zinc-900/30 border border-zinc-800/80 rounded-lg group/item cursor-move"
+                >
+                  <GripVertical className="w-4 h-4 text-zinc-600 group-hover/item:text-zinc-400 flex-shrink-0" />
+
+                  {/* Icon Selector / Preview */}
+                  <div className="w-8 h-8 rounded bg-zinc-800 flex items-center justify-center text-zinc-300 flex-shrink-0">
+                    <i className={link.iconClass || 'fa-solid fa-link'}></i>
+                  </div>
+
+                  <input
+                    type="text"
+                    placeholder="Platform (e.g. GitHub)"
+                    value={link.platform}
+                    onChange={(e) => updateSocialLink(index, 'platform', e.target.value)}
+                    className="w-1/4 px-3 py-1.5 bg-zinc-900 border border-zinc-700/50 rounded-md text-sm text-white placeholder:text-zinc-600 focus:outline-none focus:ring-1 focus:ring-white/20"
+                  />
+
+                  <input
+                    type="text"
+                    placeholder="Icon Class (fa-brands fa-github)"
+                    value={link.iconClass}
+                    onChange={(e) => updateSocialLink(index, 'iconClass', e.target.value)}
+                    className="w-1/4 px-3 py-1.5 bg-zinc-900 border border-zinc-700/50 rounded-md text-xs font-mono text-zinc-300 placeholder:text-zinc-600 focus:outline-none focus:ring-1 focus:ring-white/20"
+                  />
+
+                  <input
+                    type="url"
+                    placeholder="https://..."
+                    value={link.url}
+                    onChange={(e) => updateSocialLink(index, 'url', e.target.value)}
+                    className="flex-1 px-3 py-1.5 bg-zinc-900 border border-zinc-700/50 rounded-md text-sm text-white placeholder:text-zinc-600 focus:outline-none focus:ring-1 focus:ring-white/20"
+                  />
+
+                  <button
+                    type="button"
+                    onClick={() => removeSocialLink(index)}
+                    className="p-2 text-zinc-500 hover:text-red-400 transition-colors"
+                  >
+                    <Trash2 className="w-4 h-4" />
+                  </button>
+                </div>
+              ))}
+
+              {socialLinks.length === 0 && (
+                <div className="text-center py-6 border border-dashed border-zinc-800 rounded-lg text-zinc-600 text-sm">
+                  No social links configured yet.
+                </div>
+              )}
+            </div>
+          </div>
+
+          <div className="flex justify-end pt-4 border-t border-zinc-800">
             <button
               type="submit"
               disabled={isPending || isUploading}
-              className="group/btn relative w-full sm:w-auto flex items-center justify-center gap-2 py-3 px-8 bg-white text-black font-semibold rounded-lg overflow-hidden disabled:opacity-50 disabled:cursor-not-allowed transition-all duration-300 active:scale-[0.98]"
+              className="flex items-center gap-2 px-6 py-3 bg-white text-black font-semibold rounded-lg hover:bg-zinc-200 transition-all duration-300 shadow-lg shadow-white/5 active:scale-95 disabled:opacity-50 disabled:pointer-events-none"
             >
-              <div className="absolute inset-0 bg-zinc-200 translate-y-[100%] group-hover/btn:translate-y-0 transition-transform duration-300 pointer-events-none" />
-              <div className="relative z-10 flex items-center gap-2">
-                {isPending ? (
-                  <Loader2 className="w-5 h-5 animate-spin" />
-                ) : (
-                  <Save className="w-4 h-4 transition-transform duration-300 group-hover/btn:-translate-y-0.5" />
-                )}
-                <span>Update Configuration</span>
-              </div>
+              {isPending ? (
+                <>
+                  <Loader2 className="w-4 h-4 animate-spin" />
+                  Processing...
+                </>
+              ) : (
+                <>
+                  <Save className="w-4 h-4" />
+                  Save Changes
+                </>
+              )}
             </button>
           </div>
         </form>

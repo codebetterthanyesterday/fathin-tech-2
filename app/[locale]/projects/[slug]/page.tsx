@@ -18,7 +18,7 @@ interface ProjectDetailPageProps {
 
 export async function generateMetadata({ params }: ProjectDetailPageProps): Promise<Metadata> {
   const { locale, slug } = await params;
-  const project = await getProjectBySlug(slug);
+  const project = await getProjectBySlug(slug, locale);
   
   if (!project) {
     return {
@@ -66,7 +66,7 @@ export default async function ProjectDetailPage({ params }: ProjectDetailPagePro
   setRequestLocale(locale);
 
   const t = await getTranslations('projects');
-  const project = await getProjectBySlug(slug);
+  const project = await getProjectBySlug(slug, locale);
 
   if (!project) {
     notFound();
