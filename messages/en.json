@@ -109,7 +109,8 @@
     "commandPaletteTitle": "Search system...",
     "viewAllResults": "View all {count} results",
     "shortcut": "Search",
-    "close": "Close"
+    "close": "Close",
+    "fallbackBadge": "Indonesian only"
   },
   "language": {
     "switchLanguage": "Switch Language",

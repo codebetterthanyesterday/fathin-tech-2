@@ -109,7 +109,8 @@
     "commandPaletteTitle": "Cari di sistem...",
     "viewAllResults": "Lihat semua {count} hasil",
     "shortcut": "Cari",
-    "close": "Tutup"
+    "close": "Tutup",
+    "fallbackBadge": "Hanya Bahasa Indonesia"
   },
   "language": {
     "switchLanguage": "Ganti Bahasa",

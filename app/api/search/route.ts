@@ -12,6 +12,8 @@ export interface SearchResultItem {
   tags?: string[];
   publishedAt?: string | null;
   featured?: boolean;
+  resultLocale?: string;
+  isFallback?: boolean;
 }
 
 export interface SearchResponse {
@@ -21,6 +23,7 @@ export interface SearchResponse {
   limit: number;
   totalPages: number;
   query: string;
+  locale: string;
 }
 
 /**
@@ -43,6 +46,7 @@ export async function GET(request: NextRequest) {
     const { searchParams } = new URL(request.url);
     const rawQuery = searchParams.get('q') || '';
     const type = searchParams.get('type') || 'all'; // 'all' | 'project' | 'article'
+    const requestedLocale = searchParams.get('locale') || 'id';
     const page = Math.max(1, parseInt(searchParams.get('page') || '1', 10));
     const limit = Math.min(50, Math.max(1, parseInt(searchParams.get('limit') || '10', 10)));
     const offset = (page - 1) * limit;
@@ -58,6 +62,7 @@ export async function GET(request: NextRequest) {
         limit,
         totalPages: 0,
         query: rawQuery,
+        locale: requestedLocale,
       });
     }
 
@@ -66,6 +71,7 @@ export async function GET(request: NextRequest) {
     const queries: Promise<any[]>[] = [];
 
     // Project Search Query
+    // Scoped to requested locale with graceful Indonesian fallback
     if (type === 'all' || type === 'project') {
       const projectQuery = prisma.$queryRawUnsafe<any[]>(
         `
@@ -78,17 +84,22 @@ export async function GET(request: NextRequest) {
           coalesce(pt.summary, '') AS snippet,
           p."techStack" AS tags,
           p."isFeatured" AS featured,
+          pt.locale AS "resultLocale",
+          (pt.locale != $3) AS "isFallback",
           (
-            coalesce(ts_rank(pt.search_vector, websearch_to_tsquery('simple', $1)), 0.0) * 2.5 +
-            coalesce(ts_rank(pt.search_vector, to_tsquery('simple', $2)), 0.0) * 1.5 +
-            coalesce(similarity(pt.title, $1), 0.0) * 2.0 +
-            (CASE WHEN pt.title ILIKE ('%' || $1 || '%') THEN 1.0 ELSE 0.0 END)
+            (
+              coalesce(ts_rank(pt.search_vector, websearch_to_tsquery('simple', $1)), 0.0) * 2.5 +
+              coalesce(ts_rank(pt.search_vector, to_tsquery('simple', $2)), 0.0) * 1.5 +
+              coalesce(similarity(pt.title, $1), 0.0) * 2.0 +
+              (CASE WHEN pt.title ILIKE ('%' || $1 || '%') THEN 1.0 ELSE 0.0 END)
+            ) * (CASE WHEN pt.locale = $3 THEN 1.0 ELSE 0.85 END)
           )::float AS score,
           p."createdAt" AS "publishedAt"
         FROM "Project" p
         JOIN "ProjectTranslation" pt ON pt."projectId" = p.id
         WHERE 
-          (
+          (pt.locale = $3 OR pt.locale = 'id')
+          AND (
             pt.search_vector @@ websearch_to_tsquery('simple', $1)
             OR pt.search_vector @@ to_tsquery('simple', $2)
             OR similarity(pt.title, $1) > 0.15
@@ -98,7 +109,8 @@ export async function GET(request: NextRequest) {
         ORDER BY p.id, score DESC
         `,
         trimmedQuery,
-        prefixQuery
+        prefixQuery,
+        requestedLocale
       ).catch((err) => {
         console.error('Project search error:', err);
         return [];
@@ -108,6 +120,7 @@ export async function GET(request: NextRequest) {
     }
 
     // Article Search Query (Strictly unpublished drafts excluded: isPublished = true)
+    // Scoped to requested locale with graceful Indonesian fallback
     if (type === 'all' || type === 'article') {
       const articleQuery = prisma.$queryRawUnsafe<any[]>(
         `
@@ -120,16 +133,21 @@ export async function GET(request: NextRequest) {
           coalesce(at.excerpt, substring(at."contentMd" from 1 for 200), '') AS snippet,
           ARRAY[]::text[] AS tags,
           false AS featured,
+          at.locale AS "resultLocale",
+          (at.locale != $3) AS "isFallback",
           (
-            coalesce(ts_rank(at.search_vector, websearch_to_tsquery('simple', $1)), 0.0) * 2.5 +
-            coalesce(ts_rank(at.search_vector, to_tsquery('simple', $2)), 0.0) * 1.5 +
-            coalesce(similarity(at.title, $1), 0.0) * 2.0 +
-            (CASE WHEN at.title ILIKE ('%' || $1 || '%') THEN 1.0 ELSE 0.0 END)
+            (
+              coalesce(ts_rank(at.search_vector, websearch_to_tsquery('simple', $1)), 0.0) * 2.5 +
+              coalesce(ts_rank(at.search_vector, to_tsquery('simple', $2)), 0.0) * 1.5 +
+              coalesce(similarity(at.title, $1), 0.0) * 2.0 +
+              (CASE WHEN at.title ILIKE ('%' || $1 || '%') THEN 1.0 ELSE 0.0 END)
+            ) * (CASE WHEN at.locale = $3 THEN 1.0 ELSE 0.85 END)
           )::float AS score,
           a."publishedAt" AS "publishedAt"
         FROM "Article" a
         JOIN "ArticleTranslation" at ON at."articleId" = a.id
         WHERE a."isPublished" = true
+          AND (at.locale = $3 OR at.locale = 'id')
           AND (
             at.search_vector @@ websearch_to_tsquery('simple', $1)
             OR at.search_vector @@ to_tsquery('simple', $2)
@@ -140,7 +158,8 @@ export async function GET(request: NextRequest) {
         ORDER BY a.id, score DESC
         `,
         trimmedQuery,
-        prefixQuery
+        prefixQuery,
+        requestedLocale
       ).catch((err) => {
         console.error('Article search error:', err);
         return [];
@@ -166,6 +185,7 @@ export async function GET(request: NextRequest) {
       limit,
       totalPages,
       query: rawQuery,
+      locale: requestedLocale,
     });
   } catch (error) {
     console.error('Unified search route error:', error);

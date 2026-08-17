@@ -20,11 +20,12 @@ import ThemeToggle from '@/components/public/layout/theme-toggle';
 import LanguageSwitcher from '@/components/public/layout/language-switcher';
 import HighlightMatch from '@/components/public/search/highlight-match';
 import { SearchResultItem, SearchResponse } from '@/app/api/search/route';
-import { useTranslations } from 'next-intl';
+import { useTranslations, useLocale } from 'next-intl';
 
 export default function SearchClientView() {
   const router = useRouter();
   const searchParams = useSearchParams();
+  const locale = useLocale();
   const t = useTranslations('search');
   const tNav = useTranslations('nav');
 
@@ -102,7 +103,7 @@ export default function SearchClientView() {
       const res = await fetch(
         `/api/search?q=${encodeURIComponent(trimmed)}&type=${encodeURIComponent(
           type
-        )}&page=${page}&limit=10`
+        )}&locale=${encodeURIComponent(locale)}&page=${page}&limit=10`
       );
       if (res.ok) {
         const data: SearchResponse = await res.json();
@@ -415,6 +416,12 @@ export default function SearchClientView() {
                         {item.featured && (
                           <span className="px-2 py-0.5 text-[10px] font-mono rounded-full bg-[var(--accent-color)]/10 text-[var(--accent-text)] border border-[var(--accent-color)]/20">
                             Featured
+                          </span>
+                        )}
+
+                        {item.isFallback && (
+                          <span className="px-2 py-0.5 text-[10px] font-mono rounded-full bg-amber-500/10 text-amber-400 border border-amber-500/20">
+                            {t('fallbackBadge')}
                           </span>
                         )}
                       </div>

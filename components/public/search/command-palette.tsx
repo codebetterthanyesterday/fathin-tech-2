@@ -17,7 +17,7 @@ import {
 import { useSearch } from './search-context';
 import HighlightMatch from './highlight-match';
 import { SearchResultItem, SearchResponse } from '@/app/api/search/route';
-import { useTranslations } from 'next-intl';
+import { useTranslations, useLocale } from 'next-intl';
 
 export default function CommandPalette() {
   const { isOpen, closeSearch } = useSearch();
@@ -27,6 +27,7 @@ export default function CommandPalette() {
   const [isLoading, setIsLoading] = useState(false);
   const router = useRouter();
   const inputRef = useRef<HTMLInputElement>(null);
+  const locale = useLocale();
   const t = useTranslations('search');
   const tNav = useTranslations('nav');
 
@@ -57,7 +58,9 @@ export default function CommandPalette() {
     setIsLoading(true);
     const timer = setTimeout(async () => {
       try {
-        const res = await fetch(`/api/search?q=${encodeURIComponent(trimmed)}&limit=8`);
+        const res = await fetch(
+          `/api/search?q=${encodeURIComponent(trimmed)}&locale=${encodeURIComponent(locale)}&limit=8`
+        );
         if (res.ok) {
           const data: SearchResponse = await res.json();
           setResults(data.results || []);
@@ -265,6 +268,11 @@ export default function CommandPalette() {
                                 Featured
                               </span>
                             )}
+                            {project.isFallback && (
+                              <span className="px-1.5 py-0.5 text-[10px] font-mono rounded bg-amber-500/10 text-amber-400 border border-amber-500/20 shrink-0">
+                                {t('fallbackBadge')}
+                              </span>
+                            )}
                           </div>
                           {project.snippet && (
                             <p className="text-xs text-[var(--text-secondary)] line-clamp-1 mt-0.5">
@@ -315,6 +323,11 @@ export default function CommandPalette() {
                             <span className="font-semibold text-sm text-[var(--text-primary)] group-hover:text-[var(--accent-text)] transition-colors truncate">
                               <HighlightMatch text={article.title} query={query} />
                             </span>
+                            {article.isFallback && (
+                              <span className="px-1.5 py-0.5 text-[10px] font-mono rounded bg-amber-500/10 text-amber-400 border border-amber-500/20 shrink-0">
+                                {t('fallbackBadge')}
+                              </span>
+                            )}
                           </div>
                           {article.snippet && (
                             <p className="text-xs text-[var(--text-secondary)] line-clamp-1 mt-0.5">
