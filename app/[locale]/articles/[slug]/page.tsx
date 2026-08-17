@@ -1,6 +1,6 @@
 import { notFound } from 'next/navigation';
 import Image from 'next/image';
-import Link from 'next/link';
+import { Link } from '@/i18n/routing';
 import { Metadata } from 'next';
 import { ArrowLeft, Calendar, Clock, Sparkles } from 'lucide-react';
 import { getPublishedArticleBySlug } from '@/app/actions/article';
@@ -9,14 +9,18 @@ import { renderMarkdownServer } from '@/lib/markdown/server';
 import JsonLd from '@/components/public/json-ld';
 import ThemeToggle from '@/components/public/layout/theme-toggle';
 import SearchTrigger from '@/components/public/search/search-trigger';
+import LanguageSwitcher from '@/components/public/layout/language-switcher';
+import { getTranslations, setRequestLocale } from 'next-intl/server';
+
+interface ArticleDetailPageProps {
+  params: Promise<{ locale: string; slug: string }>;
+}
 
 export async function generateMetadata({
   params,
-}: {
-  params: Promise<{ slug: string }>;
-}): Promise<Metadata> {
-  const resolvedParams = await params;
-  const article = await getPublishedArticleBySlug(resolvedParams.slug);
+}: ArticleDetailPageProps): Promise<Metadata> {
+  const { locale, slug } = await params;
+  const article = await getPublishedArticleBySlug(slug);
 
   if (!article) {
     return {
@@ -28,7 +32,7 @@ export async function generateMetadata({
   const authorName = profile?.name || 'Author';
   const title = `${article.title} — ${authorName}`;
   const description = article.excerpt || `Read ${article.title} on ${authorName}'s technical portfolio.`;
-  const url = `/articles/${article.slug}`;
+  const url = `/${locale}/articles/${article.slug}`;
 
   return {
     title,
@@ -38,6 +42,7 @@ export async function generateMetadata({
       description,
       url,
       type: 'article',
+      locale: locale === 'id' ? 'id_ID' : 'en_US',
       publishedTime: article.publishedAt ? new Date(article.publishedAt).toISOString() : undefined,
       authors: [authorName],
       ...(article.coverImage
@@ -61,6 +66,11 @@ export async function generateMetadata({
     },
     alternates: {
       canonical: url,
+      languages: {
+        id: `/id/articles/${article.slug}`,
+        en: `/en/articles/${article.slug}`,
+        'x-default': `/id/articles/${article.slug}`,
+      },
     },
   };
 }
@@ -71,22 +81,12 @@ function calculateReadingTime(contentMd: string): number {
   return Math.max(1, Math.ceil(words / 200));
 }
 
-function formatDate(date: Date | null): string {
-  if (!date) return '';
-  return new Date(date).toLocaleDateString('en-US', {
-    month: 'long',
-    day: 'numeric',
-    year: 'numeric',
-  });
-}
+export default async function ArticleDetailPage({ params }: ArticleDetailPageProps) {
+  const { locale, slug } = await params;
+  setRequestLocale(locale);
 
-export default async function ArticleDetailPage({
-  params,
-}: {
-  params: Promise<{ slug: string }>;
-}) {
-  const resolvedParams = await params;
-  const article = await getPublishedArticleBySlug(resolvedParams.slug);
+  const t = await getTranslations('articles');
+  const article = await getPublishedArticleBySlug(slug);
 
   if (!article) {
     notFound();
@@ -95,6 +95,15 @@ export default async function ArticleDetailPage({
   const { profile } = await getPortfolioData();
   const htmlContent = await renderMarkdownServer(article.contentMd);
   const readTime = calculateReadingTime(article.contentMd);
+
+  const formatDate = (date: Date | null): string => {
+    if (!date) return '';
+    return new Date(date).toLocaleDateString(locale === 'id' ? 'id-ID' : 'en-US', {
+      month: 'long',
+      day: 'numeric',
+      year: 'numeric',
+    });
+  };
 
   const articleSchema = {
     '@context': 'https://schema.org',
@@ -123,7 +132,7 @@ export default async function ArticleDetailPage({
             className="group flex items-center gap-2 text-[var(--text-secondary)] hover:text-[var(--text-primary)] transition-colors text-sm font-medium focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[var(--accent-color)] rounded-md py-1 px-2"
           >
             <ArrowLeft className="w-4 h-4 group-hover:-translate-x-1 transition-transform" />
-            All Articles
+            {t('backToArticles')}
           </Link>
           
           <div className="flex items-center gap-3">
@@ -131,6 +140,7 @@ export default async function ArticleDetailPage({
               {article.title}
             </span>
             <SearchTrigger variant="compact" />
+            <LanguageSwitcher />
             <ThemeToggle />
           </div>
         </div>
@@ -159,7 +169,7 @@ export default async function ArticleDetailPage({
             )}
             <span className="flex items-center gap-1.5">
               <Clock className="w-3.5 h-3.5" />
-              {readTime} min read
+              {readTime} {t('minRead')}
             </span>
           </div>
 
@@ -184,43 +194,45 @@ export default async function ArticleDetailPage({
                 fill
                 priority
                 className="object-cover"
-                sizes="(max-width: 768px) 100vw, 768px"
+                sizes="(max-width: 768px) 100vw, 800px"
               />
             </div>
           )}
 
-          {/* Rendered HTML Content */}
+          {/* Rendered HTML Markdown Body */}
           <div
-            className="prose dark:prose-invert prose-zinc max-w-none text-base sm:text-lg prose-p:leading-relaxed prose-p:text-[var(--text-secondary)] prose-headings:text-[var(--text-primary)] prose-headings:font-bold prose-h1:text-3xl prose-h2:text-2xl prose-h2:mt-12 prose-h2:mb-4 prose-h2:border-b prose-h2:border-[var(--border-subtle)] prose-h2:pb-3 prose-h3:text-xl prose-h3:mt-8 prose-h3:mb-3 prose-a:text-[var(--text-primary)] prose-a:underline hover:prose-a:text-[var(--accent-text)] prose-strong:text-[var(--text-primary)] prose-blockquote:border-l-[var(--border-strong)] prose-blockquote:text-[var(--text-secondary)] prose-blockquote:italic prose-pre:bg-[var(--code-bg)] prose-pre:border prose-pre:border-[var(--code-border)] prose-pre:rounded-2xl prose-pre:p-5 prose-code:font-mono prose-code:text-sm prose-code:bg-[var(--bg-surface)] prose-code:text-[var(--text-primary)] prose-code:px-1.5 prose-code:py-0.5 prose-code:rounded-md prose-img:rounded-2xl prose-img:border prose-img:border-[var(--border-subtle)] prose-hr:border-[var(--border-subtle)] prose-ul:text-[var(--text-secondary)] prose-ol:text-[var(--text-secondary)] prose-li:my-1"
+            className="prose dark:prose-invert prose-zinc max-w-none prose-headings:font-bold prose-headings:tracking-tight prose-a:text-[var(--accent-text)] prose-a:no-underline hover:prose-a:underline prose-pre:p-0 prose-pre:border prose-pre:border-[var(--border-subtle)] prose-pre:rounded-2xl prose-img:rounded-2xl prose-img:border prose-img:border-[var(--border-subtle)] leading-relaxed text-[var(--text-primary)]"
             dangerouslySetInnerHTML={{ __html: htmlContent }}
           />
 
-          {/* Post Article Footer */}
-          <div className="pt-16 mt-16 border-t border-[var(--border-subtle)] flex flex-col sm:flex-row items-center justify-between gap-6">
+          {/* Article Footer & Author Info */}
+          <div className="mt-20 pt-10 border-t border-[var(--border-subtle)] flex flex-col sm:flex-row sm:items-center justify-between gap-6">
             <div className="flex items-center gap-4">
-              {profile?.photoUrl && (
-                <div className="w-12 h-12 rounded-full overflow-hidden border border-[var(--border-strong)] flex-shrink-0 relative bg-[var(--bg-surface)]">
-                  <Image
-                    src={profile.photoUrl}
-                    alt={profile.name}
-                    fill
-                    className="object-cover"
-                  />
+              {profile?.photoUrl ? (
+                <Image
+                  src={profile.photoUrl}
+                  alt={profile.name}
+                  width={52}
+                  height={52}
+                  className="rounded-full ring-2 ring-[var(--border-strong)] object-cover shadow-sm"
+                />
+              ) : (
+                <div className="w-12 h-12 rounded-full bg-[var(--bg-surface)] border border-[var(--border-subtle)] flex items-center justify-center font-bold text-lg">
+                  {profile?.name?.[0] || 'A'}
                 </div>
               )}
               <div>
-                <p className="text-sm font-semibold text-[var(--text-primary)]">Written by {profile?.name || 'Author'}</p>
-                {profile?.tagline && (
-                  <p className="text-xs text-[var(--text-secondary)]">{profile.tagline}</p>
-                )}
+                <p className="font-bold text-base text-[var(--text-primary)]">{profile?.name || 'Author'}</p>
+                <p className="text-xs text-[var(--text-secondary)]">{profile?.tagline || 'Software Engineer'}</p>
               </div>
             </div>
 
             <Link
               href="/articles"
-              className="px-5 py-2.5 rounded-full bg-[var(--bg-surface)] border border-[var(--border-subtle)] text-[var(--text-secondary)] hover:text-[var(--text-primary)] hover:border-[var(--border-strong)] transition-colors text-sm font-medium shadow-sm"
+              className="inline-flex items-center gap-2 px-5 py-2.5 rounded-full bg-[var(--bg-surface)] border border-[var(--border-subtle)] text-xs font-semibold text-[var(--text-primary)] hover:border-[var(--border-strong)] transition-colors shadow-sm self-start sm:self-auto"
             >
-              ← Back to all articles
+              <ArrowLeft className="w-3.5 h-3.5" />
+              {t('backToArticles')}
             </Link>
           </div>
         </div>

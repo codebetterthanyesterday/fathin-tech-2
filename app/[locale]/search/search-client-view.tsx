@@ -1,8 +1,8 @@
 'use client';
 
 import React, { useState, useEffect, useCallback, useRef } from 'react';
-import { useRouter, useSearchParams } from 'next/navigation';
-import Link from 'next/link';
+import { useRouter, Link } from '@/i18n/routing';
+import { useSearchParams } from 'next/navigation';
 import {
   Search,
   X,
@@ -17,12 +17,16 @@ import {
   Loader2,
 } from 'lucide-react';
 import ThemeToggle from '@/components/public/layout/theme-toggle';
+import LanguageSwitcher from '@/components/public/layout/language-switcher';
 import HighlightMatch from '@/components/public/search/highlight-match';
 import { SearchResultItem, SearchResponse } from '@/app/api/search/route';
+import { useTranslations } from 'next-intl';
 
 export default function SearchClientView() {
   const router = useRouter();
   const searchParams = useSearchParams();
+  const t = useTranslations('search');
+  const tNav = useTranslations('nav');
 
   const initialQuery = searchParams.get('q') || '';
   const initialType = searchParams.get('type') || 'all';
@@ -43,23 +47,23 @@ export default function SearchClientView() {
   // Sync state when URL params change externally (e.g. browser back/forward)
   useEffect(() => {
     const q = searchParams.get('q') || '';
-    const t = searchParams.get('type') || 'all';
+    const tParam = searchParams.get('type') || 'all';
     const p = parseInt(searchParams.get('page') || '1', 10);
 
     if (q !== activeQuery) {
       setInputQuery(q);
       setActiveQuery(q);
     }
-    setActiveType(t);
+    setActiveType(tParam);
     setCurrentPage(p);
   }, [searchParams]); // eslint-disable-line react-hooks/exhaustive-deps
 
   // Update URL helper (uses router.replace with scroll: false to avoid cluttering history)
   const updateUrl = useCallback(
-    (q: string, t: string, p: number) => {
+    (q: string, tType: string, p: number) => {
       const params = new URLSearchParams();
       if (q.trim()) params.set('q', q.trim());
-      if (t !== 'all') params.set('type', t);
+      if (tType !== 'all') params.set('type', tType);
       if (p > 1) params.set('page', p.toString());
 
       const queryString = params.toString();
@@ -181,13 +185,11 @@ export default function SearchClientView() {
             className="group flex items-center gap-2 text-[var(--text-secondary)] hover:text-[var(--text-primary)] transition-colors text-sm font-medium focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[var(--accent-color)] rounded-md py-1 px-2"
           >
             <ArrowLeft className="w-4 h-4 group-hover:-translate-x-1 transition-transform" />
-            Back to Home
+            {t('backToHome')}
           </Link>
 
           <div className="flex items-center gap-3">
-            <span className="text-xs font-mono text-[var(--text-tertiary)] uppercase tracking-widest hidden sm:inline-block">
-              Dedicated Search
-            </span>
+            <LanguageSwitcher />
             <ThemeToggle />
           </div>
         </div>
@@ -204,10 +206,10 @@ export default function SearchClientView() {
         <div className="max-w-4xl mx-auto relative z-10 space-y-6">
           <div>
             <h1 className="text-3xl sm:text-4xl md:text-5xl font-bold tracking-tight text-[var(--text-primary)] mb-2">
-              Search Portfolio
+              {t('title')}
             </h1>
             <p className="text-sm sm:text-base text-[var(--text-secondary)]">
-              Real-time search across technical case studies, featured projects, and published articles.
+              {t('description')}
             </p>
           </div>
 
@@ -220,7 +222,7 @@ export default function SearchClientView() {
                 type="text"
                 value={inputQuery}
                 onChange={(e) => setInputQuery(e.target.value)}
-                placeholder="Type keywords (e.g. Next.js, API, PostgreSQL)..."
+                placeholder={t('placeholder')}
                 className="w-full pl-12 pr-28 py-4 bg-[var(--bg-surface)] border border-[var(--border-strong)] rounded-2xl text-[var(--text-primary)] placeholder:text-[var(--text-tertiary)] focus:outline-none focus:ring-2 focus:ring-[var(--accent-color)] shadow-lg text-base sm:text-lg transition-all"
               />
               <div className="absolute right-3 flex items-center gap-2">
@@ -242,7 +244,7 @@ export default function SearchClientView() {
                   type="submit"
                   className="px-4 py-2 bg-[var(--accent-btn-bg)] text-[var(--accent-btn-fg)] hover:brightness-110 font-semibold rounded-xl text-xs sm:text-sm transition-all shadow-md active:scale-95"
                 >
-                  Search
+                  {t('shortcut')}
                 </button>
               </div>
             </div>
@@ -260,7 +262,7 @@ export default function SearchClientView() {
               }`}
             >
               <Filter className="w-3.5 h-3.5" />
-              <span>All Content</span>
+              <span>{t('all')}</span>
             </button>
 
             <button
@@ -273,7 +275,7 @@ export default function SearchClientView() {
               }`}
             >
               <Layers className="w-3.5 h-3.5" />
-              <span>Projects</span>
+              <span>{t('projects')}</span>
             </button>
 
             <button
@@ -286,7 +288,7 @@ export default function SearchClientView() {
               }`}
             >
               <FileText className="w-3.5 h-3.5" />
-              <span>Articles</span>
+              <span>{t('articles')}</span>
             </button>
           </div>
         </div>
@@ -300,8 +302,8 @@ export default function SearchClientView() {
             <div className="flex items-center justify-between mb-6 pb-3 border-b border-[var(--border-subtle)] text-xs font-mono text-[var(--text-tertiary)]">
               <span>
                 {isLoading
-                  ? 'Searching...'
-                  : `Found ${totalResults} result${totalResults === 1 ? '' : 's'}`} for &ldquo;{activeQuery}&rdquo;
+                  ? t('searching')
+                  : t('resultsCount', { count: totalResults, query: activeQuery })}
               </span>
               {totalPages > 1 && (
                 <span>
@@ -337,10 +339,10 @@ export default function SearchClientView() {
                 <Sparkles className="w-6 h-6" />
               </div>
               <h2 className="text-xl font-bold text-[var(--text-primary)] mb-2">
-                Type something to search
+                {t('startSearching')}
               </h2>
               <p className="text-sm text-[var(--text-secondary)] max-w-md mx-auto mb-8">
-                Search queries match across titles, summaries, tech stacks, and full markdown bodies with real-time typo tolerance.
+                {t('startSearchingSub')}
               </p>
 
               <div className="space-y-3">
@@ -370,10 +372,10 @@ export default function SearchClientView() {
                 <Search className="w-6 h-6" />
               </div>
               <h2 className="text-xl font-bold text-[var(--text-primary)] mb-2">
-                No matching results
+                {t('noResults')}
               </h2>
               <p className="text-sm text-[var(--text-secondary)] max-w-md mx-auto mb-6">
-                We couldn&apos;t find anything matching &ldquo;{activeQuery}&rdquo;. Try using broader terms, checking for typos, or switching filter categories.
+                {t('noResultsSub')}
               </p>
               <button
                 type="button"
@@ -401,12 +403,12 @@ export default function SearchClientView() {
                         {item.type === 'project' ? (
                           <span className="inline-flex items-center gap-1.5 px-2.5 py-0.5 rounded-full bg-blue-500/10 text-blue-400 border border-blue-500/20 text-[11px] font-mono font-medium">
                             <Layers className="w-3 h-3" />
-                            Project
+                            {t('projects')}
                           </span>
                         ) : (
                           <span className="inline-flex items-center gap-1.5 px-2.5 py-0.5 rounded-full bg-purple-500/10 text-purple-400 border border-purple-500/20 text-[11px] font-mono font-medium">
                             <FileText className="w-3 h-3" />
-                            Article
+                            {t('articles')}
                           </span>
                         )}
 

@@ -59,9 +59,6 @@ export const metadata: Metadata = {
   }
 };
 
-import { SearchProvider } from "@/components/public/search/search-context";
-import CommandPalette from "@/components/public/search/command-palette";
-
 export default async function RootLayout({ children }: { children: React.ReactNode }) {
   const { profile } = await getProfile();
   
@@ -86,7 +83,7 @@ export default async function RootLayout({ children }: { children: React.ReactNo
 
   return (
     <html
-      lang="en"
+      lang="id"
       suppressHydrationWarning
       className={`${geistSans.variable} ${geistMono.variable} ${inter.variable} ${spaceGrotesk.variable} ${playfair.variable} ${jetbrainsMono.variable} h-full antialiased`}
       style={customStyles}
@@ -100,13 +97,10 @@ export default async function RootLayout({ children }: { children: React.ReactNo
       </head>
       <body className="min-h-full flex flex-col bg-[var(--bg-primary)] text-[var(--text-primary)] antialiased transition-colors duration-300">
         <ThemeProvider>
-          <SearchProvider>
-            <Suspense fallback={null}>
-              <PreviewSyncListener />
-            </Suspense>
-            {children}
-            <CommandPalette />
-          </SearchProvider>
+          <Suspense fallback={null}>
+            <PreviewSyncListener />
+          </Suspense>
+          {children}
           <SpeedInsights />
           <Analytics />
         </ThemeProvider>

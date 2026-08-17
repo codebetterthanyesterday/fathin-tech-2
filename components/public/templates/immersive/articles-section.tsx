@@ -2,8 +2,9 @@
 
 import { motion, useReducedMotion } from 'framer-motion';
 import Image from 'next/image';
-import Link from 'next/link';
+import { Link } from '@/i18n/routing';
 import { ArrowRight, Calendar, Clock, FileCode, Sparkles } from 'lucide-react';
+import { useTranslations, useLocale } from 'next-intl';
 
 interface ImmersiveArticlesSectionProps {
   articles: any[];
@@ -15,19 +16,21 @@ function calculateReadingTime(contentMd: string): number {
   return Math.max(1, Math.ceil(words / 200));
 }
 
-function formatDate(date: Date | string | null): string {
-  if (!date) return '';
-  return new Date(date).toLocaleDateString('en-US', {
-    month: 'short',
-    day: 'numeric',
-    year: 'numeric',
-  });
-}
-
 export default function ImmersiveArticlesSection({ articles }: ImmersiveArticlesSectionProps) {
   const prefersReducedMotion = useReducedMotion();
+  const t = useTranslations('articles');
+  const locale = useLocale();
 
   if (!articles || articles.length === 0) return null;
+
+  const formatDate = (date: Date | string | null): string => {
+    if (!date) return '';
+    return new Date(date).toLocaleDateString(locale === 'id' ? 'id-ID' : 'en-US', {
+      month: 'short',
+      day: 'numeric',
+      year: 'numeric',
+    });
+  };
 
   return (
     <section className="py-32 px-4 sm:px-8 border-t border-[var(--border-subtle)] bg-[var(--bg-primary)] relative overflow-hidden">
@@ -49,7 +52,7 @@ export default function ImmersiveArticlesSection({ articles }: ImmersiveArticles
               className="inline-flex items-center gap-2 px-3 py-1 rounded-full bg-[var(--bg-surface)] border border-[var(--border-subtle)] text-xs font-mono text-[var(--text-secondary)] shadow-sm"
             >
               <Sparkles className="w-3.5 h-3.5 text-[var(--accent-text)]" />
-              <span>Engineering Logs & Thoughts</span>
+              <span>{t('immersiveBadge')}</span>
             </motion.div>
 
             <motion.h2
@@ -59,7 +62,7 @@ export default function ImmersiveArticlesSection({ articles }: ImmersiveArticles
               transition={{ duration: 0.8, ease: [0.16, 1, 0.3, 1] }}
               className="text-4xl sm:text-5xl md:text-6xl font-black text-[var(--text-primary)] tracking-tighter"
             >
-              Technical Dispatches.
+              {t('immersiveTitle')}
             </motion.h2>
 
             <motion.p
@@ -69,7 +72,7 @@ export default function ImmersiveArticlesSection({ articles }: ImmersiveArticles
               transition={{ delay: 0.2, duration: 0.8 }}
               className="text-[var(--text-secondary)] text-base sm:text-lg max-w-xl leading-relaxed"
             >
-              Architectural analysis, system engineering, and production retrospectives.
+              {t('immersiveSubtitle')}
             </motion.p>
           </div>
 
@@ -83,7 +86,7 @@ export default function ImmersiveArticlesSection({ articles }: ImmersiveArticles
               href="/articles"
               className="group inline-flex items-center gap-3 px-6 py-3.5 rounded-full bg-[var(--bg-surface)] border border-[var(--border-subtle)] text-sm font-semibold text-[var(--text-primary)] hover:border-[var(--border-strong)] hover:shadow-md transition-all"
             >
-              <span>Access Knowledge Base</span>
+              <span>{t('accessKnowledgeBase')}</span>
               <ArrowRight className="w-4 h-4 group-hover:translate-x-1.5 transition-transform" />
             </Link>
           </motion.div>
@@ -141,7 +144,7 @@ export default function ImmersiveArticlesSection({ articles }: ImmersiveArticles
                         )}
                         <span className="flex items-center gap-1">
                           <Clock className="w-3.5 h-3.5" />
-                          {readTime} min
+                          {readTime} {t('minRead')}
                         </span>
                       </div>
 
@@ -160,7 +163,7 @@ export default function ImmersiveArticlesSection({ articles }: ImmersiveArticles
 
                     {/* Bottom Link with animated circle */}
                     <div className="pt-4 border-t border-[var(--border-subtle)] flex items-center justify-between text-xs font-mono text-[var(--text-secondary)] group-hover:text-[var(--text-primary)]">
-                      <span className="tracking-wider uppercase">Open Dispatch</span>
+                      <span className="tracking-wider uppercase">{t('openDispatch')}</span>
                       <div className="w-8 h-8 rounded-full bg-[var(--bg-surface)] border border-[var(--border-subtle)] group-hover:border-[var(--border-strong)] flex items-center justify-center transition-colors shadow-sm">
                         <ArrowRight className="w-3.5 h-3.5 group-hover:translate-x-0.5 transition-transform" />
                       </div>

@@ -2,8 +2,9 @@
 
 import { motion, useReducedMotion } from 'framer-motion';
 import Image from 'next/image';
-import Link from 'next/link';
+import { Link } from '@/i18n/routing';
 import { ArrowRight, Calendar, Clock, FileText } from 'lucide-react';
+import { useTranslations, useLocale } from 'next-intl';
 
 interface MinimalArticlesSectionProps {
   articles: any[];
@@ -15,19 +16,21 @@ function calculateReadingTime(contentMd: string): number {
   return Math.max(1, Math.ceil(words / 200));
 }
 
-function formatDate(date: Date | string | null): string {
-  if (!date) return '';
-  return new Date(date).toLocaleDateString('en-US', {
-    month: 'short',
-    day: 'numeric',
-    year: 'numeric',
-  });
-}
-
 export default function MinimalArticlesSection({ articles }: MinimalArticlesSectionProps) {
   const prefersReducedMotion = useReducedMotion();
+  const t = useTranslations('articles');
+  const locale = useLocale();
 
   if (!articles || articles.length === 0) return null;
+
+  const formatDate = (date: Date | string | null): string => {
+    if (!date) return '';
+    return new Date(date).toLocaleDateString(locale === 'id' ? 'id-ID' : 'en-US', {
+      month: 'short',
+      day: 'numeric',
+      year: 'numeric',
+    });
+  };
 
   const container = {
     hidden: { opacity: 0 },
@@ -57,10 +60,10 @@ export default function MinimalArticlesSection({ articles }: MinimalArticlesSect
           <div className="flex flex-col sm:flex-row sm:items-end justify-between gap-6 mb-16">
             <div>
               <h2 className="text-3xl sm:text-4xl font-bold text-[var(--text-primary)] tracking-tight">
-                Latest Articles
+                {t('minimalTitle')}
               </h2>
               <p className="text-[var(--text-secondary)] mt-2 text-base sm:text-lg leading-relaxed">
-                Technical writings, system design thoughts, and engineering reflections.
+                {t('minimalSubtitle')}
               </p>
             </div>
 
@@ -68,7 +71,7 @@ export default function MinimalArticlesSection({ articles }: MinimalArticlesSect
               href="/articles"
               className="inline-flex items-center gap-2 text-sm font-semibold text-[var(--text-primary)] hover:text-[var(--text-secondary)] transition-colors shrink-0 group border-b border-transparent hover:border-[var(--text-secondary)] pb-0.5"
             >
-              <span>View all articles</span>
+              <span>{t('viewAll')}</span>
               <ArrowRight className="w-4 h-4 group-hover:translate-x-1 transition-transform" />
             </Link>
           </div>
@@ -113,7 +116,7 @@ export default function MinimalArticlesSection({ articles }: MinimalArticlesSect
                           )}
                           <span className="flex items-center gap-1">
                             <Clock className="w-3 h-3" />
-                            {readTime} min read
+                            {readTime} {t('minRead')}
                           </span>
                         </div>
 
@@ -129,7 +132,7 @@ export default function MinimalArticlesSection({ articles }: MinimalArticlesSect
                       </div>
 
                       <div className="pt-4 border-t border-[var(--border-subtle)] flex items-center gap-1.5 text-xs font-semibold text-[var(--text-primary)] group-hover:text-[var(--accent-text)]">
-                        <span>Read article</span>
+                        <span>{t('readArticle')}</span>
                         <ArrowRight className="w-3.5 h-3.5 group-hover:translate-x-1 transition-transform" />
                       </div>
                     </div>

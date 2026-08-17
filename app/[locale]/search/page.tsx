@@ -1,6 +1,11 @@
 import { Metadata } from 'next';
 import { Suspense } from 'react';
 import SearchClientView from './search-client-view';
+import { setRequestLocale } from 'next-intl/server';
+
+interface SearchPageProps {
+  params: Promise<{ locale: string }>;
+}
 
 export const metadata: Metadata = {
   title: 'Search Portfolio & Articles',
@@ -11,7 +16,10 @@ export const metadata: Metadata = {
   },
 };
 
-export default function SearchPage() {
+export default async function SearchPage({ params }: SearchPageProps) {
+  const { locale } = await params;
+  setRequestLocale(locale);
+
   return (
     <Suspense
       fallback={

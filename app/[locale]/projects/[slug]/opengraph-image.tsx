@@ -5,7 +5,7 @@ export const alt = 'Project Detail';
 export const size = { width: 1200, height: 630 };
 export const contentType = 'image/png';
 
-export default async function Image({ params }: { params: Promise<{ slug: string }> }) {
+export default async function Image({ params }: { params: Promise<{ locale: string; slug: string }> }) {
   const resolvedParams = await params;
   const project = await getProjectBySlug(resolvedParams.slug);
   
@@ -81,7 +81,7 @@ export default async function Image({ params }: { params: Promise<{ slug: string
                 style={{
                   fontSize: 28,
                   fontWeight: 500,
-                  color: '#a1a1aa', // zinc-400
+                  color: '#a1a1aa',
                   letterSpacing: '0.05em',
                 }}
               >

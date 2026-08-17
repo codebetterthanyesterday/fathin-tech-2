@@ -12,6 +12,7 @@ import {
   ChevronRight,
 } from 'lucide-react';
 import { motion, AnimatePresence, useReducedMotion, Variants } from 'framer-motion';
+import { useTranslations } from 'next-intl';
 
 interface TestimonialItem {
   id: string;
@@ -30,10 +31,10 @@ export default function ImmersiveTestimonialsSection({
 }: ImmersiveTestimonialsSectionProps) {
   const prefersReducedMotion = useReducedMotion();
   const [currentIndex, setCurrentIndex] = useState(0);
-  const [direction, setDirection] = useState(0); // -1 for prev, 1 for next
+  const [direction, setDirection] = useState(0);
   const [isExpanded, setIsExpanded] = useState(false);
+  const t = useTranslations('testimonials');
 
-  // Reset expand state when active slide changes
   useEffect(() => {
     setIsExpanded(false);
   }, [currentIndex]);
@@ -52,7 +53,6 @@ export default function ImmersiveTestimonialsSection({
     setCurrentIndex((prev) => (prev - 1 + total) % total);
   }, [total]);
 
-  // Keyboard navigation
   useEffect(() => {
     const handleKeyDown = (e: KeyboardEvent) => {
       if (e.key === 'ArrowRight') handleNext();
@@ -120,7 +120,7 @@ export default function ImmersiveTestimonialsSection({
             className="inline-flex items-center gap-2 px-3.5 py-1.5 rounded-full bg-[var(--bg-surface)] border border-[var(--border-subtle)] text-xs font-mono text-[var(--text-secondary)] backdrop-blur-md shadow-sm"
           >
             <Sparkles className="w-3.5 h-3.5 text-[var(--accent-text)]" />
-            <span>Professional Endorsements</span>
+            <span>{t('immersiveBadge')}</span>
           </motion.div>
 
           <motion.h2
@@ -130,7 +130,7 @@ export default function ImmersiveTestimonialsSection({
             transition={{ duration: 0.7, ease: [0.16, 1, 0.3, 1] }}
             className="text-4xl sm:text-5xl md:text-6xl font-black text-[var(--text-primary)] tracking-tighter"
           >
-            Verified Collaborations.
+            {t('immersiveTitle')}
           </motion.h2>
 
           <motion.p
@@ -140,7 +140,7 @@ export default function ImmersiveTestimonialsSection({
             transition={{ delay: 0.2, duration: 0.7 }}
             className="text-[var(--text-secondary)] text-base sm:text-lg max-w-xl leading-relaxed"
           >
-            Documented feedback from technical partners, engineers, and stakeholders.
+            {t('immersiveSubtitle')}
           </motion.p>
         </div>
 
@@ -182,12 +182,12 @@ export default function ImmersiveTestimonialsSection({
                   >
                     {isExpanded ? (
                       <>
-                        <span>Collapse payload</span>
+                        <span>{t('collapsePayload')}</span>
                         <ChevronUp className="w-4 h-4" />
                       </>
                     ) : (
                       <>
-                        <span>Expand payload</span>
+                        <span>{t('expandPayload')}</span>
                         <ChevronDown className="w-4 h-4" />
                       </>
                     )}
@@ -283,11 +283,11 @@ export default function ImmersiveTestimonialsSection({
         {/* Thumbnail Selector Ribbon (If > 2 testimonials) */}
         {total > 2 && (
           <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 gap-3 mt-12 pt-10 border-t border-[var(--border-subtle)]">
-            {testimonials.map((t, idx) => {
+            {testimonials.map((tItem, idx) => {
               const isSelected = currentIndex === idx;
               return (
                 <button
-                  key={t.id}
+                  key={tItem.id}
                   onClick={() => {
                     setDirection(idx > currentIndex ? 1 : -1);
                     setCurrentIndex(idx);
@@ -299,16 +299,16 @@ export default function ImmersiveTestimonialsSection({
                   }`}
                 >
                   <div className="w-8 h-8 rounded-lg overflow-hidden bg-[var(--bg-surface)] flex-shrink-0 flex items-center justify-center text-xs font-bold text-[var(--text-secondary)] border border-[var(--border-subtle)]">
-                    {t.photoUrl ? (
+                    {tItem.photoUrl ? (
                       <Image
-                        src={t.photoUrl}
-                        alt={t.name}
+                        src={tItem.photoUrl}
+                        alt={tItem.name}
                         width={32}
                         height={32}
                         className="object-cover w-full h-full"
                       />
                     ) : (
-                      t.name[0]
+                      tItem.name[0]
                     )}
                   </div>
                   <div className="min-w-0 flex-1">
@@ -317,9 +317,9 @@ export default function ImmersiveTestimonialsSection({
                         isSelected ? 'text-[var(--text-primary)]' : 'text-[var(--text-secondary)]'
                       }`}
                     >
-                      {t.name}
+                      {tItem.name}
                     </p>
-                    <p className="text-[11px] text-[var(--text-tertiary)] truncate">{t.role || 'Record'}</p>
+                    <p className="text-[11px] text-[var(--text-tertiary)] truncate">{tItem.role || t('record')}</p>
                   </div>
                 </button>
               );

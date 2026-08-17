@@ -12,6 +12,9 @@ import ContactSection from '@/components/public/contact-section';
 import JsonLd from '@/components/public/json-ld';
 import ThemeToggle from '@/components/public/layout/theme-toggle';
 import SearchTrigger from '@/components/public/search/search-trigger';
+import LanguageSwitcher from '@/components/public/layout/language-switcher';
+import { setRequestLocale } from 'next-intl/server';
+import { routing, Locale } from '@/i18n/routing';
 
 // Minimal Template Imports
 import MinimalHeroSection from '@/components/public/templates/minimal/hero-section';
@@ -48,7 +51,12 @@ const templates: Record<string, any> = {
   },
 };
 
-export async function generateMetadata(): Promise<Metadata> {
+export async function generateMetadata({
+  params,
+}: {
+  params: Promise<{ locale: string }>;
+}): Promise<Metadata> {
+  const { locale } = await params;
   const { profile } = await getPortfolioData();
 
   if (!profile) {
@@ -67,9 +75,9 @@ export async function generateMetadata(): Promise<Metadata> {
     openGraph: {
       title,
       description,
-      url: '/',
+      url: `/${locale}`,
       siteName: profile.name,
-      locale: 'en_US',
+      locale: locale === 'id' ? 'id_ID' : 'en_US',
       type: 'website',
     },
     twitter: {
@@ -78,7 +86,12 @@ export async function generateMetadata(): Promise<Metadata> {
       description,
     },
     alternates: {
-      canonical: '/',
+      canonical: `/${locale}`,
+      languages: {
+        id: '/id',
+        en: '/en',
+        'x-default': '/id',
+      },
     },
   };
 }
@@ -96,7 +109,6 @@ async function fetchProjectsData(content: ProjectsGridContent) {
       take: limit,
       include: { images: { orderBy: { order: 'asc' } } },
     });
-    // Fallback: if no featured projects, show top N by order
     if (projects.length === 0) {
       projects = await prisma.project.findMany({
         take: limit ?? 3,
@@ -159,10 +171,14 @@ async function fetchArticlesData(content: ArticlesListContent) {
 // ─── Main page ───────────────────────────────────────────────────────────────
 
 interface HomePageProps {
+  params: Promise<{ locale: string }>;
   searchParams?: Promise<{ [key: string]: string | string[] | undefined }>;
 }
 
 export default async function Home(props: HomePageProps) {
+  const { locale } = await props.params;
+  setRequestLocale(locale);
+
   const searchParams = await props.searchParams;
   const { profile, error } = await getPortfolioData();
   const { sections } = await getSections();
@@ -202,10 +218,11 @@ export default async function Home(props: HomePageProps) {
   ) || 'minimal';
   const Template = templates[themeTemplate] || templates['minimal'];
 
-  // Floating Controls (Theme Toggle + Search)
+  // Floating Controls (Theme Toggle + Search + Language Switcher)
   const floatingToggle = (
     <div className="fixed top-6 right-6 z-50 flex items-center gap-3">
       <SearchTrigger variant="compact" className="shadow-lg backdrop-blur-xl bg-[var(--bg-elevated)]/85" />
+      <LanguageSwitcher variant={themeTemplate} />
       <ThemeToggle />
     </div>
   );
@@ -325,5 +342,3 @@ export default async function Home(props: HomePageProps) {
     </main>
   );
 }
-
-

@@ -37,7 +37,7 @@ function QuickLink({
   description,
 }: {
   href: string;
-  icon: React.ElementType;
+  icon: React.ElementType<{ className?: string }>;
   title: string;
   description: string;
 }) {

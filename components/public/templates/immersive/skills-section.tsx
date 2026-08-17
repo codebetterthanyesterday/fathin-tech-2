@@ -1,6 +1,7 @@
 'use client';
 
 import { motion, useReducedMotion } from 'framer-motion';
+import { useTranslations } from 'next-intl';
 
 interface SkillsSectionProps {
   skills: any[];
@@ -8,6 +9,7 @@ interface SkillsSectionProps {
 
 export default function ImmersiveSkillsSection({ skills }: SkillsSectionProps) {
   const prefersReducedMotion = useReducedMotion();
+  const t = useTranslations('skills');
 
   if (!skills || skills.length === 0) return null;
 
@@ -62,10 +64,10 @@ export default function ImmersiveSkillsSection({ skills }: SkillsSectionProps) {
               variants={item} 
               className="text-5xl sm:text-6xl md:text-7xl font-black text-[var(--text-primary)] mb-6 tracking-tighter leading-tight"
             >
-              My<br/>Arsenal.
+              {t('immersiveTitle')}
             </motion.h2>
             <motion.p variants={item} className="text-[var(--text-secondary)] text-lg leading-relaxed">
-              The tools and technologies I use to architect, build, and bring ideas to life.
+              {t('immersiveDescription')}
             </motion.p>
           </div>
 

@@ -2,8 +2,9 @@
 
 import { motion, useReducedMotion } from 'framer-motion';
 import Image from 'next/image';
-import Link from 'next/link';
+import { Link } from '@/i18n/routing';
 import { ExternalLink } from 'lucide-react';
+import { useTranslations } from 'next-intl';
 
 interface FeaturedProjectsProps {
   projects: any[];
@@ -11,6 +12,7 @@ interface FeaturedProjectsProps {
 
 export default function FeaturedProjects({ projects }: FeaturedProjectsProps) {
   const prefersReducedMotion = useReducedMotion();
+  const t = useTranslations('projects');
 
   if (!projects || projects.length === 0) return null;
 
@@ -40,10 +42,10 @@ export default function FeaturedProjects({ projects }: FeaturedProjectsProps) {
         >
           <motion.div variants={item} className="mb-16">
             <h2 className="text-3xl sm:text-4xl font-bold text-[var(--text-primary)] tracking-tight mb-4">
-              Featured Work
+              {t('minimalTitle')}
             </h2>
             <p className="text-[var(--text-secondary)] max-w-2xl text-lg leading-relaxed">
-              A selection of projects that showcase my technical expertise and architectural philosophy.
+              {t('minimalSubtitle')}
             </p>
           </motion.div>
 
@@ -71,7 +73,7 @@ export default function FeaturedProjects({ projects }: FeaturedProjectsProps) {
                       />
                     ) : (
                       <div className="w-full h-full flex items-center justify-center text-[var(--text-tertiary)] font-medium">
-                        No image available
+                        {t('noImage')}
                       </div>
                     )}
                   </div>
@@ -103,7 +105,7 @@ export default function FeaturedProjects({ projects }: FeaturedProjectsProps) {
                         href={`/projects/${project.slug}`} 
                         className="text-sm font-semibold text-[var(--text-primary)] hover:text-[var(--text-secondary)] transition-colors border-b border-transparent hover:border-[var(--text-secondary)] pb-0.5"
                       >
-                        Read Case Study
+                        {t('readCaseStudy')}
                       </Link>
                       
                       <div className="flex items-center gap-4">

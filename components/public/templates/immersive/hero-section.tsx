@@ -3,6 +3,7 @@
 import { motion, useReducedMotion } from 'framer-motion';
 import { ArrowRight } from 'lucide-react';
 import Image from 'next/image';
+import { useTranslations } from 'next-intl';
 
 interface HeroSectionProps {
   profile: any;
@@ -11,6 +12,7 @@ interface HeroSectionProps {
 
 export default function ImmersiveHeroSection({ profile, ctaOverride }: HeroSectionProps) {
   const prefersReducedMotion = useReducedMotion();
+  const t = useTranslations('hero');
 
   if (!profile) return null;
 
@@ -74,7 +76,7 @@ export default function ImmersiveHeroSection({ profile, ctaOverride }: HeroSecti
                 rel="noopener noreferrer"
                 className="group/btn px-8 py-4 bg-[var(--accent-btn-bg)] text-[var(--accent-btn-fg)] font-bold rounded-full hover:scale-105 transition-all duration-300 flex items-center gap-3 text-lg shadow-lg hover:shadow-xl focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[var(--accent-active)] focus-visible:ring-offset-2 focus-visible:ring-offset-[var(--bg-primary)]"
               >
-                {ctaOverride?.ctaLabel || 'View Resume'}
+                {ctaOverride?.ctaLabel || t('viewResume')}
                 <ArrowRight className="w-5 h-5 group-hover/btn:translate-x-1 transition-transform" />
               </a>
             )}

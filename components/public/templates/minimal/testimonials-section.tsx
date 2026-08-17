@@ -4,6 +4,7 @@ import { useState } from 'react';
 import Image from 'next/image';
 import { User, ChevronDown, ChevronUp, Quote } from 'lucide-react';
 import { motion } from 'framer-motion';
+import { useTranslations } from 'next-intl';
 
 interface TestimonialItem {
   id: string;
@@ -25,6 +26,7 @@ function MinimalTestimonialCard({
   index: number;
 }) {
   const [isExpanded, setIsExpanded] = useState(false);
+  const t = useTranslations('testimonials');
   const isLong = testimonial.quote.length > 280;
 
   // Generate initials for avatar fallback
@@ -63,12 +65,12 @@ function MinimalTestimonialCard({
             >
               {isExpanded ? (
                 <>
-                  <span>Collapse payload</span>
+                  <span>{t('collapsePayload')}</span>
                   <ChevronUp className="w-3.5 h-3.5" />
                 </>
               ) : (
                 <>
-                  <span>Expand payload</span>
+                  <span>{t('expandPayload')}</span>
                   <ChevronDown className="w-3.5 h-3.5" />
                 </>
               )}
@@ -113,6 +115,8 @@ function MinimalTestimonialCard({
 export default function MinimalTestimonialsSection({
   testimonials,
 }: MinimalTestimonialsSectionProps) {
+  const t = useTranslations('testimonials');
+
   if (!testimonials || testimonials.length === 0) return null;
 
   return (
@@ -121,19 +125,19 @@ export default function MinimalTestimonialsSection({
         {/* Section Header */}
         <div className="mb-16 sm:mb-20">
           <p className="text-xs font-mono uppercase tracking-widest text-[var(--text-tertiary)] mb-3">
-            // Professional Feedback
+            {t('minimalHeader')}
           </p>
           <div className="flex flex-col md:flex-row md:items-end justify-between gap-6">
             <div>
               <h2 className="text-3xl sm:text-4xl md:text-5xl font-bold text-[var(--text-primary)] tracking-tight">
-                Endorsements.
+                {t('minimalTitle')}
               </h2>
               <p className="text-[var(--text-secondary)] mt-3 text-base sm:text-lg max-w-xl leading-relaxed">
-                Verified accounts of professional collaborations and technical execution.
+                {t('minimalSubtitle')}
               </p>
             </div>
             <div className="text-xs sm:text-sm font-mono text-[var(--text-secondary)] bg-[var(--bg-surface)] px-4 py-2 rounded-lg border border-[var(--border-subtle)] self-start md:self-auto shadow-sm">
-              {testimonials.length} {testimonials.length === 1 ? 'Record' : 'Records'}
+              {testimonials.length} {testimonials.length === 1 ? t('record') : t('records')}
             </div>
           </div>
         </div>

@@ -1,0 +1,127 @@
+{
+  "nav": {
+    "home": "Beranda",
+    "articles": "Artikel",
+    "articlesAndThoughts": "Artikel & Pemikiran",
+    "contact": "Kontak",
+    "initiateContact": "Hubungi Saya",
+    "search": "Cari..."
+  },
+  "hero": {
+    "viewResume": "Lihat Resume",
+    "accessRecord": "Akses Dokumen",
+    "scrollDown": "Gulir ke bawah"
+  },
+  "skills": {
+    "minimalTitle": "Keahlian & Spesialisasi",
+    "immersiveTitle": "Keahlian Utama",
+    "immersiveDescription": "Alat dan teknologi yang saya gunakan untuk merancang, membangun, dan merealisasikan produk digital."
+  },
+  "projects": {
+    "minimalTitle": "Karya Unggulan",
+    "minimalSubtitle": "Pilihan proyek yang menampilkan keahlian teknis dan filosofi arsitektur sistem saya.",
+    "immersiveTitle": "Karya Pilihan",
+    "immersiveSubtitle": "Koleksi proyek pilihan yang menonjolkan pendekatan saya terhadap tantangan rekayasa dan desain yang kompleks.",
+    "readCaseStudy": "Baca Studi Kasus",
+    "details": "Detail",
+    "liveDemo": "Demo Langsung",
+    "repository": "Repositori",
+    "noImage": "Gambar tidak tersedia",
+    "role": "Peran",
+    "duration": "Durasi",
+    "teamSize": "Ukuran Tim",
+    "people": "orang",
+    "keyImpact": "Dampak Utama",
+    "technologies": "Teknologi",
+    "categories": "Kategori",
+    "videoWalkthrough": "Panduan Video",
+    "challengesHurdles": "Tantangan & Hambatan",
+    "solutionsArchitecture": "Solusi & Arsitektur",
+    "backToHome": "Kembali ke Beranda",
+    "gallery": "Galeri Proyek"
+  },
+  "experience": {
+    "minimalTitle": "Pengalaman",
+    "immersiveTitle": "Jejak Profesional",
+    "immersiveSubtitle": "Catatan kronologis perjalanan karier profesional dan latar belakang akademis.",
+    "present": "Sekarang"
+  },
+  "testimonials": {
+    "minimalHeader": "// Ulasan Profesional",
+    "minimalTitle": "Rekomendasi",
+    "minimalSubtitle": "Catatan terverifikasi dari kolaborasi profesional dan eksekusi teknis.",
+    "record": "Catatan",
+    "records": "Catatan",
+    "immersiveBadge": "Ulasan Profesional",
+    "immersiveTitle": "Kolaborasi Terverifikasi",
+    "immersiveSubtitle": "Umpan balik terdokumentasi dari mitra teknis, teknisi, dan pemangku kepentingan.",
+    "expandPayload": "Buka selengkapnya",
+    "collapsePayload": "Tutup ulasan"
+  },
+  "articles": {
+    "minimalTitle": "Artikel Terbaru",
+    "minimalSubtitle": "Tulisan teknis, pemikiran desain sistem, dan refleksi rekayasa perangkat lunak.",
+    "viewAll": "Lihat semua artikel",
+    "readArticle": "Baca artikel",
+    "immersiveBadge": "Catatan & Pemikiran Rekayasa",
+    "immersiveTitle": "Wawasan Teknis",
+    "immersiveSubtitle": "Analisis arsitektur, rekayasa sistem, dan retrospeksi produksi.",
+    "accessKnowledgeBase": "Buka Basis Pengetahuan",
+    "openDispatch": "Buka Artikel",
+    "pageBadge": "Blog & Catatan Teknis",
+    "pageTitle": "Artikel & Wawasan",
+    "pageSubtitle": "Kumpulan catatan rekayasa, pola arsitektur, dan pemikiran seputar pembangunan perangkat lunak modern.",
+    "noArticlesTitle": "Belum ada artikel yang dipublikasikan",
+    "noArticlesDescription": "Artikel sedang dalam tahap penulisan. Kunjungi kembali segera untuk pembaruan tulisan teknis terbaru.",
+    "minRead": "menit baca",
+    "backToArticles": "Kembali ke Artikel",
+    "backToHome": "Kembali ke Beranda"
+  },
+  "contact": {
+    "title": "Hubungi Saya",
+    "subtitle": "Buka jalur komunikasi. Saya biasanya merespons dalam waktu 24 jam.",
+    "successTitle": "Pesan Berhasil Terkirim",
+    "successMessage": "Pesan Anda telah diterima. Saya akan segera menghubungi Anda kembali.",
+    "newTransmission": "Kirim pesan baru",
+    "nameLabel": "Nama / Identitas",
+    "namePlaceholder": "Masukkan nama lengkap Anda...",
+    "emailLabel": "Saluran Balasan (Email)",
+    "emailPlaceholder": "Masukkan alamat email yang valid...",
+    "messageLabel": "Isi Pesan",
+    "messagePlaceholder": "Tuliskan detail pesan atau pertanyaan Anda...",
+    "sendPayload": "Kirim Pesan",
+    "processing": "Memproses..."
+  },
+  "search": {
+    "title": "Cari Portofolio & Artikel",
+    "description": "Cari melalui proyek rekayasa, studi kasus, dan tulisan teknis.",
+    "placeholder": "Cari proyek, artikel, keahlian, teknologi...",
+    "all": "Semua Hasil",
+    "projects": "Proyek",
+    "articles": "Artikel",
+    "noResults": "Tidak ada hasil yang cocok",
+    "noResultsSub": "Coba cari dengan kata kunci lain atau periksa ejaan Anda.",
+    "startSearching": "Ketik untuk mulai mencari",
+    "startSearchingSub": "Temukan studi kasus, artikel, keahlian teknis, dan pemikiran rekayasa.",
+    "searching": "Mencari di seluruh database...",
+    "resultsCount": "{count} hasil ditemukan untuk \"{query}\"",
+    "backToHome": "Kembali ke Beranda",
+    "commandPaletteTitle": "Cari di sistem...",
+    "viewAllResults": "Lihat semua {count} hasil",
+    "shortcut": "Cari",
+    "close": "Tutup"
+  },
+  "language": {
+    "switchLanguage": "Ganti Bahasa",
+    "id": "Bahasa Indonesia",
+    "en": "English",
+    "idShort": "ID",
+    "enShort": "EN"
+  },
+  "notFound": {
+    "title": "404",
+    "heading": "Halaman Tidak Ditemukan",
+    "description": "Halaman yang Anda minta tidak dapat ditemukan pada server ini. Halaman mungkin telah dihapus, diubah namanya, atau sedang tidak tersedia.",
+    "returnToIndex": "Kembali ke Beranda"
+  }
+}

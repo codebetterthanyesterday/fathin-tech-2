@@ -1,0 +1,127 @@
+{
+  "nav": {
+    "home": "Home",
+    "articles": "Articles",
+    "articlesAndThoughts": "Articles & Thoughts",
+    "contact": "Contact",
+    "initiateContact": "Initiate Contact",
+    "search": "Search..."
+  },
+  "hero": {
+    "viewResume": "View Resume",
+    "accessRecord": "Access Record",
+    "scrollDown": "Scroll down"
+  },
+  "skills": {
+    "minimalTitle": "Skills & Expertise",
+    "immersiveTitle": "My Arsenal.",
+    "immersiveDescription": "The tools and technologies I use to architect, build, and bring ideas to life."
+  },
+  "projects": {
+    "minimalTitle": "Featured Work",
+    "minimalSubtitle": "A selection of projects that showcase my technical expertise and architectural philosophy.",
+    "immersiveTitle": "Selected Works.",
+    "immersiveSubtitle": "A curated collection of projects highlighting my approach to complex engineering and design problems.",
+    "readCaseStudy": "Read Case Study",
+    "details": "Details",
+    "liveDemo": "Live Demo",
+    "repository": "Repository",
+    "noImage": "No image available",
+    "role": "Role",
+    "duration": "Duration",
+    "teamSize": "Team Size",
+    "people": "people",
+    "keyImpact": "Key Impact",
+    "technologies": "Technologies",
+    "categories": "Categories",
+    "videoWalkthrough": "Video Walkthrough",
+    "challengesHurdles": "Challenges & Hurdles",
+    "solutionsArchitecture": "Solutions & Architecture",
+    "backToHome": "Back to Home",
+    "gallery": "Project Gallery"
+  },
+  "experience": {
+    "minimalTitle": "Experience",
+    "immersiveTitle": "Professional Trajectory.",
+    "immersiveSubtitle": "Chronological record of professional tenure and academic background.",
+    "present": "Present"
+  },
+  "testimonials": {
+    "minimalHeader": "// Professional Feedback",
+    "minimalTitle": "Endorsements.",
+    "minimalSubtitle": "Verified accounts of professional collaborations and technical execution.",
+    "record": "Record",
+    "records": "Records",
+    "immersiveBadge": "Professional Endorsements",
+    "immersiveTitle": "Verified Collaborations.",
+    "immersiveSubtitle": "Documented feedback from technical partners, engineers, and stakeholders.",
+    "expandPayload": "Expand payload",
+    "collapsePayload": "Collapse payload"
+  },
+  "articles": {
+    "minimalTitle": "Latest Articles",
+    "minimalSubtitle": "Technical writings, system design thoughts, and engineering reflections.",
+    "viewAll": "View all articles",
+    "readArticle": "Read article",
+    "immersiveBadge": "Engineering Logs & Thoughts",
+    "immersiveTitle": "Technical Dispatches.",
+    "immersiveSubtitle": "Architectural analysis, system engineering, and production retrospectives.",
+    "accessKnowledgeBase": "Access Knowledge Base",
+    "openDispatch": "Open Dispatch",
+    "pageBadge": "Technical Blog & Notes",
+    "pageTitle": "Articles & Insights",
+    "pageSubtitle": "A collection of engineering notes, architectural patterns, and thoughts on building modern software.",
+    "noArticlesTitle": "No articles published yet",
+    "noArticlesDescription": "Articles are currently being drafted. Check back soon for new technical writings and updates.",
+    "minRead": "min read",
+    "backToArticles": "Back to Articles",
+    "backToHome": "Back to Home"
+  },
+  "contact": {
+    "title": "Initiate Contact",
+    "subtitle": "Open a secure channel. I usually respond within 24 hours.",
+    "successTitle": "Transmission Successful",
+    "successMessage": "Data payload received. I will establish contact shortly.",
+    "newTransmission": "Initialize new transmission",
+    "nameLabel": "Identification",
+    "namePlaceholder": "Enter primary identifier...",
+    "emailLabel": "Return Channel (Email)",
+    "emailPlaceholder": "Enter valid address...",
+    "messageLabel": "Transmission payload",
+    "messagePlaceholder": "Specify payload parameters...",
+    "sendPayload": "Send Payload",
+    "processing": "Processing..."
+  },
+  "search": {
+    "title": "Search Portfolio & Articles",
+    "description": "Search through engineering projects, case studies, and technical writings.",
+    "placeholder": "Search projects, articles, skills, tech stack...",
+    "all": "All Results",
+    "projects": "Projects",
+    "articles": "Articles",
+    "noResults": "No matching results found",
+    "noResultsSub": "Try searching with different keywords or check spelling.",
+    "startSearching": "Type to start searching",
+    "startSearchingSub": "Find case studies, articles, technology stack, and engineering thoughts.",
+    "searching": "Searching across database...",
+    "resultsCount": "{count} results found for \"{query}\"",
+    "backToHome": "Back to Home",
+    "commandPaletteTitle": "Search system...",
+    "viewAllResults": "View all {count} results",
+    "shortcut": "Search",
+    "close": "Close"
+  },
+  "language": {
+    "switchLanguage": "Switch Language",
+    "id": "Bahasa Indonesia",
+    "en": "English",
+    "idShort": "ID",
+    "enShort": "EN"
+  },
+  "notFound": {
+    "title": "404",
+    "heading": "Resource Not Found",
+    "description": "The requested resource could not be located on this server. It may have been removed, renamed, or is temporarily unavailable.",
+    "returnToIndex": "Return to Index"
+  }
+}

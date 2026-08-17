@@ -1,9 +1,11 @@
 'use client';
 
 import { useState, useEffect } from 'react';
-import Link from 'next/link';
+import { Link } from '@/i18n/routing';
+import { useTranslations } from 'next-intl';
 import { Menu, X } from 'lucide-react';
 import ThemeToggle from './theme-toggle';
+import LanguageSwitcher from './language-switcher';
 import { motion, AnimatePresence } from 'framer-motion';
 
 import SearchTrigger from '../search/search-trigger';
@@ -21,6 +23,7 @@ export default function PublicHeader({
 }: PublicHeaderProps) {
   const [isScrolled, setIsScrolled] = useState(false);
   const [mobileMenuOpen, setMobileMenuOpen] = useState(false);
+  const t = useTranslations('nav');
 
   useEffect(() => {
     const handleScroll = () => {
@@ -31,8 +34,8 @@ export default function PublicHeader({
   }, []);
 
   const navLinks = [
-    { label: 'Articles', href: '/articles' },
-    { label: 'Contact', href: '#contact' },
+    { label: t('articles'), href: '/articles' },
+    { label: t('contact'), href: '#contact' },
   ];
 
   return (
@@ -68,6 +71,9 @@ export default function PublicHeader({
           {/* Search Trigger Button */}
           <SearchTrigger variant="compact" />
 
+          {/* Language Switcher */}
+          <LanguageSwitcher variant={themeTemplate} />
+
           {/* Divider */}
           <div className="h-4 w-px bg-[var(--border-subtle)]" />
 
@@ -76,8 +82,9 @@ export default function PublicHeader({
         </nav>
 
         {/* Mobile Actions */}
-        <div className="flex md:hidden items-center gap-2.5">
+        <div className="flex md:hidden items-center gap-2">
           <SearchTrigger variant="icon" />
+          <LanguageSwitcher variant={themeTemplate} compact />
           <ThemeToggle variant={themeTemplate} />
 
           <button
@@ -108,21 +115,21 @@ export default function PublicHeader({
                 onClick={() => setMobileMenuOpen(false)}
                 className="text-base font-medium text-[var(--text-primary)] py-2 border-b border-[var(--border-subtle)]"
               >
-                Home
+                {t('home')}
               </Link>
               <Link
                 href="/articles"
                 onClick={() => setMobileMenuOpen(false)}
                 className="text-base font-medium text-[var(--text-secondary)] hover:text-[var(--text-primary)] py-2 border-b border-[var(--border-subtle)]"
               >
-                Articles & Thoughts
+                {t('articlesAndThoughts')}
               </Link>
               <Link
                 href="#contact"
                 onClick={() => setMobileMenuOpen(false)}
                 className="text-base font-medium text-[var(--text-secondary)] hover:text-[var(--text-primary)] py-2"
               >
-                Initiate Contact
+                {t('initiateContact')}
               </Link>
             </div>
           </motion.div>

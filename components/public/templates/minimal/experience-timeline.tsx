@@ -1,6 +1,7 @@
 'use client';
 
 import { motion, useReducedMotion } from 'framer-motion';
+import { useTranslations, useLocale } from 'next-intl';
 
 interface ExperienceTimelineProps {
   experiences: any[];
@@ -8,6 +9,8 @@ interface ExperienceTimelineProps {
 
 export default function ExperienceTimeline({ experiences }: ExperienceTimelineProps) {
   const prefersReducedMotion = useReducedMotion();
+  const t = useTranslations('experience');
+  const locale = useLocale();
 
   if (!experiences || experiences.length === 0) return null;
 
@@ -27,7 +30,10 @@ export default function ExperienceTimeline({ experiences }: ExperienceTimelinePr
   };
 
   const formatDate = (date: Date) => {
-    return new Intl.DateTimeFormat('en-US', { month: 'short', year: 'numeric' }).format(new Date(date));
+    return new Intl.DateTimeFormat(locale === 'id' ? 'id-ID' : 'en-US', {
+      month: 'short',
+      year: 'numeric'
+    }).format(new Date(date));
   };
 
   return (
@@ -47,7 +53,7 @@ export default function ExperienceTimeline({ experiences }: ExperienceTimelinePr
         >
           <motion.div variants={item} className="mb-16">
             <h2 className="text-3xl sm:text-4xl font-bold text-[var(--text-primary)] tracking-tight mb-4">
-              Experience
+              {t('minimalTitle')}
             </h2>
           </motion.div>
 
@@ -101,7 +107,7 @@ export default function ExperienceTimeline({ experiences }: ExperienceTimelinePr
                             <span>{formatDate(exp.startDate)}</span>
                             <span className="text-[var(--border-strong)]">—</span>
                             {isCurrent ? (
-                              <span className="text-[var(--accent-text)] font-semibold">Present</span>
+                              <span className="text-[var(--accent-text)] font-semibold">{t('present')}</span>
                             ) : (
                               <span>{formatDate(exp.endDate)}</span>
                             )}

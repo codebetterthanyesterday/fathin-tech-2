@@ -4,6 +4,7 @@ import { useState, useRef, useTransition, useEffect } from 'react';
 import { motion, useReducedMotion, useInView } from 'framer-motion';
 import { Send, CheckCircle, AlertCircle, Loader2 } from 'lucide-react';
 import { submitContact } from '@/app/actions/contact';
+import { useTranslations } from 'next-intl';
 
 // ==========================================
 // Abstract Particle Effect (CSS/Framer)
@@ -55,6 +56,7 @@ export default function ContactSection() {
   const [status, setStatus] = useState<'idle' | 'success' | 'error'>('idle');
   const [errorMessage, setErrorMessage] = useState<string | null>(null);
   const [validationErrors, setValidationErrors] = useState<Record<string, string[]>>({});
+  const t = useTranslations('contact');
   
   const prefersReducedMotion = useReducedMotion();
   const sectionRef = useRef<HTMLElement>(null);
@@ -121,10 +123,10 @@ export default function ContactSection() {
       >
         <div className="text-center mb-12">
           <h2 className="text-4xl sm:text-5xl font-black tracking-tight text-transparent bg-clip-text bg-gradient-to-b from-[var(--text-primary)] to-[var(--text-secondary)] mb-4 uppercase">
-            Initiate Contact
+            {t('title')}
           </h2>
           <p className="text-[var(--text-secondary)] font-medium tracking-wide">
-            Open a secure channel. I usually respond within 24 hours.
+            {t('subtitle')}
           </p>
         </div>
 
@@ -145,15 +147,15 @@ export default function ContactSection() {
                 <CheckCircle className="w-10 h-10" />
               </div>
             </motion.div>
-            <h3 className="text-2xl font-bold text-[var(--text-primary)] mb-2">Transmission Successful</h3>
+            <h3 className="text-2xl font-bold text-[var(--text-primary)] mb-2">{t('successTitle')}</h3>
             <p className="text-[var(--text-secondary)]">
-              Data payload received. I will establish contact shortly.
+              {t('successMessage')}
             </p>
             <button
               onClick={() => setStatus('idle')}
               className="mt-8 px-6 py-2.5 rounded-full text-sm font-medium bg-[var(--bg-surface)] text-[var(--text-secondary)] hover:text-[var(--text-primary)] border border-[var(--border-subtle)] hover:border-[var(--border-strong)] transition-colors shadow-sm"
             >
-              Initialize new transmission
+              {t('newTransmission')}
             </button>
           </motion.div>
         ) : (
@@ -186,7 +188,7 @@ export default function ContactSection() {
               {/* Name */}
               <div>
                 <label htmlFor="name" className="block text-xs font-bold tracking-widest text-[var(--text-tertiary)] uppercase mb-2">
-                  Identification
+                  {t('nameLabel')}
                 </label>
                 <input
                   type="text"
@@ -194,7 +196,7 @@ export default function ContactSection() {
                   name="name"
                   disabled={isPending}
                   className={`w-full bg-[var(--bg-surface)] border ${validationErrors.name ? 'border-red-500/50 focus:border-red-500' : 'border-[var(--border-subtle)] focus:border-[var(--accent-color)]'} rounded-xl px-4 py-3 text-[var(--text-primary)] placeholder:text-[var(--text-tertiary)] outline-none transition-colors duration-300 shadow-inner focus:ring-1 focus:ring-[var(--accent-color)]`}
-                  placeholder="Enter primary identifier..."
+                  placeholder={t('namePlaceholder')}
                 />
                 {validationErrors.name && (
                   <p className="mt-2 text-xs text-red-500 flex items-center gap-1">
@@ -206,7 +208,7 @@ export default function ContactSection() {
               {/* Email */}
               <div>
                 <label htmlFor="email" className="block text-xs font-bold tracking-widest text-[var(--text-tertiary)] uppercase mb-2">
-                  Return Channel (Email)
+                  {t('emailLabel')}
                 </label>
                 <input
                   type="email"
@@ -214,7 +216,7 @@ export default function ContactSection() {
                   name="email"
                   disabled={isPending}
                   className={`w-full bg-[var(--bg-surface)] border ${validationErrors.email ? 'border-red-500/50 focus:border-red-500' : 'border-[var(--border-subtle)] focus:border-[var(--accent-color)]'} rounded-xl px-4 py-3 text-[var(--text-primary)] placeholder:text-[var(--text-tertiary)] outline-none transition-colors duration-300 shadow-inner focus:ring-1 focus:ring-[var(--accent-color)]`}
-                  placeholder="Enter valid address..."
+                  placeholder={t('emailPlaceholder')}
                 />
                 {validationErrors.email && (
                   <p className="mt-2 text-xs text-red-500 flex items-center gap-1">
@@ -226,7 +228,7 @@ export default function ContactSection() {
               {/* Message */}
               <div>
                 <label htmlFor="message" className="block text-xs font-bold tracking-widest text-[var(--text-tertiary)] uppercase mb-2">
-                  Transmission payload
+                  {t('messageLabel')}
                 </label>
                 <textarea
                   id="message"
@@ -234,7 +236,7 @@ export default function ContactSection() {
                   rows={4}
                   disabled={isPending}
                   className={`w-full bg-[var(--bg-surface)] border ${validationErrors.message ? 'border-red-500/50 focus:border-red-500' : 'border-[var(--border-subtle)] focus:border-[var(--accent-color)]'} rounded-xl px-4 py-3 text-[var(--text-primary)] placeholder:text-[var(--text-tertiary)] outline-none transition-colors duration-300 resize-none shadow-inner focus:ring-1 focus:ring-[var(--accent-color)]`}
-                  placeholder="Specify payload parameters..."
+                  placeholder={t('messagePlaceholder')}
                 />
                 {validationErrors.message && (
                   <p className="mt-2 text-xs text-red-500 flex items-center gap-1">
@@ -256,11 +258,11 @@ export default function ContactSection() {
                   {isPending ? (
                     <>
                       <Loader2 className="w-4 h-4 animate-spin" />
-                      Processing...
+                      {t('processing')}
                     </>
                   ) : (
                     <>
-                      Send Payload
+                      {t('sendPayload')}
                       <Send className="w-4 h-4 group-hover:translate-x-1 transition-transform" />
                     </>
                   )}

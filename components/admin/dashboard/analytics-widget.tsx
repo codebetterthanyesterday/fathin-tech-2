@@ -59,7 +59,7 @@ function StatCard({
 }: {
   label: string;
   value: number;
-  icon: React.ElementType;
+  icon: React.ElementType<{ className?: string }>;
   sublabel: string;
 }) {
   const formatted = value.toLocaleString('en-US');

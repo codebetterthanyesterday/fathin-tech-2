@@ -1,7 +1,7 @@
 'use client';
 
 import React, { useState, useEffect, useRef, useCallback } from 'react';
-import { useRouter } from 'next/navigation';
+import { useRouter } from '@/i18n/routing';
 import { Command } from 'cmdk';
 import { motion, AnimatePresence } from 'framer-motion';
 import {
@@ -13,11 +13,11 @@ import {
   ExternalLink,
   Sparkles,
   Command as CommandIcon,
-  CornerDownLeft,
 } from 'lucide-react';
 import { useSearch } from './search-context';
 import HighlightMatch from './highlight-match';
 import { SearchResultItem, SearchResponse } from '@/app/api/search/route';
+import { useTranslations } from 'next-intl';
 
 export default function CommandPalette() {
   const { isOpen, closeSearch } = useSearch();
@@ -27,6 +27,8 @@ export default function CommandPalette() {
   const [isLoading, setIsLoading] = useState(false);
   const router = useRouter();
   const inputRef = useRef<HTMLInputElement>(null);
+  const t = useTranslations('search');
+  const tNav = useTranslations('nav');
 
   // Reset state when opening/closing
   useEffect(() => {
@@ -101,7 +103,7 @@ export default function CommandPalette() {
             initial={{ opacity: 0 }}
             animate={{ opacity: 1 }}
             exit={{ opacity: 0 }}
-            transition={{ duration: 0.2 }}
+            transition={{ duration: 0.15 }}
             onClick={closeSearch}
             className="fixed inset-0 bg-black/60 backdrop-blur-md"
             aria-hidden="true"
@@ -117,7 +119,7 @@ export default function CommandPalette() {
           >
             <Command
               label="Site Search Command Palette"
-              shouldFilter={false} // We do custom server-side search
+              shouldFilter={false}
               className="w-full flex flex-col"
               onKeyDown={(e) => {
                 if (e.key === 'Escape') {
@@ -137,7 +139,7 @@ export default function CommandPalette() {
                   ref={inputRef}
                   value={query}
                   onValueChange={setQuery}
-                  placeholder="Search projects, case studies, technical articles..."
+                  placeholder={t('placeholder')}
                   className="w-full bg-transparent text-base sm:text-lg text-[var(--text-primary)] placeholder:text-[var(--text-tertiary)] focus:outline-none focus:ring-0 border-0"
                 />
                 {query ? (
@@ -145,7 +147,7 @@ export default function CommandPalette() {
                     type="button"
                     onClick={() => setQuery('')}
                     className="p-1 rounded-md text-[var(--text-tertiary)] hover:text-[var(--text-primary)] transition-colors"
-                    aria-label="Clear query"
+                    aria-label={t('close')}
                   >
                     <X className="w-4 h-4" />
                   </button>
@@ -183,10 +185,10 @@ export default function CommandPalette() {
                       <Search className="w-6 h-6" />
                     </div>
                     <p className="text-base font-semibold text-[var(--text-primary)]">
-                      No results for &ldquo;{query}&rdquo;
+                      {t('noResults')} &ldquo;{query}&rdquo;
                     </p>
                     <p className="text-sm text-[var(--text-secondary)] mt-1 max-w-sm mx-auto">
-                      Try searching with different keywords, check for typos, or browse the dedicated search page.
+                      {t('noResultsSub')}
                     </p>
                   </Command.Empty>
                 )}
@@ -196,10 +198,10 @@ export default function CommandPalette() {
                   <div className="py-8 px-4 text-center">
                     <div className="inline-flex items-center gap-2 px-3 py-1 rounded-full bg-[var(--bg-surface)] border border-[var(--border-subtle)] text-xs text-[var(--text-secondary)] mb-4">
                       <Sparkles className="w-3.5 h-3.5 text-[var(--accent-text)]" />
-                      <span>Instant Full-Text & Typo-Tolerant Search</span>
+                      <span>{t('startSearching')}</span>
                     </div>
                     <p className="text-sm text-[var(--text-secondary)]">
-                      Type at least 2 characters to search through projects, technologies, and published articles.
+                      {t('startSearchingSub')}
                     </p>
 
                     {/* Quick navigation options */}
@@ -213,7 +215,7 @@ export default function CommandPalette() {
                         className="flex items-center gap-3 p-3 rounded-xl bg-[var(--bg-surface)] hover:bg-[var(--bg-card)] border border-[var(--border-subtle)] transition-colors group"
                       >
                         <Layers className="w-4 h-4 text-[var(--accent-text)]" />
-                        <span className="text-sm font-medium text-[var(--text-primary)]">Featured Projects</span>
+                        <span className="text-sm font-medium text-[var(--text-primary)]">{t('projects')}</span>
                         <ArrowRight className="w-3.5 h-3.5 ml-auto opacity-0 group-hover:opacity-100 group-hover:translate-x-0.5 transition-all text-[var(--text-tertiary)]" />
                       </button>
 
@@ -226,7 +228,7 @@ export default function CommandPalette() {
                         className="flex items-center gap-3 p-3 rounded-xl bg-[var(--bg-surface)] hover:bg-[var(--bg-card)] border border-[var(--border-subtle)] transition-colors group"
                       >
                         <FileText className="w-4 h-4 text-[var(--accent-text)]" />
-                        <span className="text-sm font-medium text-[var(--text-primary)]">Articles & Notes</span>
+                        <span className="text-sm font-medium text-[var(--text-primary)]">{tNav('articlesAndThoughts')}</span>
                         <ArrowRight className="w-3.5 h-3.5 ml-auto opacity-0 group-hover:opacity-100 group-hover:translate-x-0.5 transition-all text-[var(--text-tertiary)]" />
                       </button>
                     </div>
@@ -239,7 +241,7 @@ export default function CommandPalette() {
                     heading={
                       <div className="px-3 py-1.5 text-xs font-mono font-bold tracking-widest text-[var(--text-tertiary)] uppercase flex items-center gap-2">
                         <Layers className="w-3.5 h-3.5" />
-                        <span>Projects ({projects.length})</span>
+                        <span>{t('projects')} ({projects.length})</span>
                       </div>
                     }
                   >
@@ -294,7 +296,7 @@ export default function CommandPalette() {
                     heading={
                       <div className="px-3 py-1.5 text-xs font-mono font-bold tracking-widest text-[var(--text-tertiary)] uppercase flex items-center gap-2 mt-2">
                         <FileText className="w-3.5 h-3.5" />
-                        <span>Articles ({articles.length})</span>
+                        <span>{t('articles')} ({articles.length})</span>
                       </div>
                     }
                   >
@@ -335,7 +337,7 @@ export default function CommandPalette() {
                     onClick={handleViewAll}
                     className="flex items-center gap-1.5 text-[var(--accent-text)] hover:underline font-medium"
                   >
-                    <span>View all {totalResults} results on search page</span>
+                    <span>{t('viewAllResults', { count: totalResults })}</span>
                     <ExternalLink className="w-3.5 h-3.5" />
                   </button>
                 ) : (
@@ -343,20 +345,18 @@ export default function CommandPalette() {
                     <span className="flex items-center gap-1">
                       <kbd className="px-1.5 py-0.5 bg-[var(--bg-card)] border border-[var(--border-subtle)] rounded shadow-sm">
                         ↑↓
-                      </kbd>{' '}
-                      to navigate
+                      </kbd>
                     </span>
                     <span className="flex items-center gap-1">
                       <kbd className="px-1.5 py-0.5 bg-[var(--bg-card)] border border-[var(--border-subtle)] rounded shadow-sm">
                         ↵
-                      </kbd>{' '}
-                      to open
+                      </kbd>
                     </span>
                   </div>
                 )}
 
                 <div className="hidden sm:flex items-center gap-2 font-mono text-[11px]">
-                  <span>Command Palette</span>
+                  <span>{t('commandPaletteTitle')}</span>
                   <CommandIcon className="w-3 h-3" />
                 </div>
               </div>

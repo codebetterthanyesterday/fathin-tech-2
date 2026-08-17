@@ -1,6 +1,7 @@
 'use client';
 
 import { motion, useReducedMotion } from 'framer-motion';
+import { useTranslations } from 'next-intl';
 
 interface SkillsSectionProps {
   skills: any[];
@@ -8,6 +9,7 @@ interface SkillsSectionProps {
 
 export default function SkillsSection({ skills }: SkillsSectionProps) {
   const prefersReducedMotion = useReducedMotion();
+  const t = useTranslations('skills');
 
   if (!skills || skills.length === 0) return null;
 
@@ -47,7 +49,7 @@ export default function SkillsSection({ skills }: SkillsSectionProps) {
           variants={container}
         >
           <motion.h2 variants={item} className="text-3xl sm:text-4xl font-bold text-[var(--text-primary)] mb-12 tracking-tight">
-            Skills & Expertise
+            {t('minimalTitle')}
           </motion.h2>
 
           <div className="grid grid-cols-1 md:grid-cols-2 gap-12">

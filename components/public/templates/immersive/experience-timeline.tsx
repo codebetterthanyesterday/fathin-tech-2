@@ -3,6 +3,7 @@
 import { motion, useScroll, useTransform, useReducedMotion } from 'framer-motion';
 import { useRef } from 'react';
 import { Briefcase, GraduationCap, Calendar } from 'lucide-react';
+import { useTranslations } from 'next-intl';
 
 interface ExperienceTimelineProps {
   experiences: any[];
@@ -11,6 +12,7 @@ interface ExperienceTimelineProps {
 export default function ImmersiveExperienceTimeline({ experiences }: ExperienceTimelineProps) {
   const prefersReducedMotion = useReducedMotion();
   const containerRef = useRef<HTMLDivElement>(null);
+  const t = useTranslations('experience');
   
   const { scrollYProgress } = useScroll({
     target: containerRef,
@@ -44,10 +46,10 @@ export default function ImmersiveExperienceTimeline({ experiences }: ExperienceT
           className="text-center mb-24"
         >
           <h2 className="text-5xl sm:text-6xl md:text-7xl font-black text-[var(--text-primary)] tracking-tighter mb-6">
-            Professional Trajectory.
+            {t('immersiveTitle')}
           </h2>
           <p className="text-[var(--text-secondary)] text-lg max-w-2xl mx-auto leading-relaxed">
-            Chronological record of professional tenure and academic background.
+            {t('immersiveSubtitle')}
           </p>
         </motion.div>
 
@@ -102,7 +104,7 @@ export default function ImmersiveExperienceTimeline({ experiences }: ExperienceT
                         <div className={`flex flex-col sm:flex-row sm:items-center gap-3 mb-6 ${isEven ? 'md:justify-end' : 'md:justify-start'}`}>
                           <div className="flex items-center gap-2 text-xs sm:text-sm font-mono text-[var(--accent-text)] bg-[var(--accent-soft)] border border-[var(--accent-color)]/20 group-hover:border-[var(--accent-color)]/40 group-hover:shadow-[0_0_12px_var(--accent-soft)] px-4 py-1.5 rounded-full w-fit transition-all duration-300">
                             <Calendar className="w-4 h-4" />
-                            {new Date(exp.startDate).getFullYear()} — {exp.endDate ? new Date(exp.endDate).getFullYear() : 'Present'}
+                            {new Date(exp.startDate).getFullYear()} — {exp.endDate ? new Date(exp.endDate).getFullYear() : t('present')}
                           </div>
                         </div>
                         
