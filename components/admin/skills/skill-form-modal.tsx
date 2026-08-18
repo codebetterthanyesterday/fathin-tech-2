@@ -1,8 +1,9 @@
 'use client';
 
-import { useEffect, useRef, useActionState } from 'react';
+import { useEffect, useRef, useState, useActionState } from 'react';
 import { createSkill, updateSkill, SkillActionState } from '@/app/actions/skill';
 import { X, Loader2, CheckCircle, AlertCircle } from 'lucide-react';
+import LocaleTabSelector from '@/components/admin/layout/locale-tab-selector';
 
 export default function SkillFormModal({ 
   isOpen, 
@@ -14,6 +15,26 @@ export default function SkillFormModal({
   skill?: any; 
 }) {
   const modalRef = useRef<HTMLDivElement>(null);
+  const [activeLocale, setActiveLocale] = useState<'id' | 'en'>('id');
+
+  const idTranslation = skill?.translations?.find((t: any) => t.locale === 'id');
+  const enTranslation = skill?.translations?.find((t: any) => t.locale === 'en');
+
+  const [nameId, setNameId] = useState(idTranslation?.name || skill?.name || '');
+  const [nameEn, setNameEn] = useState(enTranslation?.name || '');
+
+  // Sync state when skill prop changes
+  useEffect(() => {
+    if (skill) {
+      const idTrans = skill?.translations?.find((t: any) => t.locale === 'id');
+      const enTrans = skill?.translations?.find((t: any) => t.locale === 'en');
+      setNameId(idTrans?.name || skill?.name || '');
+      setNameEn(enTrans?.name || '');
+    } else {
+      setNameId('');
+      setNameEn('');
+    }
+  }, [skill]);
 
   // Close on escape key
   useEffect(() => {
@@ -47,14 +68,20 @@ export default function SkillFormModal({
   const formRef = useRef<HTMLFormElement>(null);
 
   // When adding a new skill is successful, reset the form so the user can add another one.
-  // We do not auto-close the modal, as requested.
   useEffect(() => {
     if (state?.success && !skill) {
+      setNameId('');
+      setNameEn('');
       formRef.current?.reset();
     }
   }, [state?.success, skill]);
 
   if (!isOpen) return null;
+
+  const localeStatus = {
+    id: { isComplete: Boolean(nameId.trim()) },
+    en: { isComplete: Boolean(nameEn.trim()) },
+  };
 
   return (
     <div className="fixed inset-0 z-50 flex items-center justify-center p-4">
@@ -64,7 +91,7 @@ export default function SkillFormModal({
       {/* Modal */}
       <div 
         ref={modalRef}
-        className="relative w-full max-w-md bg-zinc-950 border border-zinc-800 rounded-2xl shadow-2xl p-6 animate-in fade-in zoom-in-95 duration-300"
+        className="relative w-full max-w-lg bg-zinc-950 border border-zinc-800 rounded-2xl shadow-2xl p-6 animate-in fade-in zoom-in-95 duration-300"
       >
         <button 
           onClick={onClose}
@@ -73,8 +100,8 @@ export default function SkillFormModal({
           <X className="w-5 h-5" />
         </button>
 
-        <h2 className="text-xl font-bold text-white mb-6">
-          {skill ? 'Edit Entry' : 'Create Entry'}
+        <h2 className="text-xl font-bold text-white mb-4">
+          {skill ? 'Edit Skill Entry' : 'Create Skill Entry'}
         </h2>
 
         {state?.error && (
@@ -92,20 +119,60 @@ export default function SkillFormModal({
         )}
 
         <form ref={formRef} action={formAction} className="space-y-5">
+          {/* Language Selector Tab */}
           <div className="space-y-2">
-            <label htmlFor="name" className="block text-sm font-medium text-zinc-300">Skill Name *</label>
-            <input
-              id="name"
-              name="name"
-              type="text"
-              defaultValue={skill?.name || ''}
-              required
-              className="w-full px-4 py-2.5 bg-zinc-900 border border-zinc-800 rounded-lg text-white placeholder:text-zinc-600 focus:outline-none focus:ring-2 focus:ring-white/20 transition-all"
-              placeholder="e.g. React.js, Python, Figma"
+            <label className="block text-xs font-semibold uppercase tracking-wider text-zinc-400">
+              Bahasa / Language
+            </label>
+            <LocaleTabSelector
+              activeLocale={activeLocale}
+              onLocaleChange={setActiveLocale}
+              status={localeStatus}
+              className="w-full justify-start"
             />
-            {state?.fieldErrors?.name && <p className="text-red-400 text-xs">{state.fieldErrors.name[0]}</p>}
           </div>
 
+          {/* Hidden inputs to preserve both values on submit */}
+          <input type="hidden" name="name_id" value={nameId} />
+          <input type="hidden" name="name_en" value={nameEn} />
+
+          {/* Localized Name Field */}
+          {activeLocale === 'id' ? (
+            <div className="space-y-2">
+              <label htmlFor="name_id_input" className="block text-sm font-medium text-zinc-300">
+                Nama Skill (Bahasa Indonesia) *
+              </label>
+              <input
+                id="name_id_input"
+                type="text"
+                value={nameId}
+                onChange={(e) => setNameId(e.target.value)}
+                required
+                className="w-full px-4 py-2.5 bg-zinc-900 border border-zinc-800 rounded-lg text-white placeholder:text-zinc-600 focus:outline-none focus:ring-2 focus:ring-white/20 transition-all"
+                placeholder="mis. React.js, Arsitektur Sistem, Manajemen Proyek"
+              />
+              {state?.fieldErrors?.name_id && <p className="text-red-400 text-xs">{state.fieldErrors.name_id[0]}</p>}
+            </div>
+          ) : (
+            <div className="space-y-2">
+              <label htmlFor="name_en_input" className="block text-sm font-medium text-zinc-300">
+                Skill Name (English)
+              </label>
+              <input
+                id="name_en_input"
+                type="text"
+                value={nameEn}
+                onChange={(e) => setNameEn(e.target.value)}
+                className="w-full px-4 py-2.5 bg-zinc-900 border border-zinc-800 rounded-lg text-white placeholder:text-zinc-600 focus:outline-none focus:ring-2 focus:ring-white/20 transition-all"
+                placeholder="e.g. React.js, System Architecture, Project Management"
+              />
+              <p className="text-[11px] text-zinc-500 italic">
+                Leave empty to fallback to the Indonesian name.
+              </p>
+            </div>
+          )}
+
+          {/* Shared Fields */}
           <div className="space-y-2">
             <label htmlFor="category" className="block text-sm font-medium text-zinc-300">Category *</label>
             <select
@@ -114,10 +181,10 @@ export default function SkillFormModal({
               defaultValue={skill?.category || 'OTHER'}
               className="w-full px-4 py-2.5 bg-zinc-900 border border-zinc-800 rounded-lg text-white focus:outline-none focus:ring-2 focus:ring-white/20 transition-all appearance-none"
             >
-              <option value="LANGUAGE">Language</option>
-              <option value="FRAMEWORK">Framework</option>
-              <option value="TOOL">Tool</option>
-              <option value="SOFT_SKILL">Soft Skill</option>
+              <option value="LANGUAGE">Programming Language</option>
+              <option value="FRAMEWORK">Framework / Library</option>
+              <option value="TOOL">Tool & DevOps</option>
+              <option value="SOFT_SKILL">Soft Skill / Leadership</option>
               <option value="OTHER">Other</option>
             </select>
           </div>

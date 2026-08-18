@@ -20,7 +20,14 @@
   "skills": {
     "minimalTitle": "Skills & Expertise",
     "immersiveTitle": "My Arsenal.",
-    "immersiveDescription": "The tools and technologies I use to architect, build, and bring ideas to life."
+    "immersiveDescription": "The tools and technologies I use to architect, build, and bring ideas to life.",
+    "categories": {
+      "LANGUAGE": "Programming Languages",
+      "FRAMEWORK": "Frameworks & Libraries",
+      "TOOL": "Tools & DevOps",
+      "SOFT_SKILL": "Soft Skills & Leadership",
+      "OTHER": "Other Skills"
+    }
   },
   "projects": {
     "minimalTitle": "Featured Work",
@@ -49,7 +56,11 @@
     "minimalTitle": "Experience",
     "immersiveTitle": "Professional Trajectory.",
     "immersiveSubtitle": "Chronological record of professional tenure and academic background.",
-    "present": "Present"
+    "present": "Present",
+    "types": {
+      "WORK": "Work Experience",
+      "EDUCATION": "Education"
+    }
   },
   "testimonials": {
     "minimalHeader": "// Professional Feedback",
@@ -95,7 +106,19 @@
     "messageLabel": "Transmission payload",
     "messagePlaceholder": "Specify payload parameters...",
     "sendPayload": "Send Payload",
-    "processing": "Processing..."
+    "processing": "Processing...",
+    "minimalTitle": "Get in Touch",
+    "minimalSubtitle": "Have a project in mind, a question, or just want to say hi? Send me a message below.",
+    "minimalNameLabel": "Name",
+    "minimalNamePlaceholder": "Your name",
+    "minimalEmailLabel": "Email",
+    "minimalEmailPlaceholder": "your.email@example.com",
+    "minimalMessageLabel": "Message",
+    "minimalMessagePlaceholder": "Tell me about your project, idea, or inquiry...",
+    "minimalSubmit": "Send Message",
+    "minimalSuccessTitle": "Message Sent!",
+    "minimalSuccessMessage": "Thank you for reaching out. I have received your note and will get back to you soon.",
+    "minimalNewMessage": "Send another message"
   },
   "search": {
     "title": "Search Portfolio & Articles",

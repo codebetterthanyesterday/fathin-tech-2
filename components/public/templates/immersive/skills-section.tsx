@@ -76,7 +76,7 @@ export default function ImmersiveSkillsSection({ skills }: SkillsSectionProps) {
             {categories.map((category) => (
               <motion.div key={category} variants={item} className="relative">
                 <h3 className="text-xs sm:text-sm font-bold text-[var(--accent-text)] uppercase tracking-widest mb-6 flex items-center gap-4">
-                  <span>{category.replace('_', ' ')}</span>
+                  <span>{t.has(`categories.${category}`) ? t(`categories.${category}`) : category.replace('_', ' ')}</span>
                   <div className="flex-grow h-[1px] bg-[var(--border-strong)]" />
                 </h3>
                 

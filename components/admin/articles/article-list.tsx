@@ -168,6 +168,7 @@ export default function ArticleListClient({ initialArticles }: { initialArticles
                       src={rawArticle.coverImage}
                       alt={article.title}
                       fill
+                      sizes="(max-width: 640px) 80px, 112px"
                       className="object-cover transition-transform duration-500 group-hover:scale-105"
                     />
                   ) : (

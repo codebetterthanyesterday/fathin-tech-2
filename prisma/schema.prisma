@@ -64,6 +64,7 @@ model ProfileTranslation {
   locale    String // 'id' | 'en'
   tagline   String?
   bio       String? @db.Text
+  location  String?
 
   @@unique([profileId, locale])
 }
@@ -117,10 +118,22 @@ model Skill {
   level    Int? // 1-5, opsional
   order    Int           @default(0)
 
+  translations SkillTranslation[]
+
   createdAt DateTime @default(now())
   updatedAt DateTime @updatedAt
 
   @@index([category])
+}
+
+model SkillTranslation {
+  id      String @id @default(cuid())
+  skillId String
+  skill   Skill  @relation(fields: [skillId], references: [id], onDelete: Cascade)
+  locale  String // 'id' | 'en'
+  name    String
+
+  @@unique([skillId, locale])
 }
 
 // ------------------------------------------------------------
@@ -205,6 +218,7 @@ model ExperienceTranslation {
   experience   Experience @relation(fields: [experienceId], references: [id], onDelete: Cascade)
   locale       String // 'id' | 'en'
   title        String // posisi atau gelar
+  institution  String? // nama lembaga/perusahaan lokal (opsional)
   description  String?    @db.Text
 
   @@unique([experienceId, locale])
@@ -272,11 +286,20 @@ model ArticleTranslation {
 // PESAN KONTAK
 // ------------------------------------------------------------
 
+enum ContactMessageStatus {
+  NEW
+  READ
+  REPLIED
+  ARCHIVED
+}
+
 model ContactMessage {
-  id        String   @id @default(cuid())
+  id        String               @id @default(cuid())
   name      String
   email     String
-  message   String   @db.Text
-  isRead    Boolean  @default(false)
-  createdAt DateTime @default(now())
+  message   String               @db.Text
+  status    ContactMessageStatus @default(NEW)
+  createdAt DateTime             @default(now())
+
+  @@index([status])
 }

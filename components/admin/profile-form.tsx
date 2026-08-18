@@ -37,14 +37,16 @@ export default function ProfileForm({ initialData }: { initialData: any }) {
     id: {
       tagline: idTrans?.tagline || initialData?.tagline || '',
       bio: idTrans?.bio || initialData?.bio || '',
+      location: idTrans?.location || initialData?.location || '',
     },
     en: {
       tagline: enTrans?.tagline || '',
       bio: enTrans?.bio || '',
+      location: enTrans?.location || '',
     },
   });
 
-  const handleTranslationChange = (field: 'tagline' | 'bio', value: string) => {
+  const handleTranslationChange = (field: 'tagline' | 'bio' | 'location', value: string) => {
     setTranslations((prev) => ({
       ...prev,
       [activeLocale]: {
@@ -54,7 +56,7 @@ export default function ProfileForm({ initialData }: { initialData: any }) {
     }));
   };
 
-  const isIdComplete = !!translations.id.tagline?.trim() || !!translations.id.bio?.trim();
+  const isIdComplete = !!translations.id.tagline?.trim() || !!translations.id.bio?.trim() || !!translations.id.location?.trim();
   const isEnComplete = !!translations.en.tagline?.trim() && !!translations.en.bio?.trim();
 
   const handleImageChange = async (e: React.ChangeEvent<HTMLInputElement>) => {
@@ -178,8 +180,10 @@ export default function ProfileForm({ initialData }: { initialData: any }) {
           {/* Hidden inputs to submit all locales */}
           <input type="hidden" name="tagline_id" value={translations.id.tagline} />
           <input type="hidden" name="bio_id" value={translations.id.bio} />
+          <input type="hidden" name="location_id" value={translations.id.location} />
           <input type="hidden" name="tagline_en" value={translations.en.tagline} />
           <input type="hidden" name="bio_en" value={translations.en.bio} />
+          <input type="hidden" name="location_en" value={translations.en.location} />
 
           {/* Photo Upload Area */}
           <div className="flex flex-col sm:flex-row items-start sm:items-center gap-6 pb-6 border-b border-zinc-800">
@@ -247,7 +251,7 @@ export default function ProfileForm({ initialData }: { initialData: any }) {
             )}
           </div>
 
-          {/* TRANSLATABLE FIELDS (Tagline & Bio) WITH LOCALE TABS */}
+          {/* TRANSLATABLE FIELDS (Tagline, Bio & Location) WITH LOCALE TABS */}
           <div className="p-6 bg-zinc-900/40 border border-zinc-800/80 rounded-2xl space-y-5">
             <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3 border-b border-zinc-800/80 pb-4">
               <div>
@@ -255,7 +259,7 @@ export default function ProfileForm({ initialData }: { initialData: any }) {
                   Translatable Content
                 </h3>
                 <p className="text-xs text-zinc-500">
-                  Tagline dan Bio dalam Bahasa Indonesia dan English.
+                  Tagline, Bio, dan Lokasi dalam Bahasa Indonesia dan English.
                 </p>
               </div>
 
@@ -286,6 +290,26 @@ export default function ProfileForm({ initialData }: { initialData: any }) {
                 onChange={(e) => handleTranslationChange('tagline', e.target.value)}
                 className="w-full px-4 py-3 bg-zinc-900/50 border border-zinc-800 rounded-lg text-white placeholder:text-zinc-600 focus:outline-none focus:ring-2 focus:ring-white/20 focus:border-white/30 transition-all duration-300"
                 placeholder={activeLocale === 'id' ? 'cth. Full-Stack Engineer & System Architect' : 'e.g. Full-Stack Engineer & System Architect'}
+              />
+            </div>
+
+            {/* Location */}
+            <div className="space-y-2">
+              <div className="flex items-center justify-between">
+                <label htmlFor={`location_${activeLocale}`} className="block text-sm font-medium text-zinc-300">
+                  Location ({activeLocale.toUpperCase()})
+                </label>
+                <span className="text-xs text-zinc-500 font-mono">
+                  {activeLocale === 'id' ? 'Bahasa Indonesia' : 'English'}
+                </span>
+              </div>
+              <input
+                id={`location_${activeLocale}`}
+                type="text"
+                value={translations[activeLocale].location}
+                onChange={(e) => handleTranslationChange('location', e.target.value)}
+                className="w-full px-4 py-3 bg-zinc-900/50 border border-zinc-800 rounded-lg text-white placeholder:text-zinc-600 focus:outline-none focus:ring-2 focus:ring-white/20 focus:border-white/30 transition-all duration-300"
+                placeholder={activeLocale === 'id' ? 'cth. Bandung, Jawa Barat, Indonesia' : 'e.g. Bandung, West Java, Indonesia'}
               />
             </div>
 
@@ -345,23 +369,8 @@ export default function ProfileForm({ initialData }: { initialData: any }) {
               />
             </div>
 
-            {/* Location */}
-            <div className="space-y-2">
-              <label htmlFor="location" className="block text-sm font-medium text-zinc-300">
-                Location
-              </label>
-              <input
-                id="location"
-                name="location"
-                type="text"
-                defaultValue={initialData?.location || ''}
-                className="w-full px-4 py-3 bg-zinc-900/50 border border-zinc-800 rounded-lg text-white placeholder:text-zinc-600 focus:outline-none focus:ring-2 focus:ring-white/20 focus:border-white/30 transition-all duration-300"
-                placeholder="City, Country..."
-              />
-            </div>
-
             {/* Resume URL */}
-            <div className="space-y-2">
+            <div className="space-y-2 sm:col-span-2">
               <label htmlFor="resumeUrl" className="block text-sm font-medium text-zinc-300">
                 Resume/CV URL
               </label>
@@ -371,7 +380,7 @@ export default function ProfileForm({ initialData }: { initialData: any }) {
                 type="url"
                 defaultValue={initialData?.resumeUrl || ''}
                 className="w-full px-4 py-3 bg-zinc-900/50 border border-zinc-800 rounded-lg text-white placeholder:text-zinc-600 focus:outline-none focus:ring-2 focus:ring-white/20 focus:border-white/30 transition-all duration-300"
-                placeholder="https://example.com/resume.pdf"
+                placeholder="https://..."
               />
               {state?.fieldErrors?.resumeUrl && (
                 <p className="text-red-400 text-xs mt-1">{state.fieldErrors.resumeUrl[0]}</p>

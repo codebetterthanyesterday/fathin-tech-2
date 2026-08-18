@@ -8,7 +8,9 @@ import { getAdminPath } from '@/lib/routes';
 import { SkillCategory } from '@/app/generated/prisma/client';
 
 const skillSchema = z.object({
-  name: z.string().min(1, 'Nama skill wajib diisi'),
+  name: z.string().optional(),
+  name_id: z.string().optional(),
+  name_en: z.string().optional(),
   category: z.nativeEnum(SkillCategory, { message: 'Kategori tidak valid' }),
   level: z.coerce.number().min(1).max(5).optional().or(z.literal('')),
 });
@@ -22,6 +24,9 @@ export type SkillActionState = {
 export async function getSkills() {
   try {
     const skills = await prisma.skill.findMany({
+      include: {
+        translations: true,
+      },
       orderBy: [
         { category: 'asc' },
         { order: 'asc' }
@@ -39,7 +44,9 @@ export async function createSkill(prevState: any, formData: FormData): Promise<S
   if (!session) return { error: 'Unauthorized' };
 
   const rawData = {
-    name: formData.get('name') as string,
+    name: (formData.get('name') as string) || '',
+    name_id: (formData.get('name_id') as string) || '',
+    name_en: (formData.get('name_en') as string) || '',
     category: formData.get('category') as string,
     level: formData.get('level'),
   };
@@ -53,6 +60,14 @@ export async function createSkill(prevState: any, formData: FormData): Promise<S
   }
 
   const data = validated.data;
+  const primaryName = data.name_id?.trim() || data.name?.trim() || data.name_en?.trim();
+  if (!primaryName) {
+    return {
+      error: 'Validation error: Nama skill wajib diisi.',
+      fieldErrors: { name_id: ['Nama skill wajib diisi setidaknya dalam satu bahasa'] },
+    };
+  }
+
   const levelNum = data.level === '' || data.level === undefined ? null : Number(data.level);
 
   try {
@@ -64,16 +79,37 @@ export async function createSkill(prevState: any, formData: FormData): Promise<S
     
     const newOrder = lastSkill ? lastSkill.order + 1 : 0;
 
-    await prisma.skill.create({
+    const createdSkill = await prisma.skill.create({
       data: {
-        name: data.name,
+        name: primaryName,
         category: data.category,
         level: levelNum,
         order: newOrder,
       },
     });
 
+    // Create Indonesian translation
+    await prisma.skillTranslation.create({
+      data: {
+        skillId: createdSkill.id,
+        locale: 'id',
+        name: data.name_id?.trim() || primaryName,
+      },
+    });
+
+    // Create English translation if provided
+    if (data.name_en?.trim()) {
+      await prisma.skillTranslation.create({
+        data: {
+          skillId: createdSkill.id,
+          locale: 'en',
+          name: data.name_en.trim(),
+        },
+      });
+    }
+
     revalidatePath('/');
+    revalidatePath('/[locale]', 'layout');
     revalidatePath(getAdminPath('skills'));
     return { success: 'Skill added.' };
   } catch (error) {
@@ -87,7 +123,9 @@ export async function updateSkill(id: string, prevState: any, formData: FormData
   if (!session) return { error: 'Unauthorized' };
 
   const rawData = {
-    name: formData.get('name') as string,
+    name: (formData.get('name') as string) || '',
+    name_id: (formData.get('name_id') as string) || '',
+    name_en: (formData.get('name_en') as string) || '',
     category: formData.get('category') as string,
     level: formData.get('level'),
   };
@@ -101,6 +139,14 @@ export async function updateSkill(id: string, prevState: any, formData: FormData
   }
 
   const data = validated.data;
+  const primaryName = data.name_id?.trim() || data.name?.trim() || data.name_en?.trim();
+  if (!primaryName) {
+    return {
+      error: 'Validation error: Nama skill wajib diisi.',
+      fieldErrors: { name_id: ['Nama skill wajib diisi setidaknya dalam satu bahasa'] },
+    };
+  }
+
   const levelNum = data.level === '' || data.level === undefined ? null : Number(data.level);
 
   try {
@@ -120,14 +166,61 @@ export async function updateSkill(id: string, prevState: any, formData: FormData
     await prisma.skill.update({
       where: { id },
       data: {
-        name: data.name,
+        name: primaryName,
         category: data.category,
         level: levelNum,
         order: newOrder,
       },
     });
 
+    // Upsert Indonesian translation
+    await prisma.skillTranslation.upsert({
+      where: {
+        skillId_locale: {
+          skillId: id,
+          locale: 'id',
+        },
+      },
+      create: {
+        skillId: id,
+        locale: 'id',
+        name: data.name_id?.trim() || primaryName,
+      },
+      update: {
+        name: data.name_id?.trim() || primaryName,
+      },
+    });
+
+    // Upsert English translation
+    if (data.name_en?.trim()) {
+      await prisma.skillTranslation.upsert({
+        where: {
+          skillId_locale: {
+            skillId: id,
+            locale: 'en',
+          },
+        },
+        create: {
+          skillId: id,
+          locale: 'en',
+          name: data.name_en.trim(),
+        },
+        update: {
+          name: data.name_en.trim(),
+        },
+      });
+    } else {
+      // If cleared, delete EN translation
+      await prisma.skillTranslation.deleteMany({
+        where: {
+          skillId: id,
+          locale: 'en',
+        },
+      });
+    }
+
     revalidatePath('/');
+    revalidatePath('/[locale]', 'layout');
     revalidatePath(getAdminPath('skills'));
     return { success: 'Skill updated.' };
   } catch (error) {

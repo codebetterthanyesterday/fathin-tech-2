@@ -47,6 +47,7 @@ import {
   AlertCircle,
 } from 'lucide-react';
 import { DEFAULT_CONTENT } from '@/lib/sections/schema';
+import LocaleTabSelector from '@/components/admin/layout/locale-tab-selector';
 
 // ─── Section type metadata ────────────────────────────────────────────────────
 
@@ -93,6 +94,7 @@ const SECTION_META: Record<string, { label: string; icon: React.ReactNode; descr
 function ContentEditor({ section, onClose }: { section: any; onClose: () => void }) {
   const [isPending, startTransition] = useTransition();
   const [content, setContent] = useState<any>(section.content ?? DEFAULT_CONTENT[section.type] ?? {});
+  const [activeLocale, setActiveLocale] = useState<'id' | 'en'>('id');
   const [feedback, setFeedback] = useState('');
 
   const handleSave = () => {
@@ -106,14 +108,94 @@ function ContentEditor({ section, onClose }: { section: any; onClose: () => void
   const update = (key: string, value: string | number | undefined | string[]) =>
     setContent((prev: any) => ({ ...prev, [key]: value }));
 
+  // Check translation status for HERO and CUSTOM_TEXT
+  const getLocaleStatus = () => {
+    if (section.type === 'HERO') {
+      const hasId = Boolean((content.ctaLabel_id && content.ctaLabel_id.trim()) || (content.ctaLabel && content.ctaLabel.trim()));
+      const hasEn = Boolean((content.ctaLabel_en && content.ctaLabel_en.trim()) || (content.ctaLabel && content.ctaLabel.trim()));
+      return {
+        id: { isComplete: hasId },
+        en: { isComplete: hasEn },
+      };
+    }
+    if (section.type === 'CUSTOM_TEXT') {
+      const hasId = Boolean((content.heading_id && content.heading_id.trim()) || (content.heading && content.heading.trim()));
+      const hasEn = Boolean(content.heading_en && content.heading_en.trim());
+      return {
+        id: { isComplete: hasId },
+        en: { isComplete: hasEn },
+      };
+    }
+    return {
+      id: { isComplete: true },
+      en: { isComplete: true },
+    };
+  };
+
   return (
     <div className="mt-4 p-4 bg-zinc-950 border border-zinc-800 rounded-lg space-y-4 animate-in fade-in slide-in-from-top-2 duration-300">
-      <p className="text-xs text-zinc-500 uppercase tracking-widest font-semibold">Section Content</p>
+      <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3 pb-2 border-b border-zinc-800/80">
+        <p className="text-xs text-zinc-500 uppercase tracking-widest font-semibold">Section Content</p>
+
+        {(section.type === 'HERO' || section.type === 'CUSTOM_TEXT') && (
+          <LocaleTabSelector
+            activeLocale={activeLocale}
+            onLocaleChange={setActiveLocale}
+            status={getLocaleStatus()}
+            className="scale-90 origin-left sm:origin-right"
+          />
+        )}
+      </div>
 
       {section.type === 'HERO' && (
-        <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
-          <Field label="CTA Button Label" value={content.ctaLabel ?? ''} onChange={(v: string) => update('ctaLabel', v)} placeholder="e.g. Download Resume" />
-          <Field label="CTA Button URL" value={content.ctaUrl ?? ''} onChange={(v: string) => update('ctaUrl', v)} placeholder="https://..." />
+        <div className="space-y-4">
+          <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
+            {activeLocale === 'id' ? (
+              <div className="space-y-1.5">
+                <Field
+                  label="CTA Button Label (Bahasa Indonesia)"
+                  value={content.ctaLabel_id ?? (content.ctaLabel && !content.ctaLabel_en ? content.ctaLabel : '')}
+                  onChange={(v: string) => {
+                    update('ctaLabel_id', v);
+                    // Clear legacy ctaLabel to prevent stale fallback
+                    if (content.ctaLabel) update('ctaLabel', '');
+                  }}
+                  placeholder="Kosongkan untuk default template ('Lihat Resume')"
+                />
+                <p className="text-[11px] text-zinc-500 italic">
+                  Kosongkan field ini jika ingin teks tombol mengikuti terjemahan default sistem secara otomatis.
+                </p>
+              </div>
+            ) : (
+              <div className="space-y-1.5">
+                <Field
+                  label="CTA Button Label (English)"
+                  value={content.ctaLabel_en ?? (content.ctaLabel && !content.ctaLabel_id ? content.ctaLabel : '')}
+                  onChange={(v: string) => {
+                    update('ctaLabel_en', v);
+                    // Clear legacy ctaLabel to prevent stale fallback
+                    if (content.ctaLabel) update('ctaLabel', '');
+                  }}
+                  placeholder="Leave empty for template default ('View Resume')"
+                />
+                <p className="text-[11px] text-zinc-500 italic">
+                  Leave blank to automatically follow the system default English translation.
+                </p>
+              </div>
+            )}
+
+            <div className="space-y-1.5">
+              <Field
+                label="CTA Button URL (Shared)"
+                value={content.ctaUrl ?? ''}
+                onChange={(v: string) => update('ctaUrl', v)}
+                placeholder="https://... (kosongkan untuk pakai resume URL)"
+              />
+              <p className="text-[11px] text-zinc-500 italic">
+                URL tujuan tombol CTA (berlaku sama untuk semua bahasa).
+              </p>
+            </div>
+          </div>
         </div>
       )}
       {section.type === 'PROJECTS_GRID' && (
@@ -140,16 +222,51 @@ function ContentEditor({ section, onClose }: { section: any; onClose: () => void
       )}
       {section.type === 'CUSTOM_TEXT' && (
         <div className="space-y-4">
-          <Field label="Heading" value={content.heading ?? ''} onChange={(v: string) => update('heading', v)} placeholder="Section Heading" />
-          <div className="space-y-1">
-            <label className="text-[11px] uppercase tracking-wider text-zinc-500 font-semibold">Body</label>
-            <textarea
-              value={content.body ?? ''}
-              onChange={e => update('body', e.target.value)}
-              rows={4}
-              className="w-full px-3 py-2 bg-zinc-900 border border-zinc-800 rounded-md text-sm text-white focus:outline-none focus:ring-1 focus:ring-white/30 resize-none"
-            />
-          </div>
+          {activeLocale === 'id' ? (
+            <>
+              <Field
+                label="Heading (Bahasa Indonesia)"
+                value={content.heading_id ?? content.heading ?? ''}
+                onChange={(v: string) => {
+                  update('heading_id', v);
+                  if (content.heading) update('heading', '');
+                }}
+                placeholder="Judul Section (ID)"
+              />
+              <div className="space-y-1">
+                <label className="text-[11px] uppercase tracking-wider text-zinc-500 font-semibold">Body (Bahasa Indonesia)</label>
+                <textarea
+                  value={content.body_id ?? content.body ?? ''}
+                  onChange={e => {
+                    update('body_id', e.target.value);
+                    if (content.body) update('body', '');
+                  }}
+                  rows={4}
+                  placeholder="Tulis isi bagian kustom dalam Bahasa Indonesia..."
+                  className="w-full px-3 py-2 bg-zinc-900 border border-zinc-800 rounded-md text-sm text-white focus:outline-none focus:ring-1 focus:ring-white/30 resize-none"
+                />
+              </div>
+            </>
+          ) : (
+            <>
+              <Field
+                label="Heading (English)"
+                value={content.heading_en ?? ''}
+                onChange={(v: string) => update('heading_en', v)}
+                placeholder="Section Heading (EN)"
+              />
+              <div className="space-y-1">
+                <label className="text-[11px] uppercase tracking-wider text-zinc-500 font-semibold">Body (English)</label>
+                <textarea
+                  value={content.body_en ?? ''}
+                  onChange={e => update('body_en', e.target.value)}
+                  rows={4}
+                  placeholder="Write custom section body in English..."
+                  className="w-full px-3 py-2 bg-zinc-900 border border-zinc-800 rounded-md text-sm text-white focus:outline-none focus:ring-1 focus:ring-white/30 resize-none"
+                />
+              </div>
+            </>
+          )}
         </div>
       )}
       {(section.type === 'TESTIMONIALS' || section.type === 'ARTICLES_LIST') && (

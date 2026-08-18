@@ -8,7 +8,6 @@ import {
   ArticlesListContent,
 } from '@/lib/sections/schema';
 import { prisma } from '@/lib/prisma';
-import ContactSection from '@/components/public/contact-section';
 import JsonLd from '@/components/public/json-ld';
 import ThemeToggle from '@/components/public/layout/theme-toggle';
 import SearchTrigger from '@/components/public/search/search-trigger';
@@ -19,6 +18,7 @@ import {
   resolveExperience,
   resolveTestimonial,
   resolveArticle,
+  resolveSkill,
 } from '@/lib/translations';
 
 // Minimal Template Imports
@@ -28,6 +28,7 @@ import MinimalFeaturedProjects from '@/components/public/templates/minimal/featu
 import MinimalExperienceTimeline from '@/components/public/templates/minimal/experience-timeline';
 import MinimalTestimonialsSection from '@/components/public/templates/minimal/testimonials-section';
 import MinimalArticlesSection from '@/components/public/templates/minimal/articles-section';
+import MinimalContactSection from '@/components/public/templates/minimal/contact-section';
 
 // Immersive Template Imports
 import ImmersiveHeroSection from '@/components/public/templates/immersive/hero-section';
@@ -36,6 +37,7 @@ import ImmersiveFeaturedProjects from '@/components/public/templates/immersive/f
 import ImmersiveExperienceTimeline from '@/components/public/templates/immersive/experience-timeline';
 import ImmersiveTestimonialsSection from '@/components/public/templates/immersive/testimonials-section';
 import ImmersiveArticlesSection from '@/components/public/templates/immersive/articles-section';
+import ImmersiveContactSection from '@/components/public/templates/immersive/contact-section';
 
 const templates: Record<string, any> = {
   minimal: {
@@ -45,6 +47,7 @@ const templates: Record<string, any> = {
     ExperienceTimeline: MinimalExperienceTimeline,
     TestimonialsSection: MinimalTestimonialsSection,
     ArticlesSection: MinimalArticlesSection,
+    ContactSection: MinimalContactSection,
   },
   immersive: {
     HeroSection: ImmersiveHeroSection,
@@ -53,6 +56,7 @@ const templates: Record<string, any> = {
     ExperienceTimeline: ImmersiveExperienceTimeline,
     TestimonialsSection: ImmersiveTestimonialsSection,
     ArticlesSection: ImmersiveArticlesSection,
+    ContactSection: ImmersiveContactSection,
   },
 };
 
@@ -169,12 +173,19 @@ async function fetchExperienceData(content: ExperienceTimelineContent, locale: s
     .filter(Boolean);
 }
 
-async function fetchSkillsData(content: SkillsGridContent) {
+async function fetchSkillsData(content: SkillsGridContent, locale: string) {
   const categories = content.categories && content.categories.length > 0 ? content.categories : undefined;
-  return prisma.skill.findMany({
+  const rawSkills = await prisma.skill.findMany({
     where: categories ? { category: { in: categories as any } } : undefined,
+    include: {
+      translations: true,
+    },
     orderBy: { order: 'asc' },
   });
+
+  return rawSkills
+    .map((s) => resolveSkill(s, locale))
+    .filter(Boolean);
 }
 
 async function fetchTestimonialsData(content: TestimonialsContent, locale: string) {
@@ -268,8 +279,11 @@ export default async function Home(props: HomePageProps) {
 
   // If no sections configured yet, fall back to the legacy layout
   if (sections.length === 0) {
-    const [skills, projects, rawExperiences] = await Promise.all([
-      prisma.skill.findMany({ orderBy: { order: 'asc' } }),
+    const [rawSkills, projects, rawExperiences] = await Promise.all([
+      prisma.skill.findMany({
+        orderBy: { order: 'asc' },
+        include: { translations: true },
+      }),
       prisma.project.findMany({
         where: { isFeatured: true },
         orderBy: { order: 'asc' },
@@ -280,6 +294,7 @@ export default async function Home(props: HomePageProps) {
       }),
     ]);
 
+    const skills = rawSkills.map((s) => resolveSkill(s, locale)).filter(Boolean);
     const resolvedProjects = projects.map((p) => resolveProject(p, locale)).filter(Boolean);
     const sorted = rawExperiences.sort((a, b) => {
       if (a.endDate === null && b.endDate !== null) return -1;
@@ -296,7 +311,7 @@ export default async function Home(props: HomePageProps) {
         {skills.length > 0 && <Template.SkillsSection skills={skills} />}
         {resolvedProjects.length > 0 && <Template.FeaturedProjects projects={resolvedProjects} />}
         {resolvedExperiences.length > 0 && <Template.ExperienceTimeline experiences={resolvedExperiences} />}
-        <ContactSection />
+        <Template.ContactSection />
         <footer className="py-8 text-center border-t border-[var(--border-subtle)] text-sm text-[var(--text-tertiary)] bg-[var(--bg-surface)]">
           <p>© {new Date().getFullYear()} {profile.name}. All rights reserved.</p>
         </footer>
@@ -312,12 +327,30 @@ export default async function Home(props: HomePageProps) {
     const rawContent = section.content as any;
 
     switch (section.type) {
-      case 'HERO':
-        renderedSections.push(<Template.HeroSection key={section.id} profile={profile} ctaOverride={rawContent} />);
+      case 'HERO': {
+        const localizedCtaLabel =
+          (locale === 'en'
+            ? rawContent?.ctaLabel_en || (!rawContent?.ctaLabel_id ? rawContent?.ctaLabel : '')
+            : rawContent?.ctaLabel_id || (!rawContent?.ctaLabel_en ? rawContent?.ctaLabel : '')) ||
+          '';
+
+        const ctaOverride = {
+          ...rawContent,
+          ctaLabel: localizedCtaLabel.trim().length > 0 ? localizedCtaLabel.trim() : undefined,
+        };
+
+        renderedSections.push(
+          <Template.HeroSection
+            key={section.id}
+            profile={profile}
+            ctaOverride={ctaOverride}
+          />
+        );
         break;
+      }
 
       case 'SKILLS_GRID': {
-        const skills = await fetchSkillsData(rawContent as SkillsGridContent);
+        const skills = await fetchSkillsData(rawContent as SkillsGridContent, locale);
         if (skills.length > 0) {
           renderedSections.push(<Template.SkillsSection key={section.id} skills={skills} />);
         }
@@ -341,12 +374,23 @@ export default async function Home(props: HomePageProps) {
       }
 
       case 'CUSTOM_TEXT': {
-        if (rawContent?.heading && rawContent?.body) {
+        const heading =
+          (locale === 'en'
+            ? rawContent?.heading_en || (!rawContent?.heading_id ? rawContent?.heading : '')
+            : rawContent?.heading_id || (!rawContent?.heading_en ? rawContent?.heading : '')) ||
+          '';
+        const body =
+          (locale === 'en'
+            ? rawContent?.body_en || (!rawContent?.body_id ? rawContent?.body : '')
+            : rawContent?.body_id || (!rawContent?.body_en ? rawContent?.body : '')) ||
+          '';
+
+        if (heading || body) {
           renderedSections.push(
             <section key={section.id} className="py-24 px-4 sm:px-8 border-t border-[var(--border-subtle)]">
               <div className="max-w-3xl mx-auto">
-                <h2 className="text-3xl font-bold text-[var(--text-primary)] mb-6">{rawContent.heading}</h2>
-                <p className="text-[var(--text-secondary)] leading-relaxed whitespace-pre-wrap">{rawContent.body}</p>
+                {heading && <h2 className="text-3xl font-bold text-[var(--text-primary)] mb-6">{heading}</h2>}
+                {body && <p className="text-[var(--text-secondary)] leading-relaxed whitespace-pre-wrap">{body}</p>}
               </div>
             </section>
           );
@@ -383,7 +427,7 @@ export default async function Home(props: HomePageProps) {
       {renderedSections}
 
       {/* Contact section is always rendered outside the section system */}
-      <ContactSection />
+      <Template.ContactSection />
 
       <footer className="py-8 text-center border-t border-[var(--border-subtle)] text-sm text-[var(--text-tertiary)] bg-[var(--bg-surface)]">
         <p>© {new Date().getFullYear()} {profile.name}. All rights reserved.</p>

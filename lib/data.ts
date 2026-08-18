@@ -3,25 +3,28 @@ import {
   resolveProfile,
   resolveProject,
   resolveExperience,
+  resolveSkill,
   ResolvedProfile,
   ResolvedProject,
   ResolvedExperience,
+  ResolvedSkill,
 } from './translations';
 
 export async function getPortfolioData(locale: string = 'id'): Promise<{
   profile: ResolvedProfile | null;
-  skills: any[];
+  skills: ResolvedSkill[];
   projects: ResolvedProject[];
   experiences: ResolvedExperience[];
   error: string | null;
 }> {
   try {
     // Parallel fetching for performance
-    const [rawProfile, skills, rawProjects, rawExperiences] = await Promise.all([
+    const [rawProfile, rawSkills, rawProjects, rawExperiences] = await Promise.all([
       prisma.profile.findFirst({
         include: { translations: true },
       }),
       prisma.skill.findMany({
+        include: { translations: true },
         orderBy: { order: 'asc' },
       }),
       prisma.project.findMany({
@@ -51,6 +54,9 @@ export async function getPortfolioData(locale: string = 'id'): Promise<{
     }
 
     const profile = resolveProfile(rawProfile, locale);
+    const skills = rawSkills
+      .map((s) => resolveSkill(s, locale))
+      .filter((s): s is ResolvedSkill => s !== null);
     const projects = candidateProjects
       .map((p) => resolveProject(p, locale))
       .filter((p): p is ResolvedProject => p !== null);

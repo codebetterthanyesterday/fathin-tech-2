@@ -20,7 +20,14 @@
   "skills": {
     "minimalTitle": "Keahlian & Spesialisasi",
     "immersiveTitle": "Keahlian Utama",
-    "immersiveDescription": "Alat dan teknologi yang saya gunakan untuk merancang, membangun, dan merealisasikan produk digital."
+    "immersiveDescription": "Alat dan teknologi yang saya gunakan untuk merancang, membangun, dan merealisasikan produk digital.",
+    "categories": {
+      "LANGUAGE": "Bahasa Pemrograman",
+      "FRAMEWORK": "Framework & Library",
+      "TOOL": "Alat & DevOps",
+      "SOFT_SKILL": "Keahlian Interpersonal & Kepemimpinan",
+      "OTHER": "Keahlian Lainnya"
+    }
   },
   "projects": {
     "minimalTitle": "Karya Unggulan",
@@ -49,7 +56,11 @@
     "minimalTitle": "Pengalaman",
     "immersiveTitle": "Jejak Profesional",
     "immersiveSubtitle": "Catatan kronologis perjalanan karier profesional dan latar belakang akademis.",
-    "present": "Sekarang"
+    "present": "Sekarang",
+    "types": {
+      "WORK": "Pengalaman Kerja",
+      "EDUCATION": "Pendidikan"
+    }
   },
   "testimonials": {
     "minimalHeader": "// Ulasan Profesional",
@@ -95,7 +106,19 @@
     "messageLabel": "Isi Pesan",
     "messagePlaceholder": "Tuliskan detail pesan atau pertanyaan Anda...",
     "sendPayload": "Kirim Pesan",
-    "processing": "Memproses..."
+    "processing": "Memproses...",
+    "minimalTitle": "Hubungi Saya",
+    "minimalSubtitle": "Punya ide proyek, pertanyaan, atau sekadar ingin berdiskusi? Kirimkan pesan Anda melalui formulir di bawah.",
+    "minimalNameLabel": "Nama",
+    "minimalNamePlaceholder": "Nama Anda",
+    "minimalEmailLabel": "Email",
+    "minimalEmailPlaceholder": "nama@email.com",
+    "minimalMessageLabel": "Pesan",
+    "minimalMessagePlaceholder": "Ceritakan tentang proyek, ide, atau hal yang ingin Anda diskusikan...",
+    "minimalSubmit": "Kirim Pesan",
+    "minimalSuccessTitle": "Pesan Berhasil Terkirim!",
+    "minimalSuccessMessage": "Terima kasih telah menghubungi saya. Pesan Anda telah saya terima dan akan segera saya balas.",
+    "minimalNewMessage": "Kirim pesan lain"
   },
   "search": {
     "title": "Cari Portofolio & Artikel",

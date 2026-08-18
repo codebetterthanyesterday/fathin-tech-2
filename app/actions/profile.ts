@@ -19,8 +19,10 @@ const profileSchema = z.object({
   name: z.string().min(1, 'Nama wajib diisi'),
   tagline_id: z.string().optional(),
   bio_id: z.string().optional(),
+  location_id: z.string().optional(),
   tagline_en: z.string().optional(),
   bio_en: z.string().optional(),
+  location_en: z.string().optional(),
   photoUrl: z.string().url().optional().or(z.literal('')),
   email: z.string().email('Format email tidak valid').optional().or(z.literal('')),
   phone: z.string().optional(),
@@ -61,8 +63,10 @@ export async function upsertProfile(prevState: any, formData: FormData): Promise
     name: formData.get('name') as string,
     tagline_id: (formData.get('tagline_id') as string) || (formData.get('tagline') as string) || '',
     bio_id: (formData.get('bio_id') as string) || (formData.get('bio') as string) || '',
+    location_id: (formData.get('location_id') as string) || (formData.get('location') as string) || '',
     tagline_en: (formData.get('tagline_en') as string) || '',
     bio_en: (formData.get('bio_en') as string) || '',
+    location_en: (formData.get('location_en') as string) || '',
     photoUrl: formData.get('photoUrl') as string,
     email: formData.get('email') as string,
     phone: formData.get('phone') as string,
@@ -109,7 +113,7 @@ export async function upsertProfile(prevState: any, formData: FormData): Promise
       photoUrl: data.photoUrl || null,
       email: data.email || null,
       phone: data.phone || null,
-      location: data.location || null,
+      location: data.location_id || data.location || data.location_en || null,
       socialLinks: socialLinksJson,
       resumeUrl: data.resumeUrl || null,
       themeAccentColor: existingProfile?.themeAccentColor || '#ffffff',
@@ -145,15 +149,17 @@ export async function upsertProfile(prevState: any, formData: FormData): Promise
         locale: 'id',
         tagline: data.tagline_id || null,
         bio: data.bio_id || null,
+        location: data.location_id || data.location || null,
       },
       update: {
         tagline: data.tagline_id || null,
         bio: data.bio_id || null,
+        location: data.location_id || data.location || null,
       },
     });
 
     // Upsert English translation
-    if (data.tagline_en || data.bio_en) {
+    if (data.tagline_en || data.bio_en || data.location_en) {
       await prisma.profileTranslation.upsert({
         where: {
           profileId_locale: {
@@ -166,10 +172,12 @@ export async function upsertProfile(prevState: any, formData: FormData): Promise
           locale: 'en',
           tagline: data.tagline_en || null,
           bio: data.bio_en || null,
+          location: data.location_en || null,
         },
         update: {
           tagline: data.tagline_en || null,
           bio: data.bio_en || null,
+          location: data.location_en || null,
         },
       });
     }

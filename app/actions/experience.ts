@@ -10,10 +10,12 @@ import { ExperienceType } from '@/app/generated/prisma/client';
 const experienceSchema = z.object({
   type: z.nativeEnum(ExperienceType),
   title_id: z.string().min(1, 'Posisi/Gelar (ID) wajib diisi'),
+  institution_id: z.string().optional(),
   description_id: z.string().optional(),
   title_en: z.string().optional(),
+  institution_en: z.string().optional(),
   description_en: z.string().optional(),
-  institution: z.string().min(1, 'Institusi wajib diisi'),
+  institution: z.string().optional(),
   startDate: z.string().min(1, 'Tanggal mulai wajib diisi').transform((str) => new Date(str)),
   endDate: z.string().optional().transform((str) => (str ? new Date(str) : null)),
   isCurrent: z.boolean().default(false),
@@ -93,10 +95,12 @@ export async function upsertExperience(
   const rawData = {
     type: formData.get('type') as string,
     title_id: (formData.get('title_id') as string) || (formData.get('title') as string) || '',
+    institution_id: (formData.get('institution_id') as string) || (formData.get('institution') as string) || '',
     description_id: (formData.get('description_id') as string) || (formData.get('description') as string) || '',
     title_en: (formData.get('title_en') as string) || '',
+    institution_en: (formData.get('institution_en') as string) || '',
     description_en: (formData.get('description_en') as string) || '',
-    institution: formData.get('institution') as string,
+    institution: (formData.get('institution') as string) || '',
     startDate: formData.get('startDate') as string,
     endDate: formData.get('endDate') as string,
     isCurrent: formData.get('isCurrent') === 'on' || formData.get('isCurrent') === 'true',
@@ -111,11 +115,18 @@ export async function upsertExperience(
   }
 
   const data = validated.data;
+  const primaryInstitution = data.institution_id || data.institution || data.institution_en;
+  if (!primaryInstitution) {
+    return {
+      error: 'Validation error: Nama institusi wajib diisi.',
+      fieldErrors: { institution_id: ['Institusi wajib diisi'] },
+    };
+  }
 
   try {
     const basePayload = {
       type: data.type,
-      institution: data.institution,
+      institution: primaryInstitution,
       startDate: data.startDate,
       endDate: data.isCurrent ? null : data.endDate,
     };
@@ -150,16 +161,18 @@ export async function upsertExperience(
         experienceId,
         locale: 'id',
         title: data.title_id,
+        institution: data.institution_id || primaryInstitution,
         description: data.description_id || null,
       },
       update: {
         title: data.title_id,
+        institution: data.institution_id || primaryInstitution,
         description: data.description_id || null,
       },
     });
 
     // Upsert English Translation
-    if (data.title_en?.trim() || data.description_en?.trim()) {
+    if (data.title_en?.trim() || data.description_en?.trim() || data.institution_en?.trim()) {
       await prisma.experienceTranslation.upsert({
         where: {
           experienceId_locale: {
@@ -171,10 +184,12 @@ export async function upsertExperience(
           experienceId,
           locale: 'en',
           title: data.title_en || data.title_id,
+          institution: data.institution_en || data.institution_id || primaryInstitution,
           description: data.description_en || null,
         },
         update: {
           title: data.title_en || data.title_id,
+          institution: data.institution_en || data.institution_id || primaryInstitution,
           description: data.description_en || null,
         },
       });

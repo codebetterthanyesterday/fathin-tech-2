@@ -4,6 +4,7 @@ import Link from 'next/link';
 import { usePathname } from 'next/navigation';
 import {
   LayoutDashboard,
+  Mail,
   Wrench,
   FolderGit2,
   Briefcase,
@@ -16,6 +17,7 @@ import {
 import { logout } from '@/app/actions/auth';
 import { getAdminPath } from '@/lib/routes';
 import { useTransition } from 'react';
+import { useAdminMessages } from '@/components/admin/messages/admin-messages-provider';
 
 type MenuItem = {
   label: string;
@@ -26,6 +28,7 @@ type MenuItem = {
 
 const MENU_ITEMS: MenuItem[] = [
   { label: 'Dashboard', subpath: '', icon: LayoutDashboard },
+  { label: 'Messages', subpath: 'messages', icon: Mail },
   { label: 'Skills', subpath: 'skills', icon: Wrench },
   { label: 'Projects', subpath: 'projects', icon: FolderGit2 },
   { label: 'Experience', subpath: 'experience', icon: Briefcase },
@@ -38,6 +41,7 @@ const MENU_ITEMS: MenuItem[] = [
 export default function Sidebar({ onClose }: { onClose?: () => void }) {
   const pathname = usePathname();
   const [isPending, startTransition] = useTransition();
+  const { unreadCount } = useAdminMessages();
   const adminRoot = getAdminPath();
 
   const handleLogout = () => {
@@ -103,6 +107,12 @@ export default function Sidebar({ onClose }: { onClose?: () => void }) {
                 strokeWidth={isActive ? 2.5 : 2}
               />
               <span className="font-medium text-sm relative z-10">{item.label}</span>
+
+              {item.subpath === 'messages' && unreadCount > 0 && (
+                <span className="ml-auto relative z-10 px-2 py-0.5 text-[11px] font-bold rounded-full bg-blue-600 text-white shadow-[0_0_10px_rgba(37,99,235,0.5)] animate-pulse">
+                  {unreadCount > 99 ? '99+' : unreadCount}
+                </span>
+              )}
             </Link>
           );
         })}

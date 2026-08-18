@@ -10,6 +10,8 @@ import type {
   ExperienceTranslation,
   Testimonial,
   TestimonialTranslation,
+  Skill,
+  SkillTranslation,
 } from '@/app/generated/prisma/client';
 
 /**
@@ -37,6 +39,7 @@ export function resolveTranslation<T extends { locale: string }>(
 export interface ResolvedProfile extends Omit<Profile, 'translations'> {
   tagline: string | null;
   bio: string | null;
+  location: string | null;
   translations?: ProfileTranslation[];
 }
 
@@ -62,6 +65,7 @@ export interface ResolvedArticle extends Omit<Article, 'translations'> {
 
 export interface ResolvedExperience extends Omit<Experience, 'translations'> {
   title: string;
+  institution: string;
   description: string | null;
   translations?: ExperienceTranslation[];
 }
@@ -70,6 +74,11 @@ export interface ResolvedTestimonial extends Omit<Testimonial, 'translations'> {
   role: string | null;
   quote: string;
   translations?: TestimonialTranslation[];
+}
+
+export interface ResolvedSkill extends Omit<Skill, 'translations'> {
+  name: string;
+  translations?: SkillTranslation[];
 }
 
 // ─── Entity Resolvers ───────────────────────────────────────────────────────
@@ -85,6 +94,7 @@ export function resolveProfile(
     ...profile,
     tagline: trans?.tagline || null,
     bio: trans?.bio || null,
+    location: trans?.location || profile.location || null,
   };
 }
 
@@ -134,6 +144,7 @@ export function resolveExperience(
   return {
     ...exp,
     title: trans?.title || 'Role / Degree',
+    institution: trans?.institution || exp.institution,
     description: trans?.description || null,
   };
 }
@@ -151,3 +162,17 @@ export function resolveTestimonial(
     quote: trans?.quote || '',
   };
 }
+
+export function resolveSkill(
+  skill: (Skill & { translations?: SkillTranslation[] }) | null,
+  locale: string = 'id'
+): ResolvedSkill | null {
+  if (!skill) return null;
+  const trans = resolveTranslation<SkillTranslation>(skill.translations, locale, 'id');
+
+  return {
+    ...skill,
+    name: trans?.name || skill.name,
+  };
+}
+

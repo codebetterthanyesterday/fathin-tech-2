@@ -15,11 +15,13 @@ import {
 import { useEffect, useState, useRef, useTransition } from 'react';
 import { logout } from '@/app/actions/auth';
 import { getAdminPath } from '@/lib/routes';
+import { useAdminMessages } from '@/components/admin/messages/admin-messages-provider';
 
 // Maps route prefixes to readable titles
 const getPageTitle = (pathname: string) => {
   const adminBase = getAdminPath();
   if (pathname === adminBase) return 'Dashboard';
+  if (pathname.startsWith(`${adminBase}/messages`)) return 'Real-Time Inbox';
   if (pathname.startsWith(`${adminBase}/profile`)) return 'System Profile Data';
   if (pathname.startsWith(`${adminBase}/skills`)) return 'Skills & Technologies';
   if (pathname.startsWith(`${adminBase}/projects/new`)) return 'Add New Project';
@@ -45,6 +47,7 @@ export default function Header({ onMenuClick, email }: HeaderProps) {
   const [title, setTitle] = useState('');
   const [isDropdownOpen, setIsDropdownOpen] = useState(false);
   const [isPending, startTransition] = useTransition();
+  const { connectionStatus } = useAdminMessages();
   const dropdownRef = useRef<HTMLDivElement>(null);
 
   const profileHref = getAdminPath('profile');
@@ -96,13 +99,48 @@ export default function Header({ onMenuClick, email }: HeaderProps) {
         </button>
 
         {/* Animated Title */}
-        <div className="relative h-6 overflow-hidden flex items-center">
+        <div className="relative h-6 overflow-hidden flex items-center gap-3">
           <h1
             key={title} // Forces re-render/animation on title change
             className="text-lg font-semibold text-white tracking-tight animate-in slide-in-from-bottom-2 fade-in duration-300"
           >
             {title}
           </h1>
+
+          {/* Connection Status Indicator */}
+          <div
+            className={`hidden sm:flex items-center gap-1.5 px-2.5 py-0.5 rounded-full border text-[11px] font-mono font-medium transition-colors ${
+              connectionStatus === 'connected'
+                ? 'bg-emerald-500/10 border-emerald-500/20 text-emerald-400'
+                : connectionStatus === 'connecting'
+                ? 'bg-amber-500/10 border-amber-500/20 text-amber-400'
+                : 'bg-zinc-800 border-white/10 text-zinc-400'
+            }`}
+            title={`Real-Time EventStream: ${
+              connectionStatus === 'connected'
+                ? 'Active (Live)'
+                : connectionStatus === 'connecting'
+                ? 'Reconnecting...'
+                : 'Disconnected'
+            }`}
+          >
+            <span
+              className={`w-1.5 h-1.5 rounded-full ${
+                connectionStatus === 'connected'
+                  ? 'bg-emerald-400 animate-ping'
+                  : connectionStatus === 'connecting'
+                  ? 'bg-amber-400 animate-pulse'
+                  : 'bg-zinc-500'
+              }`}
+            />
+            <span>
+              {connectionStatus === 'connected'
+                ? 'Live'
+                : connectionStatus === 'connecting'
+                ? 'Syncing'
+                : 'Offline'}
+            </span>
+          </div>
         </div>
       </div>
 

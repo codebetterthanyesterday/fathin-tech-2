@@ -57,7 +57,7 @@ export default function SkillsSection({ skills }: SkillsSectionProps) {
               <motion.div key={category} variants={item} className="space-y-6">
                 <h3 className="text-lg font-semibold text-[var(--text-secondary)] capitalize flex items-center gap-3">
                   <div className="w-8 h-[1px] bg-[var(--border-strong)]" />
-                  {category.toLowerCase().replace('_', ' ')}
+                  {t.has(`categories.${category}`) ? t(`categories.${category}`) : category.toLowerCase().replace('_', ' ')}
                 </h3>
                 
                 <div className="flex flex-wrap gap-2.5">

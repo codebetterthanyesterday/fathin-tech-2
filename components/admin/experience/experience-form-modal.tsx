@@ -32,15 +32,17 @@ export default function ExperienceFormModal({
   const [translations, setTranslations] = useState({
     id: {
       title: idTrans?.title || experience?.title || '',
+      institution: idTrans?.institution || experience?.institution || '',
       description: idTrans?.description || experience?.description || '',
     },
     en: {
       title: enTrans?.title || '',
+      institution: enTrans?.institution || '',
       description: enTrans?.description || '',
     },
   });
 
-  const handleTransChange = (field: 'title' | 'description', value: string) => {
+  const handleTransChange = (field: 'title' | 'institution' | 'description', value: string) => {
     setTranslations((prev) => ({
       ...prev,
       [activeLocale]: {
@@ -50,8 +52,8 @@ export default function ExperienceFormModal({
     }));
   };
 
-  const isIdComplete = !!translations.id.title?.trim();
-  const isEnComplete = !!translations.en.title?.trim();
+  const isIdComplete = !!translations.id.title?.trim() && !!translations.id.institution?.trim();
+  const isEnComplete = !!translations.en.title?.trim() || !!translations.en.institution?.trim();
   
   // Format Date for native date input (YYYY-MM-DD)
   const formatDate = (dateString?: string | Date | null) => {
@@ -91,10 +93,12 @@ export default function ExperienceFormModal({
       setTranslations({
         id: {
           title: currId?.title || experience.title || '',
+          institution: currId?.institution || experience.institution || '',
           description: currId?.description || experience.description || '',
         },
         en: {
           title: currEn?.title || '',
+          institution: currEn?.institution || '',
           description: currEn?.description || '',
         },
       });
@@ -102,8 +106,8 @@ export default function ExperienceFormModal({
       setType('WORK');
       setIsCurrent(false);
       setTranslations({
-        id: { title: '', description: '' },
-        en: { title: '', description: '' },
+        id: { title: '', institution: '', description: '' },
+        en: { title: '', institution: '', description: '' },
       });
     }
   }, [experience, isOpen]);
@@ -117,8 +121,8 @@ export default function ExperienceFormModal({
       formRef.current?.reset();
       setIsCurrent(false);
       setTranslations({
-        id: { title: '', description: '' },
-        en: { title: '', description: '' },
+        id: { title: '', institution: '', description: '' },
+        en: { title: '', institution: '', description: '' },
       });
     }
   }, [state?.success, experience]);
@@ -166,8 +170,10 @@ export default function ExperienceFormModal({
           <input type="hidden" name="id" value={experience?.id || ''} />
           <input type="hidden" name="type" value={type} />
           <input type="hidden" name="title_id" value={translations.id.title} />
+          <input type="hidden" name="institution_id" value={translations.id.institution} />
           <input type="hidden" name="description_id" value={translations.id.description} />
           <input type="hidden" name="title_en" value={translations.en.title} />
+          <input type="hidden" name="institution_en" value={translations.en.institution} />
           <input type="hidden" name="description_en" value={translations.en.description} />
 
           {/* Segmented Control for Type */}
@@ -233,19 +239,31 @@ export default function ExperienceFormModal({
           </div>
 
           <div className="space-y-2">
-            <label htmlFor="institution" className="block text-sm font-medium text-zinc-300">
-              {type === 'WORK' ? 'Perusahaan / Organisasi *' : 'Institusi / Universitas *'}
-            </label>
+            <div className="flex items-center justify-between">
+              <label htmlFor="institution" className="block text-sm font-medium text-zinc-300">
+                {type === 'WORK' ? 'Perusahaan / Organisasi *' : 'Institusi / Universitas *'} ({activeLocale.toUpperCase()})
+              </label>
+              <span className="text-xs text-zinc-500 font-mono">
+                {activeLocale === 'id' ? 'Bahasa Indonesia' : 'English'}
+              </span>
+            </div>
             <input
               id="institution"
-              name="institution"
               type="text"
-              defaultValue={experience?.institution || ''}
-              required
+              value={currentTrans.institution}
+              onChange={(e) => handleTransChange('institution', e.target.value)}
+              required={activeLocale === 'id'}
               className="w-full px-4 py-2.5 bg-zinc-900 border border-zinc-800 rounded-lg text-white placeholder:text-zinc-600 focus:outline-none focus:ring-2 focus:ring-white/20 transition-all"
-              placeholder={type === 'WORK' ? 'cth. Google, Tokopedia' : 'cth. Universitas Indonesia'}
+              placeholder={type === 'WORK' ? (activeLocale === 'id' ? 'cth. Google, Tokopedia' : 'e.g. Google, Tokopedia') : (activeLocale === 'id' ? 'cth. Universitas Indonesia' : 'e.g. University of Indonesia')}
             />
-            {state?.fieldErrors?.institution && <p className="text-red-400 text-xs">{state.fieldErrors.institution[0]}</p>}
+            {activeLocale === 'en' && (
+              <p className="text-[11px] text-zinc-500 italic">
+                Kosongkan jika nama institusi/perusahaan sama dengan Bahasa Indonesia.
+              </p>
+            )}
+            {activeLocale === 'id' && state?.fieldErrors?.institution_id && (
+              <p className="text-red-400 text-xs">{state.fieldErrors.institution_id[0]}</p>
+            )}
           </div>
 
           {/* Date Picker Grid */}

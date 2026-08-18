@@ -6,8 +6,10 @@ import { z } from 'zod';
 
 export const HeroContentSchema = z.object({
   type: z.literal('HERO'),
-  ctaLabel: z.string().optional(),   // Override CTA button text
-  ctaUrl: z.string().url().optional().or(z.literal('')), // Override CTA URL
+  ctaLabel: z.string().optional().or(z.literal('')),      // Legacy fallback
+  ctaLabel_id: z.string().optional().or(z.literal('')),   // Indonesian CTA button text
+  ctaLabel_en: z.string().optional().or(z.literal('')),   // English CTA button text
+  ctaUrl: z.string().url().optional().or(z.literal('')),  // Override CTA URL
 });
 
 export const SkillsGridContentSchema = z.object({
@@ -41,8 +43,12 @@ export const ArticlesListContentSchema = z.object({
 
 export const CustomTextContentSchema = z.object({
   type: z.literal('CUSTOM_TEXT'),
-  heading: z.string(),
-  body: z.string(),
+  heading: z.string().optional().or(z.literal('')),      // Legacy fallback
+  heading_id: z.string().optional().or(z.literal('')),   // Indonesian heading
+  heading_en: z.string().optional().or(z.literal('')),   // English heading
+  body: z.string().optional().or(z.literal('')),         // Legacy fallback
+  body_id: z.string().optional().or(z.literal('')),      // Indonesian body
+  body_en: z.string().optional().or(z.literal('')),      // English body
 });
 
 // ─────────────────────────────────────────────
@@ -66,17 +72,18 @@ export type ProjectsGridContent = z.infer<typeof ProjectsGridContentSchema>;
 export type ExperienceTimelineContent = z.infer<typeof ExperienceTimelineContentSchema>;
 export type TestimonialsContent = z.infer<typeof TestimonialsContentSchema>;
 export type ArticlesListContent = z.infer<typeof ArticlesListContentSchema>;
+export type CustomTextContent = z.infer<typeof CustomTextContentSchema>;
 
 // ─────────────────────────────────────────────
 // Default content per type (used in seed script + admin form)
 // ─────────────────────────────────────────────
 
 export const DEFAULT_CONTENT: Record<string, object> = {
-  HERO: { type: 'HERO', ctaLabel: 'Download Resume', ctaUrl: '' },
+  HERO: { type: 'HERO', ctaLabel: '', ctaLabel_id: '', ctaLabel_en: '', ctaUrl: '' },
   SKILLS_GRID: { type: 'SKILLS_GRID', categories: [] },
   PROJECTS_GRID: { type: 'PROJECTS_GRID', filter: 'featured', limit: 3 },
   EXPERIENCE_TIMELINE: { type: 'EXPERIENCE_TIMELINE', limit: 10, types: [] },
   TESTIMONIALS: { type: 'TESTIMONIALS', limit: 3 },
   ARTICLES_LIST: { type: 'ARTICLES_LIST', limit: 5 },
-  CUSTOM_TEXT: { type: 'CUSTOM_TEXT', heading: '', body: '' },
+  CUSTOM_TEXT: { type: 'CUSTOM_TEXT', heading: '', heading_id: '', heading_en: '', body: '', body_id: '', body_en: '' },
 };

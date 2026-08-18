@@ -273,7 +273,13 @@ export default function ArticleForm({ initialData }: { initialData?: any }) {
 
           {coverImage ? (
             <div className="relative w-full aspect-[21/9] rounded-2xl overflow-hidden bg-black/50 border border-[var(--border-subtle)]">
-              <Image src={coverImage} alt="Cover Preview" fill className="object-cover" />
+              <Image
+                src={coverImage}
+                alt="Cover Preview"
+                fill
+                sizes="(max-width: 1024px) 100vw, 1024px"
+                className="object-cover"
+              />
             </div>
           ) : (
             <div
