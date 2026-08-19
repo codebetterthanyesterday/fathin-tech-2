@@ -88,7 +88,7 @@ export default function ProjectForm({ project }: { project?: any }) {
 
   // Draft Auto-saving
   const draftKey = `project-draft-${project?.id || 'new'}`;
-  
+
   useEffect(() => {
     if (!draftRestored) {
       const saved = localStorage.getItem(draftKey);
@@ -238,7 +238,7 @@ export default function ProjectForm({ project }: { project?: any }) {
       <input type="hidden" name="techStack" value={JSON.stringify(techStack)} />
       <input type="hidden" name="categories" value={JSON.stringify(categories)} />
       <input type="hidden" name="images" value={JSON.stringify(images)} />
-      
+
       {/* Translations payload */}
       <input type="hidden" name="title_id" value={translations.id.title} />
       <input type="hidden" name="summary_id" value={translations.id.summary} />
