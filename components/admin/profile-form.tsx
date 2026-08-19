@@ -14,6 +14,85 @@ import {
   GripVertical,
 } from 'lucide-react';
 import LocaleTabSelector from './layout/locale-tab-selector';
+import { ReorderableList, ReorderableDragHandle, ReorderableFallbackControls, useReorderableItem } from './shared/reorderable-list';
+
+function SocialLinkItem({
+  link,
+  index,
+  isFirst,
+  isLast,
+  onMoveUp,
+  onMoveDown,
+  onUpdate,
+  onRemove,
+}: {
+  link: any;
+  index: number;
+  isFirst: boolean;
+  isLast: boolean;
+  onMoveUp: () => void;
+  onMoveDown: () => void;
+  onUpdate: (field: string, value: string) => void;
+  onRemove: () => void;
+}) {
+  const { attributes, listeners, setNodeRef, style, isDragging } = useReorderableItem(link.id);
+
+  return (
+    <div
+      ref={setNodeRef}
+      style={style}
+      className={`flex items-center gap-3 p-3 bg-zinc-900/30 border border-zinc-800/80 rounded-lg group/item ${
+        isDragging ? 'shadow-xl shadow-black/50 border-white/20' : ''
+      }`}
+    >
+      <ReorderableDragHandle attributes={attributes} listeners={listeners} isDragging={isDragging} />
+
+      {/* Icon Selector / Preview */}
+      <div className="w-8 h-8 rounded bg-zinc-800 flex items-center justify-center text-zinc-300 flex-shrink-0">
+        <i className={link.iconClass || 'fa-solid fa-link'}></i>
+      </div>
+
+      <input
+        type="text"
+        placeholder="Platform (e.g. GitHub)"
+        value={link.platform}
+        onChange={(e) => onUpdate('platform', e.target.value)}
+        className="w-1/4 px-3 py-1.5 bg-zinc-900 border border-zinc-700/50 rounded-md text-sm text-white placeholder:text-zinc-600 focus:outline-none focus:ring-1 focus:ring-white/20"
+      />
+
+      <input
+        type="text"
+        placeholder="Icon Class (fa-brands fa-github)"
+        value={link.iconClass}
+        onChange={(e) => onUpdate('iconClass', e.target.value)}
+        className="w-1/4 px-3 py-1.5 bg-zinc-900 border border-zinc-700/50 rounded-md text-xs font-mono text-zinc-300 placeholder:text-zinc-600 focus:outline-none focus:ring-1 focus:ring-white/20"
+      />
+
+      <input
+        type="text"
+        placeholder="https://... atau url profil"
+        value={link.url}
+        onChange={(e) => onUpdate('url', e.target.value)}
+        className="flex-1 px-3 py-1.5 bg-zinc-900 border border-zinc-700/50 rounded-md text-sm text-white placeholder:text-zinc-600 focus:outline-none focus:ring-1 focus:ring-white/20"
+      />
+
+      <ReorderableFallbackControls
+        isFirst={isFirst}
+        isLast={isLast}
+        onMoveUp={onMoveUp}
+        onMoveDown={onMoveDown}
+      />
+
+      <button
+        type="button"
+        onClick={onRemove}
+        className="p-2 text-zinc-500 hover:text-red-400 transition-colors"
+      >
+        <Trash2 className="w-4 h-4" />
+      </button>
+    </div>
+  );
+}
 
 const initialState: ProfileActionState = {
   success: '',
@@ -118,6 +197,7 @@ export default function ProfileForm({ initialData }: { initialData: any }) {
     if (!socials) return [];
     if (Array.isArray(socials)) {
       return socials.map((s) => ({
+        id: crypto.randomUUID(),
         platform: s.platform || '',
         url: typeof s === 'string' ? s : s.url || '',
         iconClass: s.iconClass || 'fa-solid fa-link',
@@ -125,6 +205,7 @@ export default function ProfileForm({ initialData }: { initialData: any }) {
     }
     if (typeof socials === 'object') {
       return Object.entries(socials).map(([key, value]) => ({
+        id: crypto.randomUUID(),
         platform: key.charAt(0).toUpperCase() + key.slice(1),
         url: value as string,
         iconClass: `fa-brands fa-${key.toLowerCase()}`,
@@ -133,7 +214,7 @@ export default function ProfileForm({ initialData }: { initialData: any }) {
     return [];
   };
 
-  const [socialLinks, setSocialLinks] = useState<{ platform: string; url: string; iconClass: string }[]>(
+  const [socialLinks, setSocialLinks] = useState<{ id: string; platform: string; url: string; iconClass: string }[]>(
     parseInitialSocials(initialData?.socialLinks)
   );
 
@@ -156,7 +237,7 @@ export default function ProfileForm({ initialData }: { initialData: any }) {
   };
 
   const addSocialLink = () => {
-    setSocialLinks([...socialLinks, { platform: '', url: '', iconClass: 'fa-solid fa-link' }]);
+    setSocialLinks([...socialLinks, { id: crypto.randomUUID(), platform: '', url: '', iconClass: 'fa-solid fa-link' }]);
   };
 
   const removeSocialLink = (index: number) => {
@@ -205,7 +286,7 @@ export default function ProfileForm({ initialData }: { initialData: any }) {
 
         <form action={formAction} className="space-y-8">
           <input type="hidden" name="photoUrl" value={photoUrl} />
-          <input type="hidden" name="socialLinks" value={JSON.stringify(socialLinks)} />
+          <input type="hidden" name="socialLinks" value={JSON.stringify(socialLinks.map(({ id, ...rest }) => rest))} />
 
           {/* Hidden inputs to submit all locales */}
           <input type="hidden" name="tagline_id" value={translations.id.tagline} />
@@ -440,56 +521,52 @@ export default function ProfileForm({ initialData }: { initialData: any }) {
             </div>
 
             <div className="space-y-3">
-              {socialLinks.map((link, index) => (
-                <div
-                  key={index}
-                  draggable
-                  onDragStart={() => (dragItem.current = index)}
-                  onDragEnter={() => (dragOverItem.current = index)}
-                  onDragEnd={handleSort}
-                  onDragOver={(e) => e.preventDefault()}
-                  className="flex items-center gap-3 p-3 bg-zinc-900/30 border border-zinc-800/80 rounded-lg group/item cursor-move"
-                >
-                  <GripVertical className="w-4 h-4 text-zinc-600 group-hover/item:text-zinc-400 flex-shrink-0" />
-
-                  {/* Icon Selector / Preview */}
-                  <div className="w-8 h-8 rounded bg-zinc-800 flex items-center justify-center text-zinc-300 flex-shrink-0">
-                    <i className={link.iconClass || 'fa-solid fa-link'}></i>
-                  </div>
-
-                  <input
-                    type="text"
-                    placeholder="Platform (e.g. GitHub)"
-                    value={link.platform}
-                    onChange={(e) => updateSocialLink(index, 'platform', e.target.value)}
-                    className="w-1/4 px-3 py-1.5 bg-zinc-900 border border-zinc-700/50 rounded-md text-sm text-white placeholder:text-zinc-600 focus:outline-none focus:ring-1 focus:ring-white/20"
+              <ReorderableList
+                items={socialLinks}
+                onReorder={setSocialLinks}
+                renderOverlay={(activeId) => {
+                  const link = socialLinks.find(s => s.id === activeId);
+                  if (!link) return null;
+                  return (
+                    <SocialLinkItem
+                      link={link}
+                      index={0}
+                      isFirst={false}
+                      isLast={false}
+                      onMoveUp={() => {}}
+                      onMoveDown={() => {}}
+                      onUpdate={() => {}}
+                      onRemove={() => {}}
+                    />
+                  );
+                }}
+              >
+                {socialLinks.map((link, index) => (
+                  <SocialLinkItem
+                    key={link.id}
+                    link={link}
+                    index={index}
+                    isFirst={index === 0}
+                    isLast={index === socialLinks.length - 1}
+                    onMoveUp={() => {
+                      const newLinks = [...socialLinks];
+                      const temp = newLinks[index - 1];
+                      newLinks[index - 1] = newLinks[index];
+                      newLinks[index] = temp;
+                      setSocialLinks(newLinks);
+                    }}
+                    onMoveDown={() => {
+                      const newLinks = [...socialLinks];
+                      const temp = newLinks[index + 1];
+                      newLinks[index + 1] = newLinks[index];
+                      newLinks[index] = temp;
+                      setSocialLinks(newLinks);
+                    }}
+                    onUpdate={(field, value) => updateSocialLink(index, field, value)}
+                    onRemove={() => removeSocialLink(index)}
                   />
-
-                  <input
-                    type="text"
-                    placeholder="Icon Class (fa-brands fa-github)"
-                    value={link.iconClass}
-                    onChange={(e) => updateSocialLink(index, 'iconClass', e.target.value)}
-                    className="w-1/4 px-3 py-1.5 bg-zinc-900 border border-zinc-700/50 rounded-md text-xs font-mono text-zinc-300 placeholder:text-zinc-600 focus:outline-none focus:ring-1 focus:ring-white/20"
-                  />
-
-                  <input
-                    type="text"
-                    placeholder="https://... atau url profil"
-                    value={link.url}
-                    onChange={(e) => updateSocialLink(index, 'url', e.target.value)}
-                    className="flex-1 px-3 py-1.5 bg-zinc-900 border border-zinc-700/50 rounded-md text-sm text-white placeholder:text-zinc-600 focus:outline-none focus:ring-1 focus:ring-white/20"
-                  />
-
-                  <button
-                    type="button"
-                    onClick={() => removeSocialLink(index)}
-                    className="p-2 text-zinc-500 hover:text-red-400 transition-colors"
-                  >
-                    <Trash2 className="w-4 h-4" />
-                  </button>
-                </div>
-              ))}
+                ))}
+              </ReorderableList>
 
               {socialLinks.length === 0 && (
                 <div className="text-center py-6 border border-dashed border-zinc-800 rounded-lg text-zinc-600 text-sm">

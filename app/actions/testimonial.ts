@@ -290,3 +290,26 @@ export async function moveTestimonialOrder(
     return { error: 'Reorder failed: Unable to save new order.' };
   }
 }
+
+export async function reorderTestimonials(
+  updates: { id: string; order: number }[]
+): Promise<TestimonialActionState> {
+  const session = await getSession();
+  if (!session) return { error: 'Unauthorized' };
+
+  try {
+    const queries = updates.map((update) =>
+      prisma.testimonial.update({
+        where: { id: update.id },
+        data: { order: update.order },
+      })
+    );
+    await prisma.$transaction(queries);
+    revalidatePath('/', 'layout');
+    revalidatePath('/[locale]', 'layout');
+    revalidatePath(getAdminPath('testimonials'));
+    return { success: 'Urutan testimoni berhasil diperbarui.' };
+  } catch (error) {
+    return { error: 'Failed to reorder testimonials.' };
+  }
+}

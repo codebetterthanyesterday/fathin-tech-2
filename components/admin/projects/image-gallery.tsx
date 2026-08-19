@@ -1,9 +1,14 @@
 'use client';
 
 import { useState, useRef, useEffect, useCallback } from 'react';
-import { DragDropContext, Droppable, Draggable } from '@hello-pangea/dnd';
-import { UploadCloud, X, Loader2, GripVertical, Image as ImageIcon } from 'lucide-react';
+import { UploadCloud, X, Loader2, Image as ImageIcon } from 'lucide-react';
 import { uploadImage } from '@/app/actions/upload';
+import {
+  ReorderableList,
+  useReorderableItem,
+  ReorderableDragHandle,
+  ReorderableFallbackControls,
+} from '@/components/admin/shared/reorderable-list';
 
 export interface ProjectImage {
   id?: string;
@@ -19,6 +24,110 @@ interface ImageGalleryProps {
 
 const MAX_FILE_SIZE = 5 * 1024 * 1024; // 5MB
 const ALLOWED_TYPES = ['image/jpeg', 'image/png', 'image/webp'];
+
+function ImageGalleryRow({
+  img,
+  index,
+  isFirst,
+  isLast,
+  onMove,
+  onRemove,
+  onUpdateAltText,
+  isDragOverlay = false,
+}: {
+  img: ProjectImage;
+  index: number;
+  isFirst: boolean;
+  isLast: boolean;
+  onMove: (id: string, dir: 'up' | 'down') => void;
+  onRemove: (index: number) => void;
+  onUpdateAltText: (index: number, text: string) => void;
+  isDragOverlay?: boolean;
+}) {
+  const { attributes, listeners, setNodeRef, style, isDragging } = useReorderableItem(img.url);
+
+  if (isDragging && !isDragOverlay) {
+    return (
+      <div
+        ref={setNodeRef}
+        style={style}
+        className="h-[106px] rounded-lg border-2 border-dashed border-white/10 bg-white/[0.02]"
+        aria-hidden
+      />
+    );
+  }
+
+  return (
+    <div
+      ref={isDragOverlay ? undefined : setNodeRef}
+      style={isDragOverlay ? undefined : style}
+      className={`flex items-start sm:items-center gap-4 p-3 bg-zinc-900 border border-zinc-800 rounded-lg transition-all ${
+        isDragOverlay ? 'shadow-2xl ring-1 ring-white/20 z-50 scale-[1.02] bg-zinc-800' : ''
+      } ${img.isUploading ? 'opacity-70 grayscale' : ''}`}
+    >
+      <div className={img.isUploading ? 'invisible' : ''}>
+        <ReorderableDragHandle
+          attributes={isDragOverlay ? {} : attributes}
+          listeners={isDragOverlay ? {} : listeners}
+          isDragging={isDragging && !isDragOverlay}
+        />
+      </div>
+
+      <div className="w-20 h-20 bg-black rounded overflow-hidden flex-shrink-0 relative border border-zinc-800 flex items-center justify-center">
+        {img.isUploading ? (
+          <div className="absolute inset-0 flex items-center justify-center bg-zinc-900/80 z-10">
+            <Loader2 className="w-6 h-6 text-white animate-spin" />
+          </div>
+        ) : null}
+        <img src={img.url} alt={img.altText || 'Project preview'} className="object-cover w-full h-full" />
+      </div>
+
+      <div className="flex-1 space-y-1">
+        <label className="text-xs font-medium text-zinc-500 uppercase tracking-wider">Alt Text</label>
+        <input
+          type="text"
+          value={img.altText || ''}
+          onChange={(e) => onUpdateAltText(index, e.target.value)}
+          disabled={img.isUploading}
+          placeholder="Describe this image..."
+          className="w-full bg-zinc-950 border border-zinc-800 rounded px-3 py-1.5 text-sm text-white focus:outline-none focus:ring-1 focus:ring-white/30 disabled:opacity-50"
+        />
+      </div>
+
+      <div className="flex flex-col sm:flex-row items-center gap-2">
+        <div className="hidden sm:block">
+          <ReorderableFallbackControls
+            onMoveUp={() => onMove(img.url, 'up')}
+            onMoveDown={() => onMove(img.url, 'down')}
+            isFirst={isFirst}
+            isLast={isLast}
+            isProcessing={img.isUploading}
+          />
+        </div>
+        <button
+          type="button"
+          onClick={() => onRemove(index)}
+          disabled={img.isUploading}
+          className="p-2 text-zinc-500 hover:text-red-400 hover:bg-red-400/10 rounded-md transition-colors self-center disabled:opacity-50"
+          aria-label="Remove image"
+        >
+          <X className="w-4 h-4" />
+        </button>
+      </div>
+
+      {/* Mobile fallback controls */}
+      <div className="sm:hidden absolute bottom-3 right-12">
+         <ReorderableFallbackControls
+            onMoveUp={() => onMove(img.url, 'up')}
+            onMoveDown={() => onMove(img.url, 'down')}
+            isFirst={isFirst}
+            isLast={isLast}
+            isProcessing={img.isUploading}
+          />
+      </div>
+    </div>
+  );
+}
 
 export default function ImageGallery({ images, onChange }: ImageGalleryProps) {
   const [isDragActive, setIsDragActive] = useState(false);
@@ -117,14 +226,6 @@ export default function ImageGallery({ images, onChange }: ImageGalleryProps) {
     handleFiles(files);
   }, [images]);
 
-  const onDragEnd = (result: any) => {
-    if (!result.destination) return;
-    const items = Array.from(images);
-    const [reorderedItem] = items.splice(result.source.index, 1);
-    items.splice(result.destination.index, 0, reorderedItem);
-    onChange(items);
-  };
-
   const removeImage = (index: number) => {
     const newImages = [...images];
     newImages.splice(index, 1);
@@ -136,6 +237,29 @@ export default function ImageGallery({ images, onChange }: ImageGalleryProps) {
     newImages[index].altText = text;
     onChange(newImages);
   };
+
+  const handleReorder = (newItems: any[]) => {
+    // Strip the temporary 'id' field used for dnd-kit
+    const cleaned = newItems.map(({ id, ...rest }) => rest as ProjectImage);
+    onChange(cleaned);
+  };
+
+  const handleKeyboardMove = (id: string, dir: 'up' | 'down') => {
+    const idx = images.findIndex((img) => img.url === id);
+    if (idx === -1) return;
+    if (dir === 'up' && idx === 0) return;
+    if (dir === 'down' && idx === images.length - 1) return;
+
+    const swapIdx = dir === 'up' ? idx - 1 : idx + 1;
+    const newImages = [...images];
+    const temp = newImages[idx];
+    newImages[idx] = newImages[swapIdx];
+    newImages[swapIdx] = temp;
+    onChange(newImages);
+  };
+
+  // Prepare items for dnd-kit (requires an 'id' field)
+  const sortableItems = images.map((img) => ({ ...img, id: img.url }));
 
   return (
     <div className="space-y-4">
@@ -171,68 +295,40 @@ export default function ImageGallery({ images, onChange }: ImageGalleryProps) {
       </div>
 
       {/* Gallery */}
-      {isMounted && images.length > 0 && (
-        <DragDropContext onDragEnd={onDragEnd}>
-          <Droppable droppableId="gallery" direction="vertical">
-            {(provided) => (
-              <div 
-                {...provided.droppableProps} 
-                ref={provided.innerRef}
-                className="space-y-3 mt-4"
-              >
-                {images.map((img, index) => (
-                  <Draggable key={img.url + index} draggableId={img.url + index} index={index} isDragDisabled={img.isUploading}>
-                    {(provided, snapshot) => (
-                      <div
-                        ref={provided.innerRef}
-                        {...provided.draggableProps}
-                        className={`flex items-start sm:items-center gap-4 p-3 bg-zinc-900 border border-zinc-800 rounded-lg transition-all ${
-                          snapshot.isDragging ? 'shadow-2xl ring-1 ring-white/20 z-50' : ''
-                        } ${img.isUploading ? 'opacity-70 grayscale' : ''}`}
-                      >
-                        <div {...provided.dragHandleProps} className={`p-2 cursor-grab ${img.isUploading ? 'invisible' : 'text-zinc-600 hover:text-zinc-300'}`}>
-                          <GripVertical className="w-5 h-5" />
-                        </div>
-                        
-                        <div className="w-20 h-20 bg-black rounded overflow-hidden flex-shrink-0 relative border border-zinc-800 flex items-center justify-center">
-                          {img.isUploading ? (
-                            <div className="absolute inset-0 flex items-center justify-center bg-zinc-900/80 z-10">
-                              <Loader2 className="w-6 h-6 text-white animate-spin" />
-                            </div>
-                          ) : null}
-                          <img src={img.url} alt={img.altText || 'Project preview'} className="object-cover w-full h-full" />
-                        </div>
-
-                        <div className="flex-1 space-y-1">
-                          <label className="text-xs font-medium text-zinc-500 uppercase tracking-wider">Alt Text</label>
-                          <input 
-                            type="text" 
-                            value={img.altText || ''}
-                            onChange={(e) => updateAltText(index, e.target.value)}
-                            disabled={img.isUploading}
-                            placeholder="Describe this image..."
-                            className="w-full bg-zinc-950 border border-zinc-800 rounded px-3 py-1.5 text-sm text-white focus:outline-none focus:ring-1 focus:ring-white/30 disabled:opacity-50"
-                          />
-                        </div>
-
-                        <button
-                          type="button"
-                          onClick={() => removeImage(index)}
-                          disabled={img.isUploading}
-                          className="p-2 text-zinc-500 hover:text-red-400 hover:bg-red-400/10 rounded-md transition-colors self-center disabled:opacity-50"
-                          aria-label="Remove image"
-                        >
-                          <X className="w-4 h-4" />
-                        </button>
-                      </div>
-                    )}
-                  </Draggable>
-                ))}
-                {provided.placeholder}
-              </div>
-            )}
-          </Droppable>
-        </DragDropContext>
+      {isMounted && sortableItems.length > 0 && (
+        <ReorderableList
+          items={sortableItems}
+          onReorder={handleReorder}
+          renderOverlay={(activeId) => {
+            const activeItem = sortableItems.find((item) => item.id === activeId);
+            if (!activeItem) return null;
+            return (
+              <ImageGalleryRow
+                img={activeItem}
+                index={-1}
+                isFirst={false}
+                isLast={false}
+                onMove={() => {}}
+                onRemove={() => {}}
+                onUpdateAltText={() => {}}
+                isDragOverlay
+              />
+            );
+          }}
+        >
+          {sortableItems.map((img, index) => (
+            <ImageGalleryRow
+              key={img.id}
+              img={img}
+              index={index}
+              isFirst={index === 0}
+              isLast={index === sortableItems.length - 1}
+              onMove={handleKeyboardMove}
+              onRemove={removeImage}
+              onUpdateAltText={updateAltText}
+            />
+          ))}
+        </ReorderableList>
       )}
     </div>
   );

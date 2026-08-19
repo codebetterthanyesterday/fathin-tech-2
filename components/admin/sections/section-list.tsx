@@ -1,26 +1,8 @@
 'use client';
 
 import { useState, useTransition, useRef, useEffect } from 'react';
-import {
-  DndContext,
-  closestCenter,
-  KeyboardSensor,
-  PointerSensor,
-  useSensor,
-  useSensors,
-  DragEndEvent,
-  DragStartEvent,
-  DragOverlay,
-  defaultDropAnimationSideEffects,
-} from '@dnd-kit/core';
-import {
-  SortableContext,
-  sortableKeyboardCoordinates,
-  useSortable,
-  verticalListSortingStrategy,
-  arrayMove,
-} from '@dnd-kit/sortable';
-import { CSS } from '@dnd-kit/utilities';
+import { ReorderableList, useReorderableItem, ReorderableDragHandle, ReorderableFallbackControls } from '@/components/admin/shared/reorderable-list';
+import { arrayMove } from '@dnd-kit/sortable';
 import {
   toggleSectionVisibility,
   moveSectionOrder,
@@ -325,15 +307,9 @@ function SectionRow({ section, isFirst, isLast, onMove, isDragOverlay = false }:
     attributes,
     listeners,
     setNodeRef,
-    transform,
-    transition,
+    style,
     isDragging,
-  } = useSortable({ id: section.id });
-
-  const style = {
-    transform: CSS.Transform.toString(transform),
-    transition,
-  };
+  } = useReorderableItem(section.id);
 
   const meta = SECTION_META[section.type] ?? {
     label: section.type,
@@ -384,15 +360,11 @@ function SectionRow({ section, isFirst, isLast, onMove, isDragOverlay = false }:
       <div className="flex items-center gap-3 flex-wrap sm:flex-nowrap">
 
         {/* Drag handle */}
-        <button
-          {...(isDragOverlay ? {} : { ...attributes, ...listeners })}
-          className="flex-shrink-0 p-1.5 rounded-md text-zinc-600 hover:text-zinc-300 hover:bg-white/5 cursor-grab active:cursor-grabbing transition-all focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-white/30"
-          aria-label="Drag to reorder"
-          title="Drag to reorder"
-          tabIndex={0}
-        >
-          <GripVertical className="w-4 h-4" />
-        </button>
+        <ReorderableDragHandle 
+          attributes={isDragOverlay ? {} : attributes} 
+          listeners={isDragOverlay ? {} : listeners} 
+          isDragging={isDragging && !isDragOverlay} 
+        />
 
         {/* Icon */}
         <div className="flex-shrink-0 w-10 h-10 rounded-lg bg-zinc-800/80 border border-zinc-700 flex items-center justify-center text-zinc-400">
@@ -441,24 +413,13 @@ function SectionRow({ section, isFirst, isLast, onMove, isDragOverlay = false }:
         {/* Controls */}
         <div className="flex items-center gap-1.5 flex-shrink-0">
           {/* Keyboard-accessible up/down — always present, accessible alternative to drag */}
-          <button
-            onClick={() => onMove(section.id, 'up')}
-            disabled={isFirst || isPending}
-            className="w-8 h-8 flex items-center justify-center rounded-md bg-zinc-800/50 border border-zinc-700/50 text-zinc-500 hover:text-white hover:bg-zinc-700 hover:border-zinc-600 disabled:opacity-30 disabled:cursor-not-allowed transition-all"
-            title="Move up (keyboard)"
-            aria-label="Move section up"
-          >
-            <ChevronUp className="w-4 h-4" />
-          </button>
-          <button
-            onClick={() => onMove(section.id, 'down')}
-            disabled={isLast || isPending}
-            className="w-8 h-8 flex items-center justify-center rounded-md bg-zinc-800/50 border border-zinc-700/50 text-zinc-500 hover:text-white hover:bg-zinc-700 hover:border-zinc-600 disabled:opacity-30 disabled:cursor-not-allowed transition-all"
-            title="Move down (keyboard)"
-            aria-label="Move section down"
-          >
-            <ChevronDown className="w-4 h-4" />
-          </button>
+          <ReorderableFallbackControls
+            onMoveUp={() => onMove(section.id, 'up')}
+            onMoveDown={() => onMove(section.id, 'down')}
+            isFirst={isFirst}
+            isLast={isLast}
+            isProcessing={isPending}
+          />
 
           {/* Visibility toggle */}
           <button
@@ -500,7 +461,6 @@ function SectionRow({ section, isFirst, isLast, onMove, isDragOverlay = false }:
 
 export default function SectionList({ sections: initialSections }: { sections: any[] }) {
   const [sections, setSections] = useState(initialSections);
-  const [activeDragId, setActiveDragId] = useState<string | null>(null);
   const [isSaving, setIsSaving] = useState(false);
   const [saveError, setSaveError] = useState('');
   // Keep a ref to the pre-drag order so we can rollback on error
@@ -510,16 +470,6 @@ export default function SectionList({ sections: initialSections }: { sections: a
     setSections(initialSections);
     prevOrderRef.current = initialSections;
   }, [initialSections]);
-
-  const sensors = useSensors(
-    useSensor(PointerSensor, {
-      // Require a 5px move before starting drag — prevents accidental drags on click
-      activationConstraint: { distance: 5 },
-    }),
-    useSensor(KeyboardSensor, {
-      coordinateGetter: sortableKeyboardCoordinates,
-    })
-  );
 
   // Optimistic move via the existing up/down logic (keyboard-accessible alternative)
   const handleKeyboardMove = (id: string, dir: 'up' | 'down') => {
@@ -544,25 +494,10 @@ export default function SectionList({ sections: initialSections }: { sections: a
     });
   };
 
-  const handleDragStart = (event: DragStartEvent) => {
-    setActiveDragId(event.active.id as string);
-    prevOrderRef.current = [...sections];
-    setSaveError('');
-  };
-
-  const handleDragEnd = (event: DragEndEvent) => {
-    const { active, over } = event;
-    setActiveDragId(null);
-
-    if (!over || active.id === over.id) return;
-
-    const oldIndex = sections.findIndex(s => s.id === active.id);
-    const newIndex = sections.findIndex(s => s.id === over.id);
-    const newSections = arrayMove(sections, oldIndex, newIndex);
-
+  const handleReorder = (newSections: any[]) => {
     // Optimistic update
     setSections(newSections);
-
+    
     // Persist to DB
     setIsSaving(true);
     reorderSections(newSections.map(s => s.id)).then(result => {
@@ -570,11 +505,12 @@ export default function SectionList({ sections: initialSections }: { sections: a
       if (result.error) {
         setSaveError(result.error);
         setSections(prevOrderRef.current); // rollback
+      } else {
+        prevOrderRef.current = newSections;
       }
     });
   };
 
-  const activeSection = activeDragId ? sections.find(s => s.id === activeDragId) : null;
 
   if (sections.length === 0) {
     return (
@@ -602,39 +538,13 @@ export default function SectionList({ sections: initialSections }: { sections: a
         )}
       </div>
 
-      <DndContext
-        id="section-dnd-context"
-        sensors={sensors}
-        collisionDetection={closestCenter}
-        onDragStart={handleDragStart}
-        onDragEnd={handleDragEnd}
-      >
-        <SortableContext
-          items={sections.map(s => s.id)}
-          strategy={verticalListSortingStrategy}
-        >
-          <div className={`space-y-3 transition-opacity duration-200 ${activeDragId ? 'opacity-90' : ''}`}>
-            {sections.map((section, idx) => (
-              <SectionRow
-                key={section.id}
-                section={section}
-                isFirst={idx === 0}
-                isLast={idx === sections.length - 1}
-                onMove={handleKeyboardMove}
-              />
-            ))}
-          </div>
-        </SortableContext>
-
-        {/* Drag overlay — the "floating" card rendered while dragging */}
-        <DragOverlay
-          dropAnimation={{
-            sideEffects: defaultDropAnimationSideEffects({
-              styles: { active: { opacity: '0.4' } },
-            }),
-          }}
-        >
-          {activeSection && (
+      <ReorderableList
+        items={sections}
+        onReorder={handleReorder}
+        renderOverlay={(activeId) => {
+          const activeSection = sections.find(s => s.id === activeId);
+          if (!activeSection) return null;
+          return (
             <SectionRow
               section={activeSection}
               isFirst={false}
@@ -642,9 +552,19 @@ export default function SectionList({ sections: initialSections }: { sections: a
               onMove={() => {}}
               isDragOverlay
             />
-          )}
-        </DragOverlay>
-      </DndContext>
+          );
+        }}
+      >
+        {sections.map((section, idx) => (
+          <SectionRow
+            key={section.id}
+            section={section}
+            isFirst={idx === 0}
+            isLast={idx === sections.length - 1}
+            onMove={handleKeyboardMove}
+          />
+        ))}
+      </ReorderableList>
     </div>
   );
 }

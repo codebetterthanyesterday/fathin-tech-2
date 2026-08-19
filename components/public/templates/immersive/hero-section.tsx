@@ -19,11 +19,7 @@ export default function ImmersiveHeroSection({ profile, ctaOverride }: HeroSecti
 
   const baseText = profile.tagline || profile.name || 'PORTFOLIO';
   const marqueeText = Array(8).fill(baseText).join(' • ') + ' • ';
-  const greetingText = t.has('greeting')
-    ? t('greeting')
-    : locale === 'id'
-    ? 'Halo, saya'
-    : "Hello, I'm";
+  const greetingText = t('greeting');
 
   return (
     <section className="relative min-h-[100vh] flex flex-col justify-center px-4 sm:px-12 md:px-24 overflow-hidden pt-24 pb-12 group/section">
