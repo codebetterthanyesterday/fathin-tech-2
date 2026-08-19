@@ -1,6 +1,6 @@
 'use client';
 
-import { useActionState, useState, useRef } from 'react';
+import { useActionState, useState, useRef, useEffect } from 'react';
 import { upsertProfile, ProfileActionState } from '@/app/actions/profile';
 import { uploadImage } from '@/app/actions/upload';
 import {
@@ -24,6 +24,10 @@ const initialState: ProfileActionState = {
 export default function ProfileForm({ initialData }: { initialData: any }) {
   const [state, formAction, isPending] = useActionState(upsertProfile, initialState);
   const [photoUrl, setPhotoUrl] = useState(initialData?.photoUrl || '');
+  const [name, setName] = useState(initialData?.name || '');
+  const [email, setEmail] = useState(initialData?.email || '');
+  const [phone, setPhone] = useState(initialData?.phone || '');
+  const [resumeUrl, setResumeUrl] = useState(initialData?.resumeUrl || '');
   const [isUploading, setIsUploading] = useState(false);
   const [uploadError, setUploadError] = useState('');
   const fileInputRef = useRef<HTMLInputElement>(null);
@@ -45,6 +49,32 @@ export default function ProfileForm({ initialData }: { initialData: any }) {
       location: enTrans?.location || '',
     },
   });
+
+  // Sync state when initialData updates (e.g. after revalidation)
+  useEffect(() => {
+    if (initialData) {
+      const idT = initialData?.translations?.find((t: any) => t.locale === 'id');
+      const enT = initialData?.translations?.find((t: any) => t.locale === 'en');
+      setName(initialData?.name || '');
+      setEmail(initialData?.email || '');
+      setPhone(initialData?.phone || '');
+      setResumeUrl(initialData?.resumeUrl || '');
+      setPhotoUrl(initialData?.photoUrl || '');
+      setTranslations({
+        id: {
+          tagline: idT?.tagline || initialData?.tagline || '',
+          bio: idT?.bio || initialData?.bio || '',
+          location: idT?.location || initialData?.location || '',
+        },
+        en: {
+          tagline: enT?.tagline || '',
+          bio: enT?.bio || '',
+          location: enT?.location || '',
+        },
+      });
+      setSocialLinks(parseInitialSocials(initialData?.socialLinks));
+    }
+  }, [initialData]);
 
   const handleTranslationChange = (field: 'tagline' | 'bio' | 'location', value: string) => {
     setTranslations((prev) => ({
@@ -241,7 +271,8 @@ export default function ProfileForm({ initialData }: { initialData: any }) {
               id="name"
               name="name"
               type="text"
-              defaultValue={initialData?.name || ''}
+              value={name}
+              onChange={(e) => setName(e.target.value)}
               required
               className="w-full px-4 py-3 bg-zinc-900/50 border border-zinc-800 rounded-lg text-white placeholder:text-zinc-600 focus:outline-none focus:ring-2 focus:ring-white/20 focus:border-white/30 transition-all duration-300"
               placeholder="Enter full name..."
@@ -345,7 +376,8 @@ export default function ProfileForm({ initialData }: { initialData: any }) {
                 id="email"
                 name="email"
                 type="email"
-                defaultValue={initialData?.email || ''}
+                value={email}
+                onChange={(e) => setEmail(e.target.value)}
                 className="w-full px-4 py-3 bg-zinc-900/50 border border-zinc-800 rounded-lg text-white placeholder:text-zinc-600 focus:outline-none focus:ring-2 focus:ring-white/20 focus:border-white/30 transition-all duration-300"
                 placeholder="Enter contact email..."
               />
@@ -363,7 +395,8 @@ export default function ProfileForm({ initialData }: { initialData: any }) {
                 id="phone"
                 name="phone"
                 type="text"
-                defaultValue={initialData?.phone || ''}
+                value={phone}
+                onChange={(e) => setPhone(e.target.value)}
                 className="w-full px-4 py-3 bg-zinc-900/50 border border-zinc-800 rounded-lg text-white placeholder:text-zinc-600 focus:outline-none focus:ring-2 focus:ring-white/20 focus:border-white/30 transition-all duration-300"
                 placeholder="Enter contact number..."
               />
@@ -377,10 +410,11 @@ export default function ProfileForm({ initialData }: { initialData: any }) {
               <input
                 id="resumeUrl"
                 name="resumeUrl"
-                type="url"
-                defaultValue={initialData?.resumeUrl || ''}
+                type="text"
+                value={resumeUrl}
+                onChange={(e) => setResumeUrl(e.target.value)}
                 className="w-full px-4 py-3 bg-zinc-900/50 border border-zinc-800 rounded-lg text-white placeholder:text-zinc-600 focus:outline-none focus:ring-2 focus:ring-white/20 focus:border-white/30 transition-all duration-300"
-                placeholder="https://..."
+                placeholder="https://... atau tautan Google Drive / Dropbox"
               />
               {state?.fieldErrors?.resumeUrl && (
                 <p className="text-red-400 text-xs mt-1">{state.fieldErrors.resumeUrl[0]}</p>
@@ -440,8 +474,8 @@ export default function ProfileForm({ initialData }: { initialData: any }) {
                   />
 
                   <input
-                    type="url"
-                    placeholder="https://..."
+                    type="text"
+                    placeholder="https://... atau url profil"
                     value={link.url}
                     onChange={(e) => updateSocialLink(index, 'url', e.target.value)}
                     className="flex-1 px-3 py-1.5 bg-zinc-900 border border-zinc-700/50 rounded-md text-sm text-white placeholder:text-zinc-600 focus:outline-none focus:ring-1 focus:ring-white/20"

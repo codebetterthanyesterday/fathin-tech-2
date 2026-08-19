@@ -6,29 +6,37 @@ import { getSession } from '@/lib/auth';
 import { revalidatePath } from 'next/cache';
 import { getAdminPath } from '@/lib/routes';
 
-// Using Zod to parse and validate social links stringified JSON
+// Helper to normalize and auto-prefix URLs
+function normalizeUrl(url: string | null | undefined): string | null {
+  if (!url) return null;
+  const trimmed = url.trim();
+  if (!trimmed) return null;
+  if (/^https?:\/\//i.test(trimmed)) return trimmed;
+  return `https://${trimmed}`;
+}
+
 const socialLinksSchema = z.array(
   z.object({
-    platform: z.string(),
-    url: z.string().url('Pastikan link menggunakan format http:// atau https://').or(z.literal('')),
-    iconClass: z.string(),
+    platform: z.string().default(''),
+    url: z.string().default(''),
+    iconClass: z.string().default('fa-solid fa-link'),
   })
 );
 
 const profileSchema = z.object({
-  name: z.string().min(1, 'Nama wajib diisi'),
+  name: z.string().trim().min(1, 'Nama wajib diisi'),
   tagline_id: z.string().optional(),
   bio_id: z.string().optional(),
   location_id: z.string().optional(),
   tagline_en: z.string().optional(),
   bio_en: z.string().optional(),
   location_en: z.string().optional(),
-  photoUrl: z.string().url().optional().or(z.literal('')),
-  email: z.string().email('Format email tidak valid').optional().or(z.literal('')),
-  phone: z.string().optional(),
-  location: z.string().optional(),
+  photoUrl: z.string().optional().nullable(),
+  email: z.string().trim().email('Format email tidak valid').optional().or(z.literal('')),
+  phone: z.string().trim().optional(),
+  location: z.string().trim().optional(),
   socialLinks: z.string().optional(), // Will be parsed to JSON
-  resumeUrl: z.string().url().optional().or(z.literal('')),
+  resumeUrl: z.string().optional().nullable(),
 });
 
 export async function getProfile() {
@@ -55,52 +63,66 @@ export async function upsertProfile(prevState: any, formData: FormData): Promise
   // Check auth
   const session = await getSession();
   if (!session) {
-    return { error: 'Unauthorized' };
+    console.error('[upsertProfile] Unauthorized submission attempt');
+    return { error: 'Unauthorized: Sesi login Anda telah berakhir. Silakan login kembali.' };
   }
 
-  // Extract raw data from formData
+  // Extract raw data from formData with safe trimming
+  const rawEmail = (formData.get('email') as string || '').trim();
+  const rawPhoto = (formData.get('photoUrl') as string || '').trim();
+  const rawResume = (formData.get('resumeUrl') as string || '').trim();
+
   const rawData = {
-    name: formData.get('name') as string,
-    tagline_id: (formData.get('tagline_id') as string) || (formData.get('tagline') as string) || '',
-    bio_id: (formData.get('bio_id') as string) || (formData.get('bio') as string) || '',
-    location_id: (formData.get('location_id') as string) || (formData.get('location') as string) || '',
-    tagline_en: (formData.get('tagline_en') as string) || '',
-    bio_en: (formData.get('bio_en') as string) || '',
-    location_en: (formData.get('location_en') as string) || '',
-    photoUrl: formData.get('photoUrl') as string,
-    email: formData.get('email') as string,
-    phone: formData.get('phone') as string,
-    location: formData.get('location') as string,
-    socialLinks: formData.get('socialLinks') as string,
-    resumeUrl: formData.get('resumeUrl') as string,
+    name: (formData.get('name') as string || '').trim(),
+    tagline_id: ((formData.get('tagline_id') as string) || (formData.get('tagline') as string) || '').trim(),
+    bio_id: ((formData.get('bio_id') as string) || (formData.get('bio') as string) || '').trim(),
+    location_id: ((formData.get('location_id') as string) || (formData.get('location') as string) || '').trim(),
+    tagline_en: (formData.get('tagline_en') as string || '').trim(),
+    bio_en: (formData.get('bio_en') as string || '').trim(),
+    location_en: (formData.get('location_en') as string || '').trim(),
+    photoUrl: rawPhoto ? normalizeUrl(rawPhoto) : '',
+    email: rawEmail,
+    phone: (formData.get('phone') as string || '').trim(),
+    location: (formData.get('location') as string || '').trim(),
+    socialLinks: (formData.get('socialLinks') as string || '').trim(),
+    resumeUrl: rawResume ? normalizeUrl(rawResume) : '',
   };
 
   const validatedFields = profileSchema.safeParse(rawData);
 
   if (!validatedFields.success) {
     const errors = validatedFields.error.flatten().fieldErrors;
+    console.error('[upsertProfile] Validation failed:', errors);
     return {
-      error: 'Validation error: Check highlighted fields.',
+      error: 'Validation error: Periksa kembali isian form Anda.',
       fieldErrors: errors,
     };
   }
 
   const data = validatedFields.data;
 
-  // Process socialLinks JSON
+  // Process and sanitize socialLinks JSON
   let socialLinksJson: any = null;
   if (data.socialLinks) {
     try {
       const parsed = JSON.parse(data.socialLinks);
       const validatedSocial = socialLinksSchema.safeParse(parsed);
-      if (!validatedSocial.success) {
-        const firstIssue = validatedSocial.error.issues[0];
-        const errorMessage = firstIssue ? firstIssue.message : 'harus berupa JSON array';
-        return { error: `Parse error: Invalid social links format (${errorMessage}).` };
+      if (validatedSocial.success) {
+        // Filter out empty rows and normalize URLs
+        socialLinksJson = validatedSocial.data
+          .filter((item) => item.platform.trim() || item.url.trim())
+          .map((item) => ({
+            platform: item.platform.trim(),
+            url: normalizeUrl(item.url) || '',
+            iconClass: item.iconClass.trim() || 'fa-solid fa-link',
+          }));
+      } else {
+        console.warn('[upsertProfile] Invalid social links schema:', validatedSocial.error);
+        socialLinksJson = [];
       }
-      socialLinksJson = validatedSocial.data;
     } catch (e) {
-      return { error: 'Parse error: Invalid social links JSON format.' };
+      console.error('[upsertProfile] Failed to parse socialLinks JSON:', e);
+      socialLinksJson = [];
     }
   }
 
@@ -158,7 +180,7 @@ export async function upsertProfile(prevState: any, formData: FormData): Promise
       },
     });
 
-    // Upsert English translation
+    // Upsert or remove English translation
     if (data.tagline_en || data.bio_en || data.location_en) {
       await prisma.profileTranslation.upsert({
         where: {
@@ -180,16 +202,28 @@ export async function upsertProfile(prevState: any, formData: FormData): Promise
           location: data.location_en || null,
         },
       });
+    } else {
+      // If user cleared EN fields, clean up EN translation row
+      await prisma.profileTranslation.deleteMany({
+        where: {
+          profileId,
+          locale: 'en',
+        },
+      });
     }
 
+    // Comprehensive cache revalidation
     revalidatePath('/', 'layout');
     revalidatePath('/[locale]', 'layout');
+    revalidatePath('/admin-portal', 'layout');
+    revalidatePath('/admin-portal/profile');
+    revalidatePath('/portal', 'layout');
     revalidatePath(getAdminPath('profile'));
     revalidatePath(getAdminPath('settings'));
 
-    return { success: 'Profil berhasil disimpan.' };
+    return { success: 'Profil berhasil diperbarui dan disimpan.' };
   } catch (error) {
     console.error('Failed to upsert profile:', error);
-    return { error: 'Save failed: Unable to write profile to database.' };
+    return { error: 'Save failed: Terjadi kesalahan saat menyimpan profil ke database.' };
   }
 }
