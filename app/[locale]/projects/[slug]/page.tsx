@@ -3,7 +3,7 @@ import { renderMarkdownServer } from '@/lib/markdown/server';
 import { notFound } from 'next/navigation';
 import Image from 'next/image';
 import { Link } from '@/i18n/routing';
-import { ExternalLink, ArrowLeft } from 'lucide-react';
+import { ExternalLink, ArrowLeft, AlertTriangle, Lightbulb } from 'lucide-react';
 import ProjectGallery from '@/components/public/project-gallery';
 import JsonLd from '@/components/public/json-ld';
 import ThemeToggle from '@/components/public/layout/theme-toggle';
@@ -128,36 +128,11 @@ export default async function ProjectDetailPage({ params }: ProjectDetailPagePro
                 {project.summary}
               </p>
             </div>
-            
-            <div className="flex items-center gap-4 shrink-0">
-              {project.repoUrl && (
-                <a 
-                  href={project.repoUrl} 
-                  target="_blank" 
-                  rel="noopener noreferrer" 
-                  className="flex items-center gap-2 px-6 py-3 rounded-full bg-[var(--bg-surface)] border border-[var(--border-subtle)] text-[var(--text-secondary)] hover:text-[var(--text-primary)] hover:border-[var(--border-strong)] transition-all font-medium text-sm shadow-sm"
-                >
-                  <GithubIcon className="w-4 h-4" />
-                  {t('repository')}
-                </a>
-              )}
-              {project.demoUrl && (
-                <a 
-                  href={project.demoUrl} 
-                  target="_blank" 
-                  rel="noopener noreferrer" 
-                  className="flex items-center gap-2 px-6 py-3 rounded-full bg-[var(--accent-btn-bg)] text-[var(--accent-btn-fg)] hover:brightness-110 transition-colors font-medium text-sm shadow-md"
-                >
-                  <ExternalLink className="w-4 h-4" />
-                  {t('liveDemo')}
-                </a>
-              )}
-            </div>
           </div>
 
           {/* Main Cover Image */}
           {mainImage && (
-            <div className="w-full aspect-[21/9] sm:aspect-[2.5/1] relative rounded-2xl overflow-hidden bg-[var(--bg-surface)] border border-[var(--border-subtle)] shadow-2xl mb-12">
+            <div className="w-full aspect-[21/9] sm:aspect-[2.5/1] relative rounded-3xl overflow-hidden bg-[var(--bg-surface)] border border-[var(--border-subtle)] shadow-2xl mb-12 lg:mb-16">
               <Image
                 src={mainImage}
                 alt={`${project.title} Cover`}
@@ -169,122 +144,186 @@ export default async function ProjectDetailPage({ params }: ProjectDetailPagePro
             </div>
           )}
 
-          {/* Key Project Meta (Role, Duration, Team) */}
-          {(project.role || project.duration || project.teamSize) && (
-            <div className="grid grid-cols-2 md:grid-cols-4 gap-4 p-6 bg-[var(--bg-surface)] border border-[var(--border-subtle)] rounded-2xl mb-12">
-              {project.role && (
-                <div>
-                  <p className="text-sm font-medium text-[var(--text-tertiary)] mb-1">{t('role')}</p>
-                  <p className="text-base font-semibold text-[var(--text-primary)]">{project.role}</p>
-                </div>
-              )}
-              {project.duration && (
-                <div>
-                  <p className="text-sm font-medium text-[var(--text-tertiary)] mb-1">{t('duration')}</p>
-                  <p className="text-base font-semibold text-[var(--text-primary)]">{project.duration}</p>
-                </div>
-              )}
-              {project.teamSize && (
-                <div>
-                  <p className="text-sm font-medium text-[var(--text-tertiary)] mb-1">{t('teamSize')}</p>
-                  <p className="text-base font-semibold text-[var(--text-primary)]">{project.teamSize} {t('people')}</p>
-                </div>
-              )}
-            </div>
-          )}
-
-          {/* Key Metrics */}
-          {project.keyMetrics && project.keyMetrics.length > 0 && (
-            <div className="mb-16">
-              <h3 className="text-sm font-bold tracking-widest text-[var(--text-tertiary)] uppercase mb-6">{t('keyImpact')}</h3>
-              <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 gap-4">
-                {project.keyMetrics.map((metric: string, idx: number) => (
-                  <div key={idx} className="p-5 rounded-2xl bg-emerald-500/10 border border-emerald-500/20 flex items-start gap-3">
-                    <div className="mt-1 w-2 h-2 rounded-full bg-emerald-500 shrink-0" />
-                    <p className="text-emerald-950 dark:text-emerald-100 font-medium leading-relaxed">{metric}</p>
-                  </div>
-                ))}
-              </div>
-            </div>
-          )}
-
-          {/* Tech Stack & Categories */}
-          <div className="mb-16 grid grid-cols-1 md:grid-cols-2 gap-8">
-            {project.techStack.length > 0 && (
-              <div>
-                <h3 className="text-sm font-bold tracking-widest text-[var(--text-tertiary)] uppercase mb-4">{t('technologies')}</h3>
-                <div className="flex flex-wrap gap-2">
-                  {project.techStack.map((tech: string, i: number) => (
-                    <span 
-                      key={i} 
-                      className="px-4 py-2 bg-[var(--bg-surface)] border border-[var(--border-subtle)] rounded-full text-sm font-mono text-[var(--text-secondary)] shadow-sm"
-                    >
-                      {tech}
-                    </span>
-                  ))}
-                </div>
-              </div>
-            )}
+          <div className="lg:grid lg:grid-cols-[1fr_320px] lg:gap-16 lg:items-start">
             
-            {project.categories && project.categories.length > 0 && (
-              <div>
-                <h3 className="text-sm font-bold tracking-widest text-[var(--text-tertiary)] uppercase mb-4">{t('categories')}</h3>
-                <div className="flex flex-wrap gap-2">
-                  {project.categories.map((cat: string, i: number) => (
-                    <span 
-                      key={i} 
-                      className="px-4 py-2 bg-zinc-900 dark:bg-white text-white dark:text-black rounded-full text-sm font-medium shadow-sm"
+            {/* Sidebar / Meta Rail */}
+            <aside className="order-first lg:order-last space-y-12 mb-16 lg:mb-0 lg:sticky lg:top-32">
+              
+              {/* Action Buttons */}
+              {(project.demoUrl || project.repoUrl) && (
+                <div className="flex flex-col gap-3">
+                  {project.demoUrl && (
+                    <a 
+                      href={project.demoUrl} 
+                      target="_blank" 
+                      rel="noopener noreferrer" 
+                      className="flex items-center justify-center gap-2 w-full px-6 py-3.5 rounded-2xl bg-[var(--accent-btn-bg)] text-[var(--accent-btn-fg)] hover:brightness-110 transition-colors font-semibold text-sm shadow-md"
                     >
-                      {cat}
-                    </span>
-                  ))}
+                      <ExternalLink className="w-4 h-4" />
+                      {t('liveDemo')}
+                    </a>
+                  )}
+                  {project.repoUrl && (
+                    <a 
+                      href={project.repoUrl} 
+                      target="_blank" 
+                      rel="noopener noreferrer" 
+                      className="flex items-center justify-center gap-2 w-full px-6 py-3.5 rounded-2xl bg-[var(--bg-surface)] border border-[var(--border-subtle)] text-[var(--text-primary)] hover:border-[var(--border-strong)] transition-all font-semibold text-sm shadow-sm"
+                    >
+                      <GithubIcon className="w-4 h-4" />
+                      {t('repository')}
+                    </a>
+                  )}
                 </div>
+              )}
+
+              {/* Key Project Meta (Role, Duration, Team) */}
+              {(project.role || project.duration || project.teamSize) && (
+                <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-1 gap-6 p-6 bg-[var(--bg-surface)] border border-[var(--border-subtle)] rounded-2xl">
+                  {project.role && (
+                    <div>
+                      <p className="text-xs font-bold tracking-widest text-[var(--text-tertiary)] uppercase mb-1.5">{t('role')}</p>
+                      <p className="text-sm font-semibold text-[var(--text-primary)]">{project.role}</p>
+                    </div>
+                  )}
+                  {project.duration && (
+                    <div>
+                      <p className="text-xs font-bold tracking-widest text-[var(--text-tertiary)] uppercase mb-1.5">{t('duration')}</p>
+                      <p className="text-sm font-semibold text-[var(--text-primary)]">{project.duration}</p>
+                    </div>
+                  )}
+                  {project.teamSize && (
+                    <div>
+                      <p className="text-xs font-bold tracking-widest text-[var(--text-tertiary)] uppercase mb-1.5">{t('teamSize')}</p>
+                      <p className="text-sm font-semibold text-[var(--text-primary)]">{project.teamSize} {t('people')}</p>
+                    </div>
+                  )}
+                </div>
+              )}
+
+              {/* Key Metrics */}
+              {project.keyMetrics && project.keyMetrics.length > 0 && (
+                <div>
+                  <h3 className="text-xs font-bold tracking-widest text-[var(--text-tertiary)] uppercase mb-4">{t('keyImpact')}</h3>
+                  <div className="flex flex-col gap-3">
+                    {project.keyMetrics.map((metric: string, idx: number) => (
+                      <div key={idx} className="p-4 rounded-xl bg-[var(--bg-surface)] border border-[var(--border-subtle)] flex items-start gap-3">
+                        <div className="mt-1 w-2 h-2 rounded-full bg-[var(--accent-text)] shrink-0 opacity-70" />
+                        <p className="text-[var(--text-primary)] text-sm font-medium leading-relaxed">{metric}</p>
+                      </div>
+                    ))}
+                  </div>
+                </div>
+              )}
+
+              {/* Tech Stack & Categories */}
+              <div className="space-y-8">
+                {project.techStack.length > 0 && (
+                  <div>
+                    <h3 className="text-xs font-bold tracking-widest text-[var(--text-tertiary)] uppercase mb-4">{t('technologies')}</h3>
+                    <div className="flex flex-wrap gap-2">
+                      {project.techStack.map((tech: string, i: number) => (
+                        <span 
+                          key={i} 
+                          className="px-3.5 py-1.5 bg-[var(--bg-surface)] border border-[var(--border-subtle)] rounded-full text-xs font-mono text-[var(--text-secondary)] shadow-sm"
+                        >
+                          {tech}
+                        </span>
+                      ))}
+                    </div>
+                  </div>
+                )}
+                
+                {project.categories && project.categories.length > 0 && (
+                  <div>
+                    <h3 className="text-xs font-bold tracking-widest text-[var(--text-tertiary)] uppercase mb-4">{t('categories')}</h3>
+                    <div className="flex flex-wrap gap-2">
+                      {project.categories.map((cat: string, i: number) => (
+                        <span 
+                          key={i} 
+                          className="px-3.5 py-1.5 bg-[var(--text-primary)] text-[var(--bg-primary)] rounded-full text-xs font-semibold shadow-sm"
+                        >
+                          {cat}
+                        </span>
+                      ))}
+                    </div>
+                  </div>
+                )}
               </div>
-            )}
+            </aside>
+
+            {/* Main Content */}
+            <div className="space-y-16 min-w-0">
+              
+              {/* Description */}
+              {renderedDescription && (
+                <div className="prose dark:prose-invert prose-zinc max-w-none prose-p:leading-relaxed prose-p:text-[var(--text-secondary)] prose-headings:text-[var(--text-primary)] prose-a:text-[var(--text-primary)] hover:prose-a:text-[var(--accent-text)] prose-strong:text-[var(--text-primary)] text-lg"
+                     dangerouslySetInnerHTML={{ __html: renderedDescription }} />
+              )}
+
+              {/* Video URL */}
+              {project.videoUrl && (
+                <div>
+                  <h3 className="text-2xl font-bold text-[var(--text-primary)] mb-6">{t('videoWalkthrough')}</h3>
+                  <div className="relative w-full aspect-video rounded-3xl overflow-hidden border border-[var(--border-subtle)] shadow-xl bg-[var(--bg-surface-solid)]">
+                    <iframe
+                      src={project.videoUrl.replace('watch?v=', 'embed/').replace('youtu.be/', 'www.youtube.com/embed/')}
+                      className="absolute inset-0 w-full h-full"
+                      allowFullScreen
+                      allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture"
+                    ></iframe>
+                  </div>
+                </div>
+              )}
+
+              {/* Challenges & Solutions */}
+              {(renderedChallenges || renderedSolutions) && (
+                <div className="space-y-10 bg-[var(--bg-surface)] p-8 sm:p-10 lg:p-12 border border-[var(--border-subtle)] rounded-3xl shadow-sm">
+                  {renderedChallenges && (
+                    <div className="space-y-4">
+                      <div className="flex items-center gap-3">
+                        <div className="p-2.5 rounded-xl bg-[var(--accent-soft)] border border-[var(--border-subtle)] text-[var(--accent-text)] flex-shrink-0">
+                          <AlertTriangle className="w-5 h-5" />
+                        </div>
+                        <h3 className="text-2xl font-bold text-[var(--text-primary)] tracking-tight">
+                          {t('challengesHurdles')}
+                        </h3>
+                      </div>
+                      <div
+                        className="prose dark:prose-invert prose-zinc max-w-none prose-p:leading-relaxed prose-p:text-[var(--text-secondary)] prose-headings:text-[var(--text-primary)] prose-strong:text-[var(--text-primary)] prose-ul:text-[var(--text-secondary)] prose-ol:text-[var(--text-secondary)] prose-li:text-[var(--text-secondary)] prose-li:marker:text-[var(--accent-text)] prose-a:text-[var(--accent-text)] hover:prose-a:underline prose-code:text-[var(--text-primary)] prose-code:bg-[var(--bg-card)] prose-code:border prose-code:border-[var(--border-subtle)] prose-code:px-1.5 prose-code:py-0.5 prose-code:rounded-md prose-code:font-mono prose-code:text-xs prose-pre:bg-[var(--bg-card)] prose-pre:border prose-pre:border-[var(--border-subtle)] prose-pre:rounded-2xl prose-blockquote:border-l-4 prose-blockquote:border-l-[var(--accent-color)] prose-blockquote:bg-[var(--bg-card)] prose-blockquote:py-1 prose-blockquote:px-4 prose-blockquote:rounded-r-xl prose-blockquote:text-[var(--text-secondary)] prose-blockquote:not-italic"
+                        dangerouslySetInnerHTML={{ __html: renderedChallenges }}
+                      />
+                    </div>
+                  )}
+
+                  {renderedChallenges && renderedSolutions && (
+                    <hr className="border-t border-[var(--border-subtle)] my-6" />
+                  )}
+
+                  {renderedSolutions && (
+                    <div className="space-y-4">
+                      <div className="flex items-center gap-3">
+                        <div className="p-2.5 rounded-xl bg-[var(--accent-soft)] border border-[var(--border-subtle)] text-[var(--accent-text)] flex-shrink-0">
+                          <Lightbulb className="w-5 h-5" />
+                        </div>
+                        <h3 className="text-2xl font-bold text-[var(--text-primary)] tracking-tight">
+                          {t('solutionsArchitecture')}
+                        </h3>
+                      </div>
+                      <div
+                        className="prose dark:prose-invert prose-zinc max-w-none prose-p:leading-relaxed prose-p:text-[var(--text-secondary)] prose-headings:text-[var(--text-primary)] prose-strong:text-[var(--text-primary)] prose-ul:text-[var(--text-secondary)] prose-ol:text-[var(--text-secondary)] prose-li:text-[var(--text-secondary)] prose-li:marker:text-[var(--accent-text)] prose-a:text-[var(--accent-text)] hover:prose-a:underline prose-code:text-[var(--text-primary)] prose-code:bg-[var(--bg-card)] prose-code:border prose-code:border-[var(--border-subtle)] prose-code:px-1.5 prose-code:py-0.5 prose-code:rounded-md prose-code:font-mono prose-code:text-xs prose-pre:bg-[var(--bg-card)] prose-pre:border prose-pre:border-[var(--border-subtle)] prose-pre:rounded-2xl prose-blockquote:border-l-4 prose-blockquote:border-l-[var(--accent-color)] prose-blockquote:bg-[var(--bg-card)] prose-blockquote:py-1 prose-blockquote:px-4 prose-blockquote:rounded-r-xl prose-blockquote:text-[var(--text-secondary)] prose-blockquote:not-italic"
+                        dangerouslySetInnerHTML={{ __html: renderedSolutions }}
+                      />
+                    </div>
+                  )}
+                </div>
+              )}
+
+              {/* Image Gallery */}
+              <ProjectGallery images={project.images} projectTitle={project.title} />
+
+            </div>
           </div>
-
-          {/* Description */}
-          {renderedDescription && (
-            <div className="mb-16 prose dark:prose-invert prose-zinc max-w-3xl prose-p:leading-relaxed prose-p:text-[var(--text-secondary)] prose-headings:text-[var(--text-primary)] prose-a:text-[var(--text-primary)] hover:prose-a:text-[var(--accent-text)] prose-strong:text-[var(--text-primary)] text-lg"
-                 dangerouslySetInnerHTML={{ __html: renderedDescription }} />
-          )}
-
-          {/* Video URL */}
-          {project.videoUrl && (
-            <div className="mb-16">
-              <h3 className="text-2xl font-bold text-[var(--text-primary)] mb-6">{t('videoWalkthrough')}</h3>
-              <div className="relative w-full max-w-3xl aspect-video rounded-2xl overflow-hidden border border-[var(--border-subtle)] shadow-xl bg-black">
-                <iframe
-                  src={project.videoUrl.replace('watch?v=', 'embed/').replace('youtu.be/', 'www.youtube.com/embed/')}
-                  className="absolute inset-0 w-full h-full"
-                  allowFullScreen
-                  allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture"
-                ></iframe>
-              </div>
-            </div>
-          )}
-
-          {/* Challenges & Solutions */}
-          {(renderedChallenges || renderedSolutions) && (
-            <div className="max-w-3xl mb-16 space-y-12 bg-[var(--bg-surface)] p-8 sm:p-12 border border-[var(--border-subtle)] rounded-3xl">
-              {renderedChallenges && (
-                <div>
-                  <h3 className="text-2xl font-bold text-[var(--text-primary)] mb-6">{t('challengesHurdles')}</h3>
-                  <div className="prose dark:prose-invert prose-zinc prose-p:leading-relaxed prose-p:text-[var(--text-secondary)]" dangerouslySetInnerHTML={{ __html: renderedChallenges }} />
-                </div>
-              )}
-              {renderedSolutions && (
-                <div>
-                  <h3 className="text-2xl font-bold text-[var(--text-primary)] mb-6">{t('solutionsArchitecture')}</h3>
-                  <div className="prose dark:prose-invert prose-zinc prose-p:leading-relaxed prose-p:text-[var(--text-secondary)]" dangerouslySetInnerHTML={{ __html: renderedSolutions }} />
-                </div>
-              )}
-            </div>
-          )}
-
-          {/* Image Gallery */}
-          <ProjectGallery images={project.images} projectTitle={project.title} />
-          
         </div>
       </section>
     </main>

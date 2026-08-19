@@ -381,30 +381,48 @@ export default function ProjectForm({ project }: { project?: any }) {
         </div>
 
         {/* Challenges & Solutions */}
-        <div className="grid grid-cols-1 md:grid-cols-2 gap-6 pt-4 border-t border-[var(--border-subtle)]">
+        <div className="space-y-6 pt-6 border-t border-[var(--border-subtle)]">
           <div className="space-y-2">
-            <label className="block text-sm font-semibold text-[var(--text-primary)]">
-              Tantangan / Kendala ({activeLocale.toUpperCase()})
-            </label>
-            <textarea
-              rows={4}
+            <div className="flex items-center justify-between">
+              <label className="block text-sm font-semibold text-[var(--text-primary)]">
+                Tantangan & Hambatan / Challenges ({activeLocale.toUpperCase()})
+              </label>
+              <span className="text-xs text-[var(--text-secondary)] font-mono">
+                {activeLocale === 'id' ? 'Mendukung Rich-Text Markdown' : 'Supports Rich-Text Markdown'}
+              </span>
+            </div>
+            <p className="text-xs text-[var(--text-secondary)]">
+              {activeLocale === 'id'
+                ? 'Jelaskan tantangan teknis, kendala skalabilitas, atau batasan performa (Mendukung formatting bold, list, code block, quote, dll).'
+                : 'Detail key engineering challenges, constraints, or bottleneck issues faced (Supports formatting, lists, code, quotes, etc).'}
+            </p>
+            <MarkdownEditor
               value={currentTrans.challenges}
-              onChange={(e) => handleTransChange('challenges', e.target.value)}
-              placeholder={activeLocale === 'id' ? 'Tantangan teknis utama yang dihadapi...' : 'Key technical challenges faced...'}
-              className="w-full px-4 py-3 bg-[var(--bg-card)] border border-[var(--border-subtle)] rounded-xl text-[var(--text-primary)] placeholder:text-[var(--text-tertiary)] text-sm resize-y"
+              onChange={(val) => handleTransChange('challenges', val)}
+              placeholder={activeLocale === 'id' ? 'Tuliskan tantangan teknis dalam format Markdown (cth: bullet points, code block, quote)...' : 'Write technical challenges in Markdown format (e.g. bullet points, code block, quote)...'}
+              minHeight="220px"
             />
           </div>
 
           <div className="space-y-2">
-            <label className="block text-sm font-semibold text-[var(--text-primary)]">
-              Solusi & Arsitektur ({activeLocale.toUpperCase()})
-            </label>
-            <textarea
-              rows={4}
+            <div className="flex items-center justify-between">
+              <label className="block text-sm font-semibold text-[var(--text-primary)]">
+                Solusi & Arsitektur / Solutions & Architecture ({activeLocale.toUpperCase()})
+              </label>
+              <span className="text-xs text-[var(--text-secondary)] font-mono">
+                {activeLocale === 'id' ? 'Mendukung Rich-Text Markdown' : 'Supports Rich-Text Markdown'}
+              </span>
+            </div>
+            <p className="text-xs text-[var(--text-secondary)]">
+              {activeLocale === 'id'
+                ? 'Jelaskan solusi rekayasa perangkat lunak, optimasi performa, atau pola arsitektur yang diimplementasikan.'
+                : 'Explain architectural solutions, performance optimizations, or engineering approaches implemented.'}
+            </p>
+            <MarkdownEditor
               value={currentTrans.solutions}
-              onChange={(e) => handleTransChange('solutions', e.target.value)}
-              placeholder={activeLocale === 'id' ? 'Solusi arsitektur dan langkah teknis...' : 'Architectural solutions and engineering approaches...'}
-              className="w-full px-4 py-3 bg-[var(--bg-card)] border border-[var(--border-subtle)] rounded-xl text-[var(--text-primary)] placeholder:text-[var(--text-tertiary)] text-sm resize-y"
+              onChange={(val) => handleTransChange('solutions', val)}
+              placeholder={activeLocale === 'id' ? 'Tuliskan solusi dan arsitektur teknis dalam format Markdown...' : 'Write technical solutions and architecture in Markdown format...'}
+              minHeight="220px"
             />
           </div>
         </div>

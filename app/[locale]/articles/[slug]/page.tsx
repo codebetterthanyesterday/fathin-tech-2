@@ -154,86 +154,142 @@ export default async function ArticleDetailPage({ params }: ArticleDetailPagePro
           style={{ backgroundColor: 'var(--glow-color)' }}
         />
 
-        <div className="max-w-3xl mx-auto relative z-10">
-          {/* Metadata Badges */}
-          <div className="flex flex-wrap items-center gap-4 text-xs font-mono text-[var(--text-secondary)] mb-6">
-            <span className="inline-flex items-center gap-1.5 px-3 py-1 rounded-full bg-[var(--bg-surface)] border border-[var(--border-subtle)] text-[var(--text-primary)]">
-              <Sparkles className="w-3.5 h-3.5 text-[var(--accent-text)]" />
-              Technical Note
-            </span>
-            {article.publishedAt && (
-              <span className="flex items-center gap-1.5">
-                <Calendar className="w-3.5 h-3.5" />
-                {formatDate(article.publishedAt)}
-              </span>
-            )}
-            <span className="flex items-center gap-1.5">
-              <Clock className="w-3.5 h-3.5" />
-              {readTime} {t('minRead')}
-            </span>
-          </div>
-
-          {/* Title */}
-          <h1 className="text-3xl sm:text-4xl md:text-5xl font-black tracking-tight text-[var(--text-primary)] mb-6 leading-[1.15]">
-            {article.title}
-          </h1>
-
-          {/* Excerpt */}
-          {article.excerpt && (
-            <p className="text-lg sm:text-xl text-[var(--text-secondary)] leading-relaxed font-light mb-10 border-l-2 border-[var(--border-strong)] pl-4">
-              {article.excerpt}
-            </p>
-          )}
-
-          {/* Cover Image */}
-          {article.coverImage && (
-            <div className="w-full aspect-[16/9] sm:aspect-[2/1] relative rounded-3xl overflow-hidden bg-[var(--bg-surface)] border border-[var(--border-subtle)] shadow-2xl mb-12">
-              <Image
-                src={article.coverImage}
-                alt={article.title}
-                fill
-                priority
-                className="object-cover"
-                sizes="(max-width: 768px) 100vw, 800px"
-              />
-            </div>
-          )}
-
-          {/* Rendered HTML Markdown Body */}
-          <div
-            className="prose dark:prose-invert prose-zinc max-w-none prose-headings:font-bold prose-headings:tracking-tight prose-a:text-[var(--accent-text)] prose-a:no-underline hover:prose-a:underline prose-pre:p-0 prose-pre:border prose-pre:border-[var(--border-subtle)] prose-pre:rounded-2xl prose-img:rounded-2xl prose-img:border prose-img:border-[var(--border-subtle)] leading-relaxed text-[var(--text-primary)]"
-            dangerouslySetInnerHTML={{ __html: htmlContent }}
-          />
-
-          {/* Article Footer & Author Info */}
-          <div className="mt-20 pt-10 border-t border-[var(--border-subtle)] flex flex-col sm:flex-row sm:items-center justify-between gap-6">
-            <div className="flex items-center gap-4">
-              {profile?.photoUrl ? (
-                <Image
-                  src={profile.photoUrl}
-                  alt={profile.name}
-                  width={52}
-                  height={52}
-                  className="rounded-full ring-2 ring-[var(--border-strong)] object-cover shadow-sm"
-                />
-              ) : (
-                <div className="w-12 h-12 rounded-full bg-[var(--bg-surface)] border border-[var(--border-subtle)] flex items-center justify-center font-bold text-lg">
-                  {profile?.name?.[0] || 'A'}
-                </div>
-              )}
-              <div>
-                <p className="font-bold text-base text-[var(--text-primary)]">{profile?.name || 'Author'}</p>
-                <p className="text-xs text-[var(--text-secondary)]">{profile?.tagline || 'Software Engineer'}</p>
-              </div>
-            </div>
-
+        <div className="max-w-6xl mx-auto relative z-10 lg:grid lg:grid-cols-[200px_minmax(0,65ch)] lg:gap-16 lg:justify-center lg:items-start">
+          
+          {/* Sidebar / Metadata Rail */}
+          <aside className="hidden lg:block sticky top-32 space-y-8">
             <Link
               href="/articles"
-              className="inline-flex items-center gap-2 px-5 py-2.5 rounded-full bg-[var(--bg-surface)] border border-[var(--border-subtle)] text-xs font-semibold text-[var(--text-primary)] hover:border-[var(--border-strong)] transition-colors shadow-sm self-start sm:self-auto"
+              className="inline-flex items-center gap-2 text-sm font-medium text-[var(--text-secondary)] hover:text-[var(--text-primary)] transition-colors mb-4"
             >
-              <ArrowLeft className="w-3.5 h-3.5" />
+              <ArrowLeft className="w-4 h-4" />
               {t('backToArticles')}
             </Link>
+
+            <div className="space-y-6">
+              {/* Author */}
+              <div className="flex items-center gap-3">
+                {profile?.photoUrl ? (
+                  <Image
+                    src={profile.photoUrl}
+                    alt={profile.name}
+                    width={40}
+                    height={40}
+                    className="rounded-full ring-1 ring-[var(--border-strong)] object-cover"
+                  />
+                ) : (
+                  <div className="w-10 h-10 rounded-full bg-[var(--bg-surface)] border border-[var(--border-subtle)] flex items-center justify-center font-bold text-sm">
+                    {profile?.name?.[0] || 'A'}
+                  </div>
+                )}
+                <div>
+                  <p className="font-bold text-sm text-[var(--text-primary)]">{profile?.name || 'Author'}</p>
+                  <p className="text-xs text-[var(--text-secondary)]">{profile?.tagline || 'Software Engineer'}</p>
+                </div>
+              </div>
+
+              {/* Meta Stats */}
+              <div className="space-y-3 text-xs font-mono text-[var(--text-secondary)]">
+                <div className="flex items-center gap-2">
+                  <Sparkles className="w-3.5 h-3.5 text-[var(--accent-text)]" />
+                  <span className="text-[var(--text-primary)]">Technical Note</span>
+                </div>
+                {article.publishedAt && (
+                  <div className="flex items-center gap-2">
+                    <Calendar className="w-3.5 h-3.5" />
+                    {formatDate(article.publishedAt)}
+                  </div>
+                )}
+                <div className="flex items-center gap-2">
+                  <Clock className="w-3.5 h-3.5" />
+                  {readTime} {t('minRead')}
+                </div>
+              </div>
+            </div>
+          </aside>
+
+          {/* Main Content Column */}
+          <div className="min-w-0">
+            {/* Mobile Metadata Badges (Hidden on Desktop) */}
+            <div className="flex lg:hidden flex-wrap items-center gap-4 text-xs font-mono text-[var(--text-secondary)] mb-6">
+              <span className="inline-flex items-center gap-1.5 px-3 py-1 rounded-full bg-[var(--bg-surface)] border border-[var(--border-subtle)] text-[var(--text-primary)]">
+                <Sparkles className="w-3.5 h-3.5 text-[var(--accent-text)]" />
+                Technical Note
+              </span>
+              {article.publishedAt && (
+                <span className="flex items-center gap-1.5">
+                  <Calendar className="w-3.5 h-3.5" />
+                  {formatDate(article.publishedAt)}
+                </span>
+              )}
+              <span className="flex items-center gap-1.5">
+                <Clock className="w-3.5 h-3.5" />
+                {readTime} {t('minRead')}
+              </span>
+            </div>
+
+            {/* Title */}
+            <h1 className="text-3xl sm:text-4xl md:text-5xl font-black tracking-tight text-[var(--text-primary)] mb-6 leading-[1.15]">
+              {article.title}
+            </h1>
+
+            {/* Excerpt */}
+            {article.excerpt && (
+              <p className="text-lg sm:text-xl text-[var(--text-secondary)] leading-relaxed font-light mb-10 border-l-2 border-[var(--border-strong)] pl-4">
+                {article.excerpt}
+              </p>
+            )}
+
+            {/* Cover Image */}
+            {article.coverImage && (
+              <div className="w-full aspect-[16/9] sm:aspect-[2/1] relative rounded-3xl overflow-hidden bg-[var(--bg-surface)] border border-[var(--border-subtle)] shadow-2xl mb-12">
+                <Image
+                  src={article.coverImage}
+                  alt={article.title}
+                  fill
+                  priority
+                  className="object-cover"
+                  sizes="(max-width: 768px) 100vw, 800px"
+                />
+              </div>
+            )}
+
+            {/* Rendered HTML Markdown Body */}
+            <div
+              className="prose dark:prose-invert prose-zinc max-w-none prose-headings:font-bold prose-headings:tracking-tight prose-a:text-[var(--accent-text)] prose-a:no-underline hover:prose-a:underline prose-pre:p-0 prose-pre:border prose-pre:border-[var(--border-subtle)] prose-pre:rounded-2xl prose-img:rounded-2xl prose-img:border prose-img:border-[var(--border-subtle)] leading-relaxed text-[var(--text-primary)]"
+              dangerouslySetInnerHTML={{ __html: htmlContent }}
+            />
+
+            {/* Mobile Article Footer & Author Info (Hidden on Desktop) */}
+            <div className="lg:hidden mt-20 pt-10 border-t border-[var(--border-subtle)] flex flex-col sm:flex-row sm:items-center justify-between gap-6">
+              <div className="flex items-center gap-4">
+                {profile?.photoUrl ? (
+                  <Image
+                    src={profile.photoUrl}
+                    alt={profile.name}
+                    width={52}
+                    height={52}
+                    className="rounded-full ring-2 ring-[var(--border-strong)] object-cover shadow-sm"
+                  />
+                ) : (
+                  <div className="w-12 h-12 rounded-full bg-[var(--bg-surface)] border border-[var(--border-subtle)] flex items-center justify-center font-bold text-lg">
+                    {profile?.name?.[0] || 'A'}
+                  </div>
+                )}
+                <div>
+                  <p className="font-bold text-base text-[var(--text-primary)]">{profile?.name || 'Author'}</p>
+                  <p className="text-xs text-[var(--text-secondary)]">{profile?.tagline || 'Software Engineer'}</p>
+                </div>
+              </div>
+
+              <Link
+                href="/articles"
+                className="inline-flex items-center gap-2 px-5 py-2.5 rounded-full bg-[var(--bg-surface)] border border-[var(--border-subtle)] text-xs font-semibold text-[var(--text-primary)] hover:border-[var(--border-strong)] transition-colors shadow-sm self-start sm:self-auto"
+              >
+                <ArrowLeft className="w-3.5 h-3.5" />
+                {t('backToArticles')}
+              </Link>
+            </div>
           </div>
         </div>
       </article>
