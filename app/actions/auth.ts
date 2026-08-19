@@ -4,7 +4,7 @@ import { z } from 'zod';
 import bcrypt from 'bcryptjs';
 import crypto from 'crypto';
 import { prisma } from '@/lib/prisma';
-import { createSession, deleteSession } from '@/lib/auth';
+import { createSession, deleteSession, getSession } from '@/lib/auth';
 import { redirect } from 'next/navigation';
 import { sendPasswordResetEmail } from '@/lib/email';
 import { getAdminPath } from '@/lib/routes';
@@ -342,6 +342,102 @@ export async function resetPassword(
     console.error('Reset password error:', error);
     return {
       error: 'Update failed: Unable to save new password.',
+    };
+  }
+}
+
+const changePasswordSchema = z
+  .object({
+    currentPassword: z.string().min(1, 'Password saat ini wajib diisi'),
+    newPassword: z.string().min(8, 'Password baru minimal 8 karakter'),
+    confirmPassword: z.string().min(8, 'Konfirmasi password minimal 8 karakter'),
+  })
+  .refine((data) => data.newPassword === data.confirmPassword, {
+    message: 'Konfirmasi password baru tidak cocok',
+    path: ['confirmPassword'],
+  })
+  .refine((data) => data.currentPassword !== data.newPassword, {
+    message: 'Password baru tidak boleh sama dengan password saat ini',
+    path: ['newPassword'],
+  });
+
+/**
+ * Changes password for currently authenticated user.
+ */
+export async function changePassword(
+  prevState: any,
+  formData: FormData
+): Promise<AuthActionState> {
+  const session = await getSession();
+  if (!session) {
+    return {
+      error: 'Unauthorized: Sesi Anda telah berakhir. Silakan login kembali.',
+    };
+  }
+
+  const currentPassword = (formData.get('currentPassword') as string) || '';
+  const newPassword = (formData.get('newPassword') as string) || '';
+  const confirmPassword = (formData.get('confirmPassword') as string) || '';
+
+  const validated = changePasswordSchema.safeParse({
+    currentPassword,
+    newPassword,
+    confirmPassword,
+  });
+
+  if (!validated.success) {
+    const firstError =
+      validated.error.issues[0]?.message || 'Validation error.';
+    return {
+      error: firstError,
+      fieldErrors: validated.error.flatten().fieldErrors,
+    };
+  }
+
+  try {
+    const user = await prisma.user.findUnique({
+      where: { id: session.userId },
+    });
+
+    if (!user) {
+      return {
+        error: 'User account not found.',
+      };
+    }
+
+    const isMatch = await bcrypt.compare(
+      validated.data.currentPassword,
+      user.passwordHash
+    );
+
+    if (!isMatch) {
+      return {
+        error: 'Password saat ini tidak sesuai.',
+        fieldErrors: {
+          currentPassword: ['Password saat ini tidak sesuai'],
+        },
+      };
+    }
+
+    const newPasswordHash = await bcrypt.hash(validated.data.newPassword, 10);
+
+    await prisma.$transaction([
+      prisma.user.update({
+        where: { id: user.id },
+        data: { passwordHash: newPasswordHash },
+      }),
+      prisma.passwordResetToken.deleteMany({
+        where: { userId: user.id },
+      }),
+    ]);
+
+    return {
+      success: 'Password berhasil diperbarui.',
+    };
+  } catch (error) {
+    console.error('Change password error:', error);
+    return {
+      error: 'Terjadi kesalahan saat memperbarui password.',
     };
   }
 }
