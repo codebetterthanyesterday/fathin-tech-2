@@ -62,46 +62,35 @@ export default function MinimalCertificationsSection({ certifications }: { certi
                 whileInView={{ opacity: 1, y: 0 }}
                 viewport={{ once: true }}
                 transition={{ delay: idx * 0.07, duration: 0.5, ease: [0.16, 1, 0.3, 1] }}
-                className="group relative flex flex-col p-5 rounded-2xl bg-[var(--bg-card)] border border-[var(--border-subtle)] hover:border-[var(--border-strong)] hover:bg-[var(--bg-card-hover)] transition-all duration-300"
+                className="group relative flex flex-col rounded-2xl bg-[var(--bg-card)] border border-[var(--border-subtle)] hover:border-[var(--border-strong)] hover:bg-[var(--bg-card-hover)] transition-all duration-300 overflow-hidden"
               >
-                {/* Badge */}
-                <div className="w-12 h-12 rounded-xl overflow-hidden bg-[var(--bg-surface)] border border-[var(--border-subtle)] flex items-center justify-center mb-4 group-hover:border-[var(--border-strong)] transition-colors">
-                  {cert.imageUrl ? (
-                    <Image
-                      src={cert.imageUrl}
-                      alt={cert.title}
-                      width={48}
-                      height={48}
-                      className="object-contain p-1"
-                    />
-                  ) : (
-                    <Shield className="w-5 h-5 text-[var(--text-tertiary)]" />
-                  )}
-                </div>
+                <Link href={`/certifications/${cert.id}`} className="flex flex-col flex-1 p-5">
+                  {/* Badge */}
+                  <div className="w-12 h-12 rounded-xl overflow-hidden bg-[var(--bg-surface)] border border-[var(--border-subtle)] flex items-center justify-center mb-4 group-hover:border-[var(--border-strong)] transition-colors">
+                    {cert.imageUrl ? (
+                      <Image
+                        src={cert.imageUrl}
+                        alt={cert.title}
+                        width={48}
+                        height={48}
+                        className="object-contain p-1"
+                      />
+                    ) : (
+                      <Shield className="w-5 h-5 text-[var(--text-tertiary)]" />
+                    )}
+                  </div>
 
-                <h3 className="text-sm font-semibold text-[var(--text-primary)] leading-snug mb-1 line-clamp-2">
-                  {cert.title}
-                </h3>
-                <p className="text-xs text-[var(--text-tertiary)] mb-3 line-clamp-1">{cert.issuingOrg}</p>
+                  <h3 className="text-sm font-semibold text-[var(--text-primary)] leading-snug mb-1 line-clamp-2">
+                    {cert.title}
+                  </h3>
+                  <p className="text-xs text-[var(--text-tertiary)] mb-3 line-clamp-1">{cert.issuingOrg}</p>
 
-                {/* Status */}
-                <div className={`mt-auto flex items-center gap-1 text-[10px] font-medium ${cls}`}>
-                  <Icon className="w-3 h-3" />
-                  {t(`status${status.split('-').map((w: string) => w.charAt(0).toUpperCase() + w.slice(1)).join('')}` as any)}
-                </div>
-
-                {cert.credentialUrl && (
-                  <a
-                    href={cert.credentialUrl}
-                    target="_blank"
-                    rel="noopener noreferrer"
-                    onClick={(e) => e.stopPropagation()}
-                    className="absolute top-4 right-4 opacity-0 group-hover:opacity-100 transition-opacity text-[var(--text-tertiary)] hover:text-[var(--text-primary)]"
-                    aria-label="View credential"
-                  >
-                    <ExternalLink className="w-3.5 h-3.5" />
-                  </a>
-                )}
+                  {/* Status */}
+                  <div className={`mt-auto flex items-center gap-1 text-[10px] font-medium ${cls}`}>
+                    <Icon className="w-3 h-3" />
+                    {t(`status${status.split('-').map((w: string) => w.charAt(0).toUpperCase() + w.slice(1)).join('')}` as any)}
+                  </div>
+                </Link>
               </motion.div>
             );
           })}

@@ -73,65 +73,54 @@ export default function ImmersiveCertificationsSection({ certifications }: { cer
                 whileInView={{ opacity: 1, y: 0 }}
                 viewport={{ once: true }}
                 transition={{ delay: idx * 0.09, duration: 0.6, ease: [0.16, 1, 0.3, 1] }}
-                className={`group relative flex flex-col p-6 rounded-2xl border transition-all duration-300 ${
+                className={`group relative flex flex-col rounded-2xl border transition-all duration-300 overflow-hidden ${
                   isExpired
                     ? 'bg-white/[0.01] border-white/5 opacity-50'
                     : 'bg-white/[0.03] border-white/8 hover:bg-white/[0.07] hover:border-white/15'
                 }`}
               >
-                {/* Subtle shine on hover */}
-                <div className="absolute inset-0 rounded-2xl bg-gradient-to-br from-white/5 to-transparent opacity-0 group-hover:opacity-100 transition-opacity pointer-events-none" />
+                <Link href={`/certifications/${cert.id}`} className="flex flex-col flex-1 p-6">
+                  {/* Subtle shine on hover */}
+                  <div className="absolute inset-0 rounded-2xl bg-gradient-to-br from-white/5 to-transparent opacity-0 group-hover:opacity-100 transition-opacity pointer-events-none" />
 
-                {/* Badge image */}
-                <div className="relative w-12 h-12 rounded-xl overflow-hidden bg-white/5 border border-white/10 flex items-center justify-center mb-5 group-hover:border-white/20 transition-colors">
-                  {cert.imageUrl ? (
-                    <Image
-                      src={cert.imageUrl}
-                      alt={cert.title}
-                      width={48}
-                      height={48}
-                      className="object-contain p-1"
+                  {/* Badge image */}
+                  <div className="relative w-12 h-12 rounded-xl overflow-hidden bg-white/5 border border-white/10 flex items-center justify-center mb-5 group-hover:border-white/20 transition-colors">
+                    {cert.imageUrl ? (
+                      <Image
+                        src={cert.imageUrl}
+                        alt={cert.title}
+                        width={48}
+                        height={48}
+                        className="object-contain p-1"
+                      />
+                    ) : (
+                      <Shield className="w-5 h-5 text-zinc-600" />
+                    )}
+                  </div>
+
+                  <h3 className="text-sm font-semibold text-white leading-snug mb-1.5 line-clamp-2 group-hover:text-white/90">
+                    {cert.title}
+                  </h3>
+                  <p className="text-xs text-zinc-600 line-clamp-1">{cert.issuingOrg}</p>
+
+                  <div className="mt-auto pt-4 flex items-center justify-between">
+                    <span className="text-[10px] font-medium text-zinc-700 font-mono">
+                      {new Date(cert.issueDate).getFullYear()}
+                    </span>
+
+                    {/* Status dot */}
+                    <span
+                      className={`w-1.5 h-1.5 rounded-full ${
+                        isExpired
+                          ? 'bg-zinc-700'
+                          : status === 'expiring-soon'
+                          ? 'bg-zinc-400'
+                          : 'bg-zinc-500'
+                      }`}
+                      title={status}
                     />
-                  ) : (
-                    <Shield className="w-5 h-5 text-zinc-600" />
-                  )}
-                </div>
-
-                <h3 className="text-sm font-semibold text-white leading-snug mb-1.5 line-clamp-2">
-                  {cert.title}
-                </h3>
-                <p className="text-xs text-zinc-600 line-clamp-1">{cert.issuingOrg}</p>
-
-                <div className="mt-auto pt-4 flex items-center justify-between">
-                  <span className="text-[10px] font-medium text-zinc-700 font-mono">
-                    {new Date(cert.issueDate).getFullYear()}
-                  </span>
-
-                  {/* Status dot */}
-                  <span
-                    className={`w-1.5 h-1.5 rounded-full ${
-                      isExpired
-                        ? 'bg-zinc-700'
-                        : status === 'expiring-soon'
-                        ? 'bg-zinc-400'
-                        : 'bg-zinc-500'
-                    }`}
-                    title={status}
-                  />
-                </div>
-
-                {cert.credentialUrl && (
-                  <a
-                    href={cert.credentialUrl}
-                    target="_blank"
-                    rel="noopener noreferrer"
-                    onClick={(e) => e.stopPropagation()}
-                    className="absolute top-4 right-4 opacity-0 group-hover:opacity-100 transition-opacity text-zinc-600 hover:text-white"
-                    aria-label="View credential"
-                  >
-                    <ExternalLink className="w-3.5 h-3.5" />
-                  </a>
-                )}
+                  </div>
+                </Link>
               </motion.div>
             );
           })}

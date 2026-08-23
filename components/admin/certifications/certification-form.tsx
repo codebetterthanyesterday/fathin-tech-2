@@ -4,7 +4,8 @@ import { useState, useActionState, useEffect, useRef, startTransition } from 're
 import { useRouter } from 'next/navigation';
 import { upsertCertification } from '@/app/actions/certification';
 import { getAdminPath } from '@/lib/routes';
-import { Loader2, Save, Image as ImageIcon, Link as LinkIcon, Star, Eye, CalendarDays } from 'lucide-react';
+import { uploadImage } from '@/app/actions/upload';
+import { Loader2, Save, Image as ImageIcon, Link as LinkIcon, Star, Eye, CalendarDays, Upload, X } from 'lucide-react';
 import LocaleTabSelector from '../layout/locale-tab-selector';
 import CategoryInput, { CategoryItem } from './category-input';
 
@@ -57,7 +58,31 @@ export default function CertificationForm({
   }));
   const [categories, setCategories] = useState<CategoryItem[]>(initialCategories);
 
+  const [isUploading, setIsUploading] = useState(false);
+  const [uploadError, setUploadError] = useState('');
+
   const [state, formAction, isPending] = useActionState(upsertCertification, {});
+
+  const handleImageChange = async (e: React.ChangeEvent<HTMLInputElement>) => {
+    const file = e.target.files?.[0];
+    if (!file) return;
+
+    setUploadError('');
+    setIsUploading(true);
+
+    const formData = new FormData();
+    formData.append('file', file);
+
+    const result = await uploadImage(formData);
+
+    if (result.error) {
+      setUploadError(result.error);
+    } else if (result.url) {
+      setImageUrl(result.url);
+    }
+
+    setIsUploading(false);
+  };
 
   useEffect(() => {
     if (state.success) {
@@ -250,23 +275,60 @@ export default function CertificationForm({
           <ImageIcon className="w-4 h-4" /> Badge / Certificate Image
         </h3>
 
-        <div>
-          <label className={labelClass}>Image URL</label>
-          <input
-            type="url"
-            value={imageUrl}
-            onChange={(e) => setImageUrl(e.target.value)}
-            placeholder="https://..."
-            className={inputClass}
-          />
-        </div>
-
-        {imageUrl && (
-          <div className="w-24 h-24 rounded-xl overflow-hidden border border-zinc-700 bg-zinc-800">
-            {/* eslint-disable-next-line @next/next/no-img-element */}
-            <img src={imageUrl} alt="preview" className="w-full h-full object-contain p-2" />
+        <div className="flex flex-col sm:flex-row items-start gap-6">
+          <div className="flex-1 w-full">
+            <label className={labelClass}>Upload Image</label>
+            <div className="relative group cursor-pointer">
+              <input
+                type="file"
+                accept="image/*"
+                onChange={handleImageChange}
+                disabled={isUploading}
+                className="absolute inset-0 w-full h-full opacity-0 cursor-pointer disabled:cursor-not-allowed"
+              />
+              <div className="w-full flex items-center justify-center px-6 py-8 border-2 border-dashed border-zinc-700 rounded-xl bg-zinc-900/50 group-hover:bg-zinc-800/50 group-hover:border-zinc-500 transition-all text-center">
+                <div className="space-y-2">
+                  <div className="w-10 h-10 rounded-full bg-zinc-800 flex items-center justify-center mx-auto text-zinc-400 group-hover:text-white group-hover:scale-110 transition-all">
+                    {isUploading ? (
+                      <Loader2 className="w-5 h-5 animate-spin" />
+                    ) : (
+                      <Upload className="w-5 h-5" />
+                    )}
+                  </div>
+                  <div className="text-sm text-zinc-300 font-medium">
+                    {isUploading ? 'Mengunggah...' : 'Klik atau seret gambar ke sini'}
+                  </div>
+                  <div className="text-xs text-zinc-500">
+                    PNG, JPG, WEBP maks 5MB
+                  </div>
+                </div>
+              </div>
+            </div>
+            {uploadError && (
+              <p className="mt-2 text-xs text-red-400">{uploadError}</p>
+            )}
           </div>
-        )}
+
+          {imageUrl && (
+            <div className="w-32 flex-shrink-0 space-y-2">
+              <label className={labelClass}>Preview</label>
+              <div className="relative aspect-square rounded-xl overflow-hidden border border-zinc-700 bg-zinc-800 group">
+                {/* eslint-disable-next-line @next/next/no-img-element */}
+                <img src={imageUrl} alt="preview" className="w-full h-full object-cover" />
+                <div className="absolute inset-0 bg-black/60 opacity-0 group-hover:opacity-100 transition-opacity flex items-center justify-center">
+                  <button
+                    type="button"
+                    onClick={() => setImageUrl('')}
+                    className="p-2 bg-red-500 text-white rounded-full hover:scale-110 transition-transform"
+                    title="Hapus gambar"
+                  >
+                    <X className="w-4 h-4" />
+                  </button>
+                </div>
+              </div>
+            </div>
+          )}
+        </div>
       </div>
 
       {/* Categories */}

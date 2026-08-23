@@ -136,6 +136,22 @@ export async function getPublicCertifications(filter: { page?: number; categoryI
   }
 }
 
+export async function getPublicCertificationById(id: string) {
+  try {
+    const cert = await prisma.certification.findUnique({
+      where: { id, isVisible: true },
+      include: {
+        translations: true,
+        categories: { include: { category: true } },
+      },
+    });
+    return cert;
+  } catch (error) {
+    console.error('Failed to get public certification by id:', error);
+    return null;
+  }
+}
+
 export async function getFeaturedCertifications(limit = 4) {
   try {
     let certs = await prisma.certification.findMany({

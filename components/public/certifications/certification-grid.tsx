@@ -63,7 +63,10 @@ function CertificationCard({ cert, locale, t }: { cert: any; locale: string; t: 
   const categories = cert.categories?.map((c: any) => c.category) || [];
 
   return (
-    <div className="group relative flex flex-col h-full p-6 rounded-2xl bg-[var(--bg-card)] border border-[var(--border-subtle)] hover:border-[var(--border-strong)] hover:bg-[var(--bg-card-hover)] transition-all duration-300 shadow-sm hover:shadow-lg hover:-translate-y-0.5">
+    <Link 
+      href={`/${locale}/certifications/${cert.id}`}
+      className="group relative flex flex-col h-full p-6 rounded-2xl bg-[var(--bg-card)] border border-[var(--border-subtle)] hover:border-[var(--border-strong)] hover:bg-[var(--bg-card-hover)] transition-all duration-300 shadow-sm hover:shadow-lg hover:-translate-y-0.5"
+    >
       {/* Badge image or placeholder */}
       <div className="mb-5 flex items-start justify-between gap-3">
         <div className="w-14 h-14 rounded-xl overflow-hidden bg-[var(--bg-surface)] border border-[var(--border-subtle)] flex items-center justify-center flex-shrink-0 group-hover:border-[var(--border-strong)] transition-colors">
@@ -110,7 +113,7 @@ function CertificationCard({ cert, locale, t }: { cert: any; locale: string; t: 
 
       {/* Categories */}
       {categories.length > 0 && (
-        <div className="flex flex-wrap gap-1.5 mb-4">
+        <div className="flex flex-wrap gap-1.5 mt-auto pt-4">
           {categories.map((cat: any) => (
             <span
               key={cat.id}
@@ -121,20 +124,7 @@ function CertificationCard({ cert, locale, t }: { cert: any; locale: string; t: 
           ))}
         </div>
       )}
-
-      {/* Credential link */}
-      {resolved.credentialUrl && (
-        <a
-          href={resolved.credentialUrl}
-          target="_blank"
-          rel="noopener noreferrer"
-          className="inline-flex items-center gap-1.5 text-xs font-medium text-[var(--text-secondary)] hover:text-[var(--text-primary)] transition-colors group/link"
-        >
-          {t('viewCredential')}
-          <ExternalLink className="w-3.5 h-3.5 group-hover/link:translate-x-0.5 transition-transform" />
-        </a>
-      )}
-    </div>
+    </Link>
   );
 }
 
