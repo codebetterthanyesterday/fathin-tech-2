@@ -30,6 +30,7 @@ interface ReorderableListProps<T extends { id: string }> {
   onReorder: (newItems: T[]) => void;
   children: React.ReactNode;
   renderOverlay?: (activeId: string) => React.ReactNode;
+  id?: string;
 }
 
 export function ReorderableList<T extends { id: string }>({
@@ -37,7 +38,10 @@ export function ReorderableList<T extends { id: string }>({
   onReorder,
   children,
   renderOverlay,
+  id,
 }: ReorderableListProps<T>) {
+  const defaultId = React.useId();
+  const dndId = id || defaultId;
   const [activeId, setActiveId] = React.useState<string | null>(null);
   
   const sensors = useSensors(
@@ -68,6 +72,7 @@ export function ReorderableList<T extends { id: string }>({
 
   return (
     <DndContext
+      id={dndId}
       sensors={sensors}
       collisionDetection={closestCenter}
       onDragStart={handleDragStart}

@@ -13,6 +13,7 @@ import {
   FileText,
   Settings,
   LogOut,
+  Award,
 } from 'lucide-react';
 import { logout } from '@/app/actions/auth';
 import { getAdminPath } from '@/lib/routes';
@@ -35,6 +36,7 @@ const MENU_ITEMS: MenuItem[] = [
   { label: 'Sections', subpath: 'sections', icon: Layers },
   { label: 'Testimonials', subpath: 'testimonials', icon: MessageSquareQuote },
   { label: 'Articles', subpath: 'articles', icon: FileText },
+  { label: 'Certifications', subpath: 'certifications', icon: Award },
   { label: 'Configuration', subpath: 'settings', icon: Settings },
 ];
 

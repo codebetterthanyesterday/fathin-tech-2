@@ -93,6 +93,28 @@
     "backToArticles": "Kembali ke Artikel",
     "backToHome": "Kembali ke Beranda"
   },
+  "certifications": {
+    "minimalTitle": "Sertifikasi & Penghargaan",
+    "minimalSubtitle": "Rangkuman kualifikasi profesional, pencapaian, dan perjalanan belajar berkelanjutan saya.",
+    "immersiveBadge": "Kredensial Profesional",
+    "immersiveTitle": "Sertifikasi & Penghargaan.",
+    "immersiveSubtitle": "Bukti nyata kompetensi teknis, pembelajaran berkelanjutan, dan pencapaian profesional.",
+    "viewCredential": "Lihat Kredensial",
+    "issuedBy": "Diterbitkan oleh",
+    "categories": "Kategori",
+    "noCerts": "Tidak ada sertifikasi ditemukan.",
+    "viewAll": "Lihat semua sertifikasi",
+    "filterSkill": "Keahlian",
+    "filterIssuer": "Penerbit",
+    "filterType": "Jenis",
+    "clearFilters": "Hapus filter",
+    "statusValid": "Aktif",
+    "statusExpiringSoon": "Segera Kedaluwarsa",
+    "statusExpired": "Kedaluwarsa",
+    "statusNoExpiry": "Tanpa Kedaluwarsa",
+    "pageTitle": "Sertifikasi & Penghargaan",
+    "pageSubtitle": "Rekam jejak lengkap sertifikasi profesional, kredensial, dan pencapaian teknis."
+  },
   "contact": {
     "title": "Hubungi Saya",
     "subtitle": "Buka jalur komunikasi. Saya biasanya merespons dalam waktu 24 jam.",

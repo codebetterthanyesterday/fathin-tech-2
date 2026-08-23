@@ -55,6 +55,12 @@ export const CustomTextContentSchema = z.object({
 // Discriminated union — the single source of truth
 // ─────────────────────────────────────────────
 
+export const CertificationsContentSchema = z.object({
+  type: z.literal('CERTIFICATIONS'),
+  limit: z.number().int().min(1).max(12).optional(),
+  filter: z.enum(['featured', 'all']).default('featured'),
+});
+
 export const SectionContentSchema = z.discriminatedUnion('type', [
   HeroContentSchema,
   SkillsGridContentSchema,
@@ -63,6 +69,7 @@ export const SectionContentSchema = z.discriminatedUnion('type', [
   TestimonialsContentSchema,
   ArticlesListContentSchema,
   CustomTextContentSchema,
+  CertificationsContentSchema,
 ]);
 
 export type SectionContent = z.infer<typeof SectionContentSchema>;
@@ -73,6 +80,7 @@ export type ExperienceTimelineContent = z.infer<typeof ExperienceTimelineContent
 export type TestimonialsContent = z.infer<typeof TestimonialsContentSchema>;
 export type ArticlesListContent = z.infer<typeof ArticlesListContentSchema>;
 export type CustomTextContent = z.infer<typeof CustomTextContentSchema>;
+export type CertificationsContent = z.infer<typeof CertificationsContentSchema>;
 
 // ─────────────────────────────────────────────
 // Default content per type (used in seed script + admin form)
@@ -85,5 +93,6 @@ export const DEFAULT_CONTENT: Record<string, object> = {
   EXPERIENCE_TIMELINE: { type: 'EXPERIENCE_TIMELINE', limit: 10, types: [] },
   TESTIMONIALS: { type: 'TESTIMONIALS', limit: 3 },
   ARTICLES_LIST: { type: 'ARTICLES_LIST', limit: 5 },
+  CERTIFICATIONS: { type: 'CERTIFICATIONS', filter: 'featured', limit: 4 },
   CUSTOM_TEXT: { type: 'CUSTOM_TEXT', heading: '', heading_id: '', heading_en: '', body: '', body_id: '', body_en: '' },
 };

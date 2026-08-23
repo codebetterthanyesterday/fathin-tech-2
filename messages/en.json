@@ -93,6 +93,28 @@
     "backToArticles": "Back to Articles",
     "backToHome": "Back to Home"
   },
+  "certifications": {
+    "minimalTitle": "Certifications & Awards",
+    "minimalSubtitle": "A showcase of my professional qualifications, achievements, and continuous learning journey.",
+    "immersiveBadge": "Professional Credentials",
+    "immersiveTitle": "Certifications & Awards.",
+    "immersiveSubtitle": "Documented proof of technical proficiency, continuous learning, and professional milestones.",
+    "viewCredential": "View Credential",
+    "issuedBy": "Issued by",
+    "categories": "Categories",
+    "noCerts": "No certifications found.",
+    "viewAll": "View all certifications",
+    "filterSkill": "Skills",
+    "filterIssuer": "Issuer",
+    "filterType": "Type",
+    "clearFilters": "Clear filters",
+    "statusValid": "Valid",
+    "statusExpiringSoon": "Expiring Soon",
+    "statusExpired": "Expired",
+    "statusNoExpiry": "No Expiry",
+    "pageTitle": "Certifications & Awards",
+    "pageSubtitle": "A complete record of professional certifications, credentials, and technical achievements."
+  },
   "contact": {
     "title": "Initiate Contact",
     "subtitle": "Open a secure channel. I usually respond within 24 hours.",

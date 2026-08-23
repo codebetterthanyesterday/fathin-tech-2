@@ -83,6 +83,7 @@ enum SectionType {
   TESTIMONIALS
   ARTICLES_LIST
   CUSTOM_TEXT
+  CERTIFICATIONS
 }
 
 model Section {
@@ -302,4 +303,67 @@ model ContactMessage {
   createdAt DateTime             @default(now())
 
   @@index([status])
+}
+
+// ------------------------------------------------------------
+// CERTIFICATIONS / CREDENTIALS
+// ------------------------------------------------------------
+
+enum CategoryDimension {
+  SKILL   // e.g. Cloud, Security, Data Engineering
+  ISSUER  // e.g. AWS, Google, Coursera
+  TYPE    // e.g. Professional Certification, Course, Award
+}
+
+model CertificationCategory {
+  id             String                               @id @default(cuid())
+  name           String
+  slug           String                               @unique
+  dimension      CategoryDimension
+  certifications CertificationCategoryOnCertification[]
+
+  @@unique([name, dimension])
+}
+
+model Certification {
+  id            String    @id @default(cuid())
+  title         String
+  issuingOrg    String
+  credentialId  String?
+  credentialUrl String?   // official verification link
+  imageUrl      String?   // certificate/badge image
+  issueDate     DateTime
+  expiryDate    DateTime? // null = never expires
+  isVisible     Boolean   @default(true)
+  isFeatured    Boolean   @default(false) // for homepage teaser
+  order         Int       @default(0)
+
+  categories   CertificationCategoryOnCertification[]
+  translations CertificationTranslation[]
+
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  @@index([isVisible, issueDate])
+}
+
+model CertificationTranslation {
+  id              String        @id @default(cuid())
+  certificationId String
+  certification   Certification @relation(fields: [certificationId], references: [id], onDelete: Cascade)
+  locale          String        // 'id' | 'en'
+  title           String
+  issuingOrg      String
+
+  @@unique([certificationId, locale])
+}
+
+model CertificationCategoryOnCertification {
+  certificationId String
+  categoryId      String
+  certification   Certification         @relation(fields: [certificationId], references: [id], onDelete: Cascade)
+  category        CertificationCategory @relation(fields: [categoryId], references: [id], onDelete: Cascade)
+
+  @@id([certificationId, categoryId])
+  @@index([categoryId])
 }

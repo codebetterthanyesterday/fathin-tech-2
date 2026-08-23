@@ -6,6 +6,7 @@ import {
   SkillsGridContent,
   TestimonialsContent,
   ArticlesListContent,
+  CertificationsContent,
 } from '@/lib/sections/schema';
 import { prisma } from '@/lib/prisma';
 import JsonLd from '@/components/public/json-ld';
@@ -29,6 +30,7 @@ import MinimalExperienceTimeline from '@/components/public/templates/minimal/exp
 import MinimalTestimonialsSection from '@/components/public/templates/minimal/testimonials-section';
 import MinimalArticlesSection from '@/components/public/templates/minimal/articles-section';
 import MinimalContactSection from '@/components/public/templates/minimal/contact-section';
+import MinimalCertificationsSection from '@/components/public/templates/minimal/certifications-section';
 
 // Immersive Template Imports
 import ImmersiveHeroSection from '@/components/public/templates/immersive/hero-section';
@@ -38,6 +40,7 @@ import ImmersiveExperienceTimeline from '@/components/public/templates/immersive
 import ImmersiveTestimonialsSection from '@/components/public/templates/immersive/testimonials-section';
 import ImmersiveArticlesSection from '@/components/public/templates/immersive/articles-section';
 import ImmersiveContactSection from '@/components/public/templates/immersive/contact-section';
+import ImmersiveCertificationsSection from '@/components/public/templates/immersive/certifications-section';
 
 const templates: Record<string, any> = {
   minimal: {
@@ -48,6 +51,7 @@ const templates: Record<string, any> = {
     TestimonialsSection: MinimalTestimonialsSection,
     ArticlesSection: MinimalArticlesSection,
     ContactSection: MinimalContactSection,
+    CertificationsSection: MinimalCertificationsSection,
   },
   immersive: {
     HeroSection: ImmersiveHeroSection,
@@ -57,6 +61,7 @@ const templates: Record<string, any> = {
     TestimonialsSection: ImmersiveTestimonialsSection,
     ArticlesSection: ImmersiveArticlesSection,
     ContactSection: ImmersiveContactSection,
+    CertificationsSection: ImmersiveCertificationsSection,
   },
 };
 
@@ -410,6 +415,30 @@ export default async function Home(props: HomePageProps) {
         const articles = await fetchArticlesData(rawContent as ArticlesListContent, locale);
         if (articles.length > 0) {
           renderedSections.push(<Template.ArticlesSection key={section.id} articles={articles} />);
+        }
+        break;
+      }
+
+      case 'CERTIFICATIONS': {
+        const content = rawContent as CertificationsContent;
+        const { getFeaturedCertifications } = await import('@/app/actions/certification');
+        const rawCerts = await getFeaturedCertifications(content.limit ?? 4);
+        if (rawCerts.length > 0) {
+          const certs = rawCerts.map((c: any) => {
+            const trans = c.translations?.find((t: any) => t.locale === locale);
+            return {
+              id: c.id,
+              title: trans?.title || c.title,
+              issuingOrg: trans?.issuingOrg || c.issuingOrg,
+              imageUrl: c.imageUrl,
+              credentialUrl: c.credentialUrl,
+              expiryDate: c.expiryDate,
+              issueDate: c.issueDate,
+            };
+          });
+          renderedSections.push(
+            <Template.CertificationsSection key={section.id} certifications={certs} />
+          );
         }
         break;
       }
